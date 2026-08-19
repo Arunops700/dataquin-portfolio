@@ -10,15 +10,22 @@ import { useEffect } from "react";
   JS-rendered crawl are correct per page.
 
   ── HOSTING ──────────────────────────────────────────────────────────
-  SITE_URL is the one place the deployed origin is written. After the
-  Vercel deploy, set it to the real hostname and run the same replacement
-  over index.html, public/robots.txt and public/sitemap.xml, e.g.:
+  Live on Vercel at dataquin.vercel.app, auto-deployed from the main
+  branch of Arunops700/dataquin-portfolio.
 
-    grep -rl "dq-portfolio.vercel.app" index.html public src \
-      | xargs sed -i 's|dq-portfolio\.vercel\.app|YOUR-REAL-HOST|g'
+  The host is written in four places: here, index.html, public/robots.txt
+  and public/sitemap.xml. To move to a custom domain (e.g. a subdomain of
+  dataquin.com), add it in the Vercel dashboard first, then rewrite all
+  four at once:
+
+    grep -rl "dataquin.vercel.app" index.html public src \
+      | xargs sed -i 's|dataquin\.vercel\.app|YOUR-NEW-HOST|g'
+
+  Rebuild and push — Vercel redeploys on push. Keep the old domain
+  redirecting to the new one so existing links and search results survive.
   ─────────────────────────────────────────────────────────────────────
 */
-export const SITE_URL = "https://dq-portfolio.vercel.app";
+export const SITE_URL = "https://dataquin.vercel.app";
 
 const BRAND = "DataQuin";
 
