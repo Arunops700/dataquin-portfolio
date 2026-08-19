@@ -43,6 +43,12 @@ export function CountUp({ to, suffix = "", prefix = "", duration = 1600 }) {
     const start = () => {
       if (done) return;
       done = true;
+      // Someone who asked the OS to reduce motion gets the final figure
+      // straight away rather than watching it tick up.
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        setVal(to);
+        return;
+      }
       let t0 = null;
       const step = (ts) => {
         if (!t0) t0 = ts;

@@ -15,6 +15,11 @@ export default function Flow({ nodes, edges }) {
   const wrapRef = useRef(null);
   const nodeRefs = useRef({});
   const [paths, setPaths] = useState([]);
+  // On phones the diagram is far wider than the screen. Track that so we can
+  // tell the reader it scrolls — mobile scrollbars are invisible until touched.
+  const [overflowing, setOverflowing] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const scrollRef = useRef(null);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   // SMIL animation can't be disabled from CSS, so reduced-motion has to be
   // honoured here by not rendering the travelling pulses at all.
@@ -68,6 +73,9 @@ export default function Flow({ nodes, edges }) {
         out.push({ d, label: e.label, lx, ly, i });
       });
       setPaths(out);
+
+      const sc = scrollRef.current;
+      if (sc) setOverflowing(sc.scrollWidth > sc.clientWidth + 4);
     };
 
     measure();
@@ -88,7 +96,15 @@ export default function Flow({ nodes, edges }) {
   }, [nodes, edges]);
 
   return (
-    <div className="flow-scroll" tabIndex={0} role="group" aria-label="System flow diagram">
+    <div className="flow-shell">
+    <div
+      className={`flow-scroll${overflowing ? " is-scrollable" : ""}${scrolled ? " is-scrolled" : ""}`}
+      ref={scrollRef}
+      tabIndex={0}
+      role="group"
+      aria-label="System flow diagram — scrolls horizontally"
+      onScroll={() => { if (!scrolled) setScrolled(true); }}
+    >
       <div
         className="flow"
         ref={wrapRef}
@@ -156,6 +172,13 @@ export default function Flow({ nodes, edges }) {
           </div>
         ))}
       </div>
+    </div>
+      {overflowing && (
+        <div className="flow-hint" aria-hidden="true">
+          <span>Swipe to follow the flow</span>
+          <span className="flow-hint-arr">→</span>
+        </div>
+      )}
     </div>
   );
 }

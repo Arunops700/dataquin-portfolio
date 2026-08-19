@@ -332,7 +332,7 @@ img, svg { max-width: 100%; }
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  font-size: clamp(11.5px, 1.15vw, 14.5px);
+  font-size: clamp(12.5px, 1.15vw, 14.5px);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -597,7 +597,7 @@ img, svg { max-width: 100%; }
 /* ============================================================
    Hero
    ============================================================ */
-.hero-badges { display: flex; flex-wrap: nowrap; gap: 10px; margin-bottom: 24px; }
+.hero-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
 .hero-desc { margin-top: 22px; }
 .hero-actions { display: flex; gap: 14px; margin-top: 34px; flex-wrap: wrap; }
 
@@ -919,8 +919,9 @@ img, svg { max-width: 100%; }
     justify-content: space-between;
     padding: 8px 8px 8px 16px;
   }
-  .brand { width: 78px; margin-right: 6px; }
-  .header nav a { padding: 9px 13px; font-size: 12px; letter-spacing: 0.06em; }
+  .brand { width: 72px; margin-right: 4px; }
+  .header nav { gap: 2px; }
+  .header nav a { padding: 12px 12px; font-size: 12px; letter-spacing: 0.04em; }
   .metric-row { grid-template-columns: repeat(2, 1fr); }
   .section { padding: 70px 0; }
   .cta-strip { padding: 40px 28px; }
@@ -930,7 +931,31 @@ img, svg { max-width: 100%; }
 
 @media (max-width: 560px) {
   .tech-grid { grid-template-columns: 1fr; }
-  .header nav a { padding: 8px 10px; font-size: 11px; }
+  /* The delivery panel's fixed padding and 52px medallions overflowed the
+     column on small phones; trim both so the path fits. */
+  .hero-pipe { padding: 20px 14px 18px; }
+  .dp-step { gap: 12px; padding: 11px 0; }
+  .dp-ico { width: 44px; height: 44px; border-radius: 13px; }
+  .dpath::before { left: 19px; }
+  .dp-t { font-size: 17.5px; }
+  .dp-s { font-size: 15.5px; }
+}
+
+/* The logo is redundant at this width — "Tech Stack" is itself the link to
+   "/", and the mark still appears in the footer. Dropping it frees ~76px,
+   which is what the three labels need to stay on one line and reach a 44px
+   tap height instead of being clipped off the right edge. */
+@media (max-width: 520px) {
+  .header { justify-content: center; padding: 5px 7px; }
+  .header .brand { display: none; }
+  .header nav { gap: 3px; }
+  .header nav a { padding: 13px 13px; font-size: 12.5px; letter-spacing: 0.03em; }
+}
+
+@media (max-width: 380px) {
+  .header { padding: 4px 5px; }
+  .header nav { gap: 1px; }
+  .header nav a { padding: 13px 9px; font-size: 12px; letter-spacing: 0.01em; }
 }
 
 /* Note: no blanket animation kill here — the brand motion (marquee,
@@ -964,7 +989,45 @@ img, svg { max-width: 100%; }
   padding: 24px 30px 28px;
 }
 /* ---------- Custom animated flow diagram (Flow.jsx) ---------- */
+.flow-shell { position: relative; }
 .flow-scroll { overflow-x: auto; padding: 4px 2px; }
+/* Mobile scrollbars stay invisible until touched, so a diagram wider than
+   the screen looks complete when it isn't. Fade the cut edge and label the
+   gesture; both disappear once the reader starts scrolling. */
+.flow-scroll.is-scrollable {
+  -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 88%, transparent 100%);
+  transition: mask-image 0.3s ease;
+}
+.flow-scroll.is-scrollable.is-scrolled {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.flow-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 7px 15px;
+  border-radius: 999px;
+  border: 1px solid rgba(150, 124, 94, 0.3);
+  background: rgba(246, 239, 226, 0.75);
+  color: var(--gold-deep);
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: opacity 0.35s ease;
+}
+.flow-scroll.is-scrolled + .flow-hint { opacity: 0; }
+.flow-hint-arr { animation: hintNudge 1.6s ease-in-out infinite; }
+@keyframes hintNudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-hint-arr { animation: none; }
+}
 .flow-scroll:focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 4px; border-radius: 10px; }
 .flow {
   position: relative;
@@ -1168,9 +1231,31 @@ img, svg { max-width: 100%; }
   box-shadow: 0 10px 26px rgba(150, 124, 94, 0.35);
 }
 @media (max-width: 760px) {
-  .cs-row { grid-template-columns: 1fr auto; gap: 14px; }
-  .cs-row-num, .cs-row-metric { display: none; }
-  .cs-row-arr { width: 44px; height: 44px; }
+  /* Previously the number and the metric were hidden here, which cost the
+     page its most persuasive content on phones. Instead the row becomes
+     two lines: number + title + arrow, then the metric beneath. */
+  .cs-row {
+    grid-template-columns: auto 1fr 44px;
+    gap: 8px 12px;
+    padding: 26px 8px;
+  }
+  .cs-row-num {
+    font-size: 1.55rem;
+    align-self: start;
+    padding-top: 2px;
+  }
+  .cs-row-main { grid-column: 2; }
+  .cs-row-arr { grid-column: 3; width: 44px; height: 44px; font-size: 19px; }
+  .cs-row-metric {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    justify-self: start;
+    font-size: 1.05rem;
+    white-space: normal;
+  }
+  .cs-row-title { font-size: clamp(1.3rem, 5.4vw, 1.75rem); }
+  .cs-row-line { font-size: 15px; margin-top: 6px; }
+  .cs-row:hover { padding-left: 12px; }
 }
 
 /* ============================================================
@@ -1213,7 +1298,9 @@ img, svg { max-width: 100%; }
 
 .imp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  /* min() lets the track shrink below 310px when the band is narrower
+     than that — without it the cards overflow the band on phones. */
+  grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr));
   gap: 18px;
 }
 .imp-card {
