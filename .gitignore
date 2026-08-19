@@ -1,0 +1,11 @@
+node_modules
+dist
+.vercel
+*.local
+
+# Client-confidential source material — the site itself anonymizes every
+# client, so the deck must not travel with the repo.
+*.pdf
+
+# Machine-local Claude Code permission allowlist
+.claude/settings.local.json

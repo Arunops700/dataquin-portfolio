@@ -1,0 +1,6 @@
+# Normalize to LF in the repository so Windows checkouts don't produce
+# whole-file diffs. Binary assets are marked so Git never touches them.
+* text=auto eol=lf
+
+*.png binary
+*.pdf binary
