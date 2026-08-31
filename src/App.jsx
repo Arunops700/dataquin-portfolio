@@ -1,5 +1,6 @@
 import { Component, useEffect } from "react";
 import { Routes, Route, NavLink, useLocation } from "react-router-dom";
+import Landing from "./pages/Landing.jsx";
 import Stack from "./pages/Stack.jsx";
 import Projects from "./pages/Projects.jsx";
 import CaseStudy from "./pages/CaseStudy.jsx";
@@ -45,8 +46,10 @@ class ErrorBoundary extends Component {
   }
 }
 
+/* No "Home" entry — the landing page has no header at all, and the logo
+   is the way back to it from every page that does. */
 const NAV = [
-  { to: "/", label: "Tech Stack" },
+  { to: "/stack", label: "Tech Stack" },
   { to: "/projects", label: "Case Studies" },
   { to: "/impact", label: "Impact" },
 ];
@@ -69,7 +72,7 @@ function Header() {
       <Brand />
       <nav>
         {NAV.map((n) => (
-          <NavLink key={n.to} to={n.to} end={n.to === "/"}
+          <NavLink key={n.to} to={n.to}
             className={({ isActive }) => (isActive ? "active" : "")}>
             {n.label}
           </NavLink>
@@ -97,6 +100,10 @@ function Footer() {
 
 export default function App() {
   const location = useLocation();
+  /* The landing page is the front door: no nav pill competing with the
+     headline, one button onward to the Tech Stack. Every other page keeps
+     the header. */
+  const bare = location.pathname === "/";
 
   // Start every navigation at the top of the new page.
   useEffect(() => {
@@ -139,12 +146,13 @@ export default function App() {
       <div className="bg-noise"></div>
       <a className="skip-link" href="#main">Skip to content</a>
       <div className="shell">
-        <Header />
+        {!bare && <Header />}
         <main className="main" id="main">
-          <div className="page" key={location.pathname}>
+          <div className={`page${bare ? " page-bare" : ""}`} key={location.pathname}>
             <ErrorBoundary resetKey={location.pathname}>
               <Routes>
-                <Route path="/" element={<Stack />} />
+                <Route path="/" element={<Landing />} />
+                <Route path="/stack" element={<Stack />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<CaseStudy />} />
                 <Route path="/impact" element={<Impact />} />

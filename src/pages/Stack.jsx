@@ -75,10 +75,10 @@ function Marquee() {
 export default function Stack() {
   const [cat, setCat] = useState("all");
   usePageMeta({
-    title: "DataQuin",
+    title: "Tech Stack",
     description:
       "DataQuin builds dashboards and reporting, system-to-system integrations and AI pipelines for firms tired of copy-paste workflows — and proves every claim with a production build.",
-    path: "/",
+    path: "/stack",
   });
   const list = useMemo(
     () => (cat === "all" ? TECH : TECH.filter((t) => t.cat === cat)),

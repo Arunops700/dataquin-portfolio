@@ -26,7 +26,8 @@ export default function NotFound() {
       </p>
 
       <div className="hero-actions fade-in">
-        <Link to="/" className="btn btn-grad">Tech Stack</Link>
+        <Link to="/" className="btn btn-grad">Home</Link>
+        <Link to="/stack" className="btn btn-ghost">Tech Stack</Link>
         <Link to="/projects" className="btn btn-ghost">Case Studies</Link>
         <Link to="/impact" className="btn btn-ghost">Impact</Link>
       </div>
