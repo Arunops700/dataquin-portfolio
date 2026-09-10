@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Reveal } from "../components/fx.jsx";
+import { Reveal, Magnetic } from "../components/fx.jsx";
 import { DP_ICONS } from "../components/Delivery.jsx";
 import { usePageMeta } from "../seo.js";
 
@@ -215,10 +215,12 @@ export default function Landing() {
             Six production systems, the exact stack we built them with, and the measured
             impact they delivered — all of it open for you to read.
           </p>
-          <Link to="/stack" className="btn btn-grad btn-shine lp-cta-btn">
-            Explore Our Tech Stack &amp; Solutions
-            <span className="lp-cta-arr" aria-hidden="true">→</span>
-          </Link>
+          <Magnetic>
+            <Link to="/stack" className="btn btn-grad btn-shine lp-cta-btn">
+              Explore Our Tech Stack &amp; Solutions
+              <span className="lp-cta-arr" aria-hidden="true">→</span>
+            </Link>
+          </Magnetic>
           <div className="lp-cta-meta">
             <span>21 tools</span>
             <span>6 production builds</span>

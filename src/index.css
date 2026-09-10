@@ -43,7 +43,7 @@ body {
   font-family: var(--font-body);
   font-size: 17.5px;
   font-weight: 500;
-  line-height: 1.75;
+  line-height: 1.7;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -178,8 +178,8 @@ img, svg { max-width: 100%; }
   font-family: var(--font-head);
   font-size: clamp(2.4rem, 5vw, 4rem);
   font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -0.005em;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
 }
 .h1 {
   font-family: var(--font-head);
@@ -196,9 +196,9 @@ img, svg { max-width: 100%; }
 }
 .kicker {
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 13.5px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--gold);
   display: flex;
@@ -214,7 +214,7 @@ img, svg { max-width: 100%; }
   flex: 0 0 auto;
 }
 
-.lead { color: var(--muted); font-size: clamp(1.15rem, 1.5vw, 1.28rem); font-weight: 500; max-width: 690px; }
+.lead { color: var(--muted); font-size: clamp(1.15rem, 1.5vw, 1.28rem); font-weight: 500; line-height: 1.6; max-width: 690px; text-wrap: pretty; }
 
 /* Oversized editorial display type — the type IS the design */
 .h-display {
@@ -233,13 +233,36 @@ img, svg { max-width: 100%; }
   -webkit-text-fill-color: transparent;
 }
 
+/* Gold = spoken emphasis. Every gold phrase inside a serif heading is set
+   in the true Fraunces italic cut (loaded in index.html) — one consistent
+   editorial voice across the whole site. `.roman` opts a span out where
+   the gold phrase is the entire title, not an emphasized aside. */
+.h-hero .grad-text,
+.h1 .grad-text,
+.h2 .grad-text,
+.footer-statement .grad-text,
+.cta-strip .grad-text,
+.lp-cta-em {
+  font-style: italic;
+}
+.grad-text.roman { font-style: normal; }
+
+/* Ragged-line control on display type — no orphaned last words. */
+.h-hero, .h1, .h2, .h-display, .footer-statement { text-wrap: balance; }
+
+/* Animated counters & metric figures — tabular numerals, so the layout
+   doesn't jitter while a CountUp is ticking. */
+.metric-chip .v, .imp-num, .lp-cred-v, .cs-row-metric {
+  font-variant-numeric: tabular-nums;
+}
+
 /* ============================================================
    Layout shell
    ============================================================ */
 .shell { display: flex; min-height: 100vh; position: relative; z-index: 1; }
 .main { flex: 1; min-width: 0; }
 .wrap { width: min(1120px, calc(100% - 96px)); margin: 0 auto; }
-.section { padding: 96px 0; }
+.section { padding: 104px 0; }
 .section-tight { padding: 64px 0; }
 .section-head { margin-bottom: 52px; max-width: 720px; }
 
@@ -262,6 +285,14 @@ img, svg { max-width: 100%; }
   box-shadow: 0 20px 55px rgba(35, 28, 20, 0.28);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+/* Once the page is scrolling, the pill settles: darker, crisper edge,
+   deeper shadow — it reads as floating above the content it now covers. */
+.header.scrolled {
+  background: rgba(30, 24, 18, 0.97);
+  border-color: rgba(168, 145, 122, 0.6);
+  box-shadow: 0 26px 64px rgba(30, 24, 17, 0.42);
 }
 /* Official DataQuin logo — white PNG used as a mask, filled with
    champagne gold so it glows inside the dark pill. */
@@ -325,6 +356,8 @@ img, svg { max-width: 100%; }
 }
 .btn-ghost { border-color: var(--line); color: var(--text); background: #fff; box-shadow: var(--shadow-sm); }
 .btn-ghost:hover { border-color: var(--gold); background: var(--panel-2); transform: translateY(-2px); }
+/* Press feedback — every button gives a little under the pointer. */
+.btn:active { transform: translateY(0) scale(0.97); transition-duration: 0.12s; }
 
 /* Hero discipline badges — the three things DataQuin does, highlighted:
    gold gradient ring, pulsing gold dot, bold uppercase. */
@@ -366,10 +399,12 @@ img, svg { max-width: 100%; }
 .reveal {
   opacity: 0;
   transform: translateY(30px);
+  filter: blur(7px);
   transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+              transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal.visible { opacity: 1; transform: translateY(0); filter: none; }
 .d1 { transition-delay: 0.07s; }
 .d2 { transition-delay: 0.14s; }
 .d3 { transition-delay: 0.21s; }
@@ -543,7 +578,9 @@ img, svg { max-width: 100%; }
   border-radius: 14px;
   padding: 26px 24px;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease,
+              opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .evo-step:hover {
   transform: translateY(-4px);
@@ -604,12 +641,13 @@ img, svg { max-width: 100%; }
 .hero-title .row { display: block; overflow: hidden; }
 .hero-title .row span {
   display: block;
-  transform: translateY(110%);
+  transform: translateY(110%) rotate(2deg);
+  transform-origin: 0 100%;
   animation: rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 .hero-title .row:nth-child(2) span { animation-delay: 0.12s; }
 .hero-title .row:nth-child(3) span { animation-delay: 0.24s; }
-@keyframes rise { to { transform: translateY(0); } }
+@keyframes rise { to { transform: translateY(0) rotate(0deg); } }
 .fade-in { opacity: 0; animation: fadeIn 0.9s ease 0.5s forwards; }
 @keyframes fadeIn { to { opacity: 1; } }
 
@@ -624,8 +662,12 @@ img, svg { max-width: 100%; }
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
+  /* Panels are often mounted as Reveals; without opacity/filter in this
+     list the entrance fade would be overridden and the card would pop. */
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-              border-color 0.4s ease, box-shadow 0.4s ease;
+              border-color 0.4s ease, box-shadow 0.4s ease,
+              opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .panel::before {
   content: "";
@@ -747,7 +789,10 @@ img, svg { max-width: 100%; }
   overflow: hidden;
   margin-bottom: 48px;
   box-shadow: var(--shadow-md);
-  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease,
+              opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   scroll-margin-top: 40px;
 }
 .proj:hover { border-color: rgba(150, 124, 94, 0.35); }
@@ -889,7 +934,9 @@ img, svg { max-width: 100%; }
   background: linear-gradient(180deg, #fcf9f2, #f6f0e4);
   border: 1px solid rgba(255, 250, 240, 0.55);
   border-radius: 28px;
-  box-shadow: 0 30px 90px rgba(50, 38, 26, 0.35);
+  /* Inset top hairline: the paper edge catching the light. */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65),
+              0 30px 90px rgba(50, 38, 26, 0.35);
   overflow: hidden;
   position: relative;
   animation: pageIn 0.5s ease both;
@@ -898,8 +945,8 @@ img, svg { max-width: 100%; }
   .page { width: calc(100% - 16px); margin: 74px auto 20px; border-radius: 20px; }
 }
 @keyframes pageIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(14px) scale(0.995); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* ============================================================
@@ -963,7 +1010,7 @@ img, svg { max-width: 100%; }
    users still get instant content visibility via the rules below. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .reveal { opacity: 1 !important; transform: none !important; }
+  .reveal { opacity: 1 !important; transform: none !important; filter: none !important; }
   /* Stop the ambient loops — marquee, drifting auras, the delivery-path
      glow and the sequential node pulse. Content still animates in once
      (via the rules above) so nothing can end up invisible.
@@ -1149,6 +1196,7 @@ img, svg { max-width: 100%; }
    ============================================================ */
 .cs-rows { border-top: 1px solid var(--line); }
 .cs-row {
+  position: relative;
   display: grid;
   grid-template-columns: 88px 1fr auto 64px;
   align-items: center;
@@ -1159,9 +1207,25 @@ img, svg { max-width: 100%; }
   transition:
     background 0.3s ease, padding 0.3s ease,
     opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Gold hairline that grows down the left edge as the row engages */
+.cs-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 16%;
+  bottom: 16%;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--grad);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .cs-row:hover { background: rgba(249, 245, 237, 0.9); padding-left: 22px; }
+.cs-row:hover::before { transform: scaleY(1); }
 .cs-row-num {
   font-family: var(--font-head);
   font-weight: 600;
@@ -1312,7 +1376,9 @@ img, svg { max-width: 100%; }
   padding: 30px 28px 24px;
   box-shadow: var(--shadow-sm);
   cursor: pointer;
-  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease,
+              opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .imp-card:hover {
   transform: translateY(-5px);
@@ -1647,6 +1713,7 @@ img, svg { max-width: 100%; }
      without fading. */
   transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
               transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.8s cubic-bezier(0.22, 1, 0.36, 1),
               box-shadow 0.4s ease, border-color 0.4s ease;
 }
 /* Warm wash that rises from the bottom of the card on hover */
@@ -1885,6 +1952,8 @@ img, svg { max-width: 100%; }
 .lp-field textarea { resize: vertical; min-height: 108px; line-height: 1.55; }
 .lp-field input::placeholder,
 .lp-field textarea::placeholder { color: #a1907e; }
+.lp-field input:hover,
+.lp-field textarea:hover { border-color: rgba(151, 121, 78, 0.45); }
 .lp-field input:focus,
 .lp-field textarea:focus {
   outline: none;
@@ -2080,4 +2149,48 @@ img, svg { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   .lp-shine, .lp-cta-glow, .btn-shine::after { animation: none !important; }
   .lp-shine { background-position: 30% center; }
+}
+
+/* ============================================================
+   Magnetic primary CTAs (fx.jsx <Magnetic>) — the button leans a few
+   pixels toward a fine pointer and springs back on leave. The JSX side
+   only sets --magx/--magy; coarse pointers and reduced-motion users
+   never get the wrapper at all.
+   ============================================================ */
+.magnet { display: inline-flex; max-width: 100%; }
+/* The landing CTA button goes full-width at this size; its wrapper must
+   stretch with it rather than shrink-wrapping the intrinsic width. */
+@media (max-width: 640px) {
+  .lp-cta .magnet { width: 100%; }
+}
+.magnet > .btn {
+  transform: translate(var(--magx, 0px), var(--magy, 0px));
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.3s ease, background-position 0.3s ease,
+              background-color 0.3s ease, border-color 0.3s ease;
+}
+.magnet > .btn:hover {
+  transform: translate(var(--magx, 0px), calc(var(--magy, 0px) - 2px));
+}
+.magnet > .btn:active {
+  transform: translate(var(--magx, 0px), var(--magy, 0px)) scale(0.97);
+}
+
+/* ============================================================
+   Scroll-linked depth (progressive enhancement) — the giant DQ
+   watermark drifts slowly against the scroll direction, separating
+   the fixed canvas from the moving sheet. Browsers without scroll
+   timelines simply keep the static watermark.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) {
+    .bg-mark {
+      animation: markDrift linear both;
+      animation-timeline: scroll(root);
+    }
+    @keyframes markDrift {
+      from { transform: translateY(2.5rem) rotate(1deg); }
+      to { transform: translateY(-5rem) rotate(-1.5deg); }
+    }
+  }
 }

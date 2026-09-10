@@ -1,4 +1,4 @@
-import { Component, useEffect } from "react";
+import { Component, useEffect, useState } from "react";
 import { Routes, Route, NavLink, useLocation } from "react-router-dom";
 import Landing from "./pages/Landing.jsx";
 import Stack from "./pages/Stack.jsx";
@@ -65,10 +65,19 @@ function Brand() {
   );
 }
 
-/* Floating dark-glass pill navigation — logo + links, centered at top */
+/* Floating dark-glass pill navigation — logo + links, centered at top.
+   Once the page scrolls, the pill darkens and its shadow deepens so it
+   reads as floating above the content it now overlaps. */
 function Header() {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 14);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   return (
-    <header className="header">
+    <header className={`header${scrolled ? " scrolled" : ""}`}>
       <Brand />
       <nav>
         {NAV.map((n) => (

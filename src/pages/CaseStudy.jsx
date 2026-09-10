@@ -37,7 +37,9 @@ export default function CaseStudy() {
       <section className="wrap" style={{ padding: "88px 0 40px" }}>
         <div className="kicker fade-in">Case Study {s.num} · {s.type}</div>
         <h1 className="h-hero hero-title" style={{ maxWidth: 860 }}>
-          <span className="row"><span className="grad-text">{s.title}</span></span>
+          {/* `roman`: the whole title is gold, not an emphasized aside —
+              it stays upright while inline gold phrases go italic. */}
+          <span className="row"><span className="grad-text roman">{s.title}</span></span>
         </h1>
         <p className="lead fade-in" style={{ marginTop: 20 }}>{s.tagline}.</p>
       </section>

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Reveal, Panel } from "../components/fx.jsx";
+import { Reveal, Panel, Magnetic } from "../components/fx.jsx";
 import { DeliveryPath } from "../components/Delivery.jsx";
 import { STUDIES } from "../data/caseStudies.js";
 import { usePageMeta } from "../seo.js";
@@ -104,8 +104,8 @@ export default function Stack() {
           claim with a production build.
         </p>
         <div className="hero-actions fade-in">
-          <Link to="/projects" className="btn btn-grad">View Case Studies</Link>
-          <Link to="/impact" className="btn btn-ghost">See the Impact</Link>
+          <Magnetic><Link to="/projects" className="btn btn-grad">View Case Studies</Link></Magnetic>
+          <Magnetic><Link to="/impact" className="btn btn-ghost">See the Impact</Link></Magnetic>
         </div>
       </section>
 
@@ -222,7 +222,7 @@ export default function Stack() {
             <h2 className="h1">See the stack <span className="grad-text">in production.</span></h2>
             <div className="mono-note">Six builds · secured · shipped · measured</div>
           </div>
-          <Link to="/projects" className="btn btn-grad">Explore the Case Studies →</Link>
+          <Magnetic><Link to="/projects" className="btn btn-grad">Explore the Case Studies →</Link></Magnetic>
         </Reveal>
       </section>
     </>

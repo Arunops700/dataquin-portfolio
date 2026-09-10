@@ -76,6 +76,41 @@ export function CountUp({ to, suffix = "", prefix = "", duration = 1600 }) {
   return <span ref={ref}>{prefix}{val}{suffix}</span>;
 }
 
+/* ---------- Magnetic wrapper for primary CTAs ---------- */
+/* The child button leans up to `max` px toward the pointer; CSS on
+   `.magnet > .btn` does the actual transform and the spring-back.
+   Touch devices and reduced-motion users get the plain children. */
+export function Magnetic({ children, strength = 0.16, max = 6 }) {
+  const ref = useRef(null);
+  const [active] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(pointer: fine)").matches &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+  if (!active) return children;
+
+  const clamp = (v) => Math.max(-max, Math.min(max, v * strength));
+  const onMove = (e) => {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--magx", clamp(e.clientX - (r.left + r.width / 2)) + "px");
+    el.style.setProperty("--magy", clamp(e.clientY - (r.top + r.height / 2)) + "px");
+  };
+  const onLeave = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.setProperty("--magx", "0px");
+    el.style.setProperty("--magy", "0px");
+  };
+  return (
+    <span className="magnet" ref={ref} onMouseMove={onMove} onMouseLeave={onLeave}>
+      {children}
+    </span>
+  );
+}
+
 /* ---------- Panel with cursor glow ---------- */
 export function Panel({ children, className = "", ...rest }) {
   const ref = useRef(null);

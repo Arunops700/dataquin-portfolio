@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Reveal, CountUp } from "../components/fx.jsx";
+import { Reveal, CountUp, Magnetic } from "../components/fx.jsx";
 import { DeliveryPath } from "../components/Delivery.jsx";
 import { getStudy } from "../data/caseStudies.js";
 import { usePageMeta } from "../seo.js";
@@ -157,7 +157,7 @@ export default function Impact() {
             <h2 className="h1">Built once. <span className="grad-text">Running every day.</span></h2>
             <div className="mono-note">Six production systems · secured · validated · self-service</div>
           </div>
-          <Link to="/projects" className="btn btn-grad">Back to the Case Studies →</Link>
+          <Magnetic><Link to="/projects" className="btn btn-grad">Back to the Case Studies →</Link></Magnetic>
         </Reveal>
       </section>
     </>
