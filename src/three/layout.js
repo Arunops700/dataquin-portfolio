@@ -87,8 +87,10 @@ export function makeLayout(count, seed = 7) {
 
     seeds[i] = rand();
     ts[i] = t;
-    const big = rand() < 0.035;
-    sizes[i] = 0.55 + rand() * 1.1 + (big ? 1.6 : 0);
+    // mostly fine grains, a few larger flecks — enough to catch the
+    // light without piling up into white where strokes are dense
+    const big = rand() < 0.015;
+    sizes[i] = 0.5 + rand() * 0.95 + (big ? 1.0 : 0);
   }
 
   return { count, chaos, stream, seeds, ts, sizes };
@@ -99,8 +101,8 @@ export const CAMERA_Z = 11;
 export const CAMERA_FOV = 45;
 export const BASE_ASPECT = 1.78;
 
-/* Narrow viewports squeeze the field horizontally so the stream's
-   mouth and end both stay on screen. */
+/* Narrow viewports squeeze the scattered rows (and the stream
+   fallback) horizontally so they stay on screen. */
 export function spreadFor(aspect) {
   return Math.min(1, Math.max(0.42, aspect / BASE_ASPECT));
 }

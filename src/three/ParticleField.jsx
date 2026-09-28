@@ -2,13 +2,17 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { makeLayout, spreadFor } from "./layout.js";
+import { logoPlacement } from "./logo.js";
 import { isCoarsePointer } from "../motion/prefs.js";
 
 /*
   The signature scene: champagne-gold points that begin as scattered
-  rows and, as `progress` runs 0 → 1, pour into one stream that
-  converges on a single bright point. A slow glow travels the stream
-  once it has formed. Pointer parallax tilts the whole field a little.
+  rows and, as `progress` runs 0 → 1, gather into the DQ mark. Once
+  formed, a slow light sweeps across the mark. Pointer parallax tilts
+  the whole field a little.
+
+  `targets`/`ts` come from logo.js (sampled from the logo image). If
+  they are missing the points fall back to the stream layout.
 
   `progress` is a framer-motion MotionValue (read with .get() every
   frame, never subscribed — no React re-renders on scroll). In
@@ -17,7 +21,7 @@ import { isCoarsePointer } from "../motion/prefs.js";
 
 const VERT = /* glsl */ `
   attribute vec3 aChaos;
-  attribute vec3 aStream;
+  attribute vec3 aTarget;
   attribute float aSeed;
   attribute float aT;
   attribute float aSize;
@@ -25,6 +29,8 @@ const VERT = /* glsl */ `
   uniform float uTime;
   uniform float uPixelRatio;
   uniform float uSpread;
+  uniform float uScale;
+  uniform vec2 uOffset;
   varying float vP;
   varying float vGlow;
   varying float vT;
@@ -32,22 +38,26 @@ const VERT = /* glsl */ `
   void main() {
     // staggered arrival: each point starts its journey at a different moment
     float p = smoothstep(0.0, 1.0, clamp((uProgress - aSeed * 0.42) / 0.58, 0.0, 1.0));
-    vec3 pos = mix(aChaos, aStream, p);
-    pos.x *= uSpread;
+    vec3 chaos = vec3(aChaos.x * uSpread, aChaos.y, aChaos.z);
+    vec3 target = vec3(aTarget.xy * uScale + uOffset, aTarget.z);
+    // a gentle arc on the way, so the gather reads as a pour, not a slide
+    vec3 pos = mix(chaos, target, p);
+    pos.y += sin(p * 3.14159) * (0.6 + aSeed * 0.9) * (1.0 - aSeed * 0.5);
 
-    float drift = 1.0 - p * 0.78;
+    float drift = 1.0 - p * 0.9;
     pos.x += sin(uTime * 0.5 + aSeed * 6.2831) * 0.09 * drift;
     pos.y += cos(uTime * 0.42 + aSeed * 4.71) * 0.09 * drift
-           + sin(uTime * 0.9 + aT * 14.0) * 0.028 * p;
+           + sin(uTime * 1.1 + aSeed * 20.0) * 0.012 * p;
 
     vec4 mv = modelViewMatrix * vec4(pos, 1.0);
     gl_Position = projectionMatrix * mv;
-    gl_PointSize = aSize * uPixelRatio * (36.0 / -mv.z) * (0.85 + 0.55 * p);
+    gl_PointSize = aSize * uPixelRatio * (40.0 / -mv.z) * (0.8 + 0.45 * p);
 
     vP = p;
     vT = aT;
-    float wave = fract(aT - uTime * 0.085);
-    vGlow = p * smoothstep(0.14, 0.0, wave);
+    // a soft band of light crossing the mark from left to right
+    float wave = fract(aT * 0.85 - uTime * 0.07);
+    vGlow = p * smoothstep(0.22, 0.0, wave);
   }
 `;
 
@@ -62,15 +72,16 @@ const FRAG = /* glsl */ `
   void main() {
     vec2 c = gl_PointCoord - 0.5;
     float d = length(c);
-    float a = smoothstep(0.5, 0.1, d);
-    vec3 col = mix(uColorA, uColorB, clamp(vP * 0.55 + vGlow + vT * vP * 0.45, 0.0, 1.0));
-    float alpha = a * (0.32 + 0.42 * vP + 0.55 * vGlow);
+    float a = smoothstep(0.5, 0.08, d);
+    vec3 col = mix(uColorA, uColorB, clamp(vP * 0.45 + vGlow * 0.7, 0.0, 1.0));
+    // additive blending stacks where strokes are dense — keep each
+    // grain modest so the mark stays gold rather than burning to white
+    float alpha = a * (0.3 + 0.16 * vP + 0.3 * vGlow);
     gl_FragColor = vec4(col, alpha);
   }
 `;
 
-export default function ParticleField({ progress, count = 9000, ambient = false, onFirstFrame }) {
-  const pointsRef = useRef(null);
+export default function ParticleField({ progress, count = 9000, ambient = false, targets, place = "hero", onFirstFrame }) {
   const groupRef = useRef(null);
   const mouse = useRef({ x: 0, y: 0 });
   const current = useRef(ambient ? 1 : 0);
@@ -78,17 +89,18 @@ export default function ParticleField({ progress, count = 9000, ambient = false,
   const { viewport, gl } = useThree();
 
   const layout = useMemo(() => makeLayout(count), [count]);
+  const hasLogo = !!(targets && targets.targets && targets.targets.length === count * 3);
 
   const geometry = useMemo(() => {
     const g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.BufferAttribute(layout.chaos, 3));
     g.setAttribute("aChaos", new THREE.BufferAttribute(layout.chaos, 3));
-    g.setAttribute("aStream", new THREE.BufferAttribute(layout.stream, 3));
+    g.setAttribute("aTarget", new THREE.BufferAttribute(hasLogo ? targets.targets : layout.stream, 3));
     g.setAttribute("aSeed", new THREE.BufferAttribute(layout.seeds, 1));
-    g.setAttribute("aT", new THREE.BufferAttribute(layout.ts, 1));
+    g.setAttribute("aT", new THREE.BufferAttribute(hasLogo ? targets.ts : layout.ts, 1));
     g.setAttribute("aSize", new THREE.BufferAttribute(layout.sizes, 1));
     return g;
-  }, [layout]);
+  }, [layout, targets, hasLogo]);
 
   const material = useMemo(
     () =>
@@ -104,6 +116,8 @@ export default function ParticleField({ progress, count = 9000, ambient = false,
           uTime: { value: 0 },
           uPixelRatio: { value: Math.min(gl.getPixelRatio(), 2) },
           uSpread: { value: 1 },
+          uScale: { value: 1 },
+          uOffset: { value: new THREE.Vector2(0, 0) },
           uColorA: { value: new THREE.Color("#b39877") },
           uColorB: { value: new THREE.Color("#f6ead0") },
         },
@@ -139,11 +153,19 @@ export default function ParticleField({ progress, count = 9000, ambient = false,
     u.uProgress.value = current.current;
     u.uTime.value = state.clock.elapsedTime * (ambient ? 0.7 : 1);
     u.uSpread.value = spreadFor(viewport.aspect);
+    if (hasLogo) {
+      const pl = logoPlacement(viewport.aspect, place);
+      u.uScale.value = pl.scale;
+      u.uOffset.value.set(pl.x, pl.y);
+    } else {
+      u.uScale.value = u.uSpread.value;
+      u.uOffset.value.set(0, 0);
+    }
 
     const g = groupRef.current;
     if (g) {
-      const tx = -mouse.current.y * 0.07;
-      const ty = mouse.current.x * 0.11;
+      const tx = -mouse.current.y * 0.06;
+      const ty = mouse.current.x * 0.1;
       g.rotation.x += (tx - g.rotation.x) * Math.min(1, dt * 2.5);
       g.rotation.y += (ty - g.rotation.y) * Math.min(1, dt * 2.5);
     }
@@ -151,7 +173,7 @@ export default function ParticleField({ progress, count = 9000, ambient = false,
 
   return (
     <group ref={groupRef}>
-      <points ref={pointsRef} geometry={geometry} material={material} frustumCulled={false} />
+      <points geometry={geometry} material={material} frustumCulled={false} />
     </group>
   );
 }

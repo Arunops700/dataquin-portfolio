@@ -1572,6 +1572,9 @@ em.foil { font-style: italic; }
 }
 .pillar-s { color: var(--ink-soft); font-size: 16px; line-height: 1.6; max-width: 360px; }
 @media (max-width: 899px) {
+  /* The ambient mark has no clear space beside a headline that spans
+     the whole width; the landing keeps its mark (it sits above the copy). */
+  .hero-work .field { display: none; }
   .strip-sec { height: auto; padding: 76px 0; }
   .strip-stage { position: static; height: auto; overflow: visible; gap: 8px; }
   .strip-track { display: block; width: auto; padding: 0 22px; transform: none !important; }

@@ -4,7 +4,7 @@ import { CAMERA_FOV, CAMERA_Z } from "./layout.js";
 
 /* Lazy-loaded WebGL entry point. This file — and three.js with it —
    only ever downloads when Field.jsx decides the device can run it. */
-export default function HeroScene({ progress, count, ambient, active = true, onReady }) {
+export default function HeroScene({ progress, count, ambient, targets, place, active = true, onReady }) {
   return (
     <Canvas
       dpr={[1, 1.75]}
@@ -14,7 +14,7 @@ export default function HeroScene({ progress, count, ambient, active = true, onR
       resize={{ scroll: false, debounce: { scroll: 50, resize: 80 } }}
       onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
     >
-      <ParticleField progress={progress} count={count} ambient={ambient} onFirstFrame={onReady} />
+      <ParticleField progress={progress} count={count} ambient={ambient} targets={targets} place={place} onFirstFrame={onReady} />
     </Canvas>
   );
 }
