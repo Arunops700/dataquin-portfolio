@@ -91,8 +91,7 @@ function sample(s, count, seed) {
 }
 
 /* Where the formed mark sits, by viewport shape.
-   "hero":  beside the story copy on wide screens, smaller and centred
-            above it on narrow ones.
+   "hero":  large, behind the copy, from the first screen on.
    "aside": the ambient mark on the Work page — pushed to the far right
             and up, clear of a headline that spans most of the width. */
 export function logoPlacement(aspect, place = "hero") {
@@ -101,7 +100,8 @@ export function logoPlacement(aspect, place = "hero") {
     if (aspect >= 0.8) return { scale: 0.55, x: 2.8, y: 1.6 };
     return { scale: 0.42, x: 1.0, y: 2.6 };
   }
-  if (aspect >= 1.25) return { scale: 1, x: 3.4, y: 0.25 };
-  if (aspect >= 0.8) return { scale: 0.8, x: 1.2, y: 0.9 };
-  return { scale: 0.62, x: 0, y: 1.4 };
+  // big: the mark is the hero's backdrop, nearly the width of the stage
+  if (aspect >= 1.25) return { scale: 1.65, x: 1.7, y: 0.1 };
+  if (aspect >= 0.8) return { scale: 1.25, x: 0.5, y: 0.5 };
+  return { scale: 0.98, x: 0, y: 0.8 };
 }

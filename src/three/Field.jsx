@@ -19,7 +19,8 @@ const HeroScene = lazy(() => import("./HeroScene.jsx"));
 export function Field({ progress, ambient = false, active = true }) {
   const mode = useMemo(() => (canRun3D() ? "gl" : "poster"), []);
   const place = ambient ? "aside" : "hero";
-  const count = useMemo(() => particleBudget(), []);
+  // the poster samples fewer points than the live scene
+  const count = useMemo(() => (mode === "gl" ? particleBudget() : 9000), [mode]);
   const [targets, setTargets] = useState(undefined);
   const [load, setLoad] = useState(false);
   const [ready, setReady] = useState(false);
@@ -45,7 +46,7 @@ export function Field({ progress, ambient = false, active = true }) {
   if (mode === "poster") {
     return (
       <div className="field poster-mode" aria-hidden="true">
-        {targets !== undefined && <Poster targets={targets} place={place} />}
+        {targets !== undefined && <Poster targets={targets} place={place} count={count} />}
       </div>
     );
   }
@@ -71,7 +72,7 @@ export function Field({ progress, ambient = false, active = true }) {
 
 /* Static render of the formed mark, projected with the same camera
    maths as the WebGL scene. Redrawn on resize. */
-function Poster({ targets, place = "hero", count = 6000 }) {
+function Poster({ targets, place = "hero", count = 9000 }) {
   const ref = useRef(null);
 
   useEffect(() => {

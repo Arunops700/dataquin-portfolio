@@ -58,10 +58,11 @@ export function canRun3D() {
   return hasWebGL();
 }
 
-/* Particle budget: phones get a lighter field. */
+/* Particle budget: enough grains to keep the big mark's strokes solid;
+   phones and weak machines get a lighter field. */
 export function particleBudget() {
   const small = window.innerWidth < 760 || isCoarsePointer();
   const weak = (navigator.hardwareConcurrency || 8) <= 4;
-  if (small || weak) return 3600;
-  return 9000;
+  if (small || weak) return 5000;
+  return 14000;
 }

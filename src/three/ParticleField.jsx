@@ -7,16 +7,19 @@ import { isCoarsePointer } from "../motion/prefs.js";
 
 /*
   The signature scene: champagne-gold points that begin as scattered
-  rows and, as `progress` runs 0 → 1, gather into the DQ mark. Once
-  formed, a slow light sweeps across the mark. Pointer parallax tilts
+  rows and, in the first seconds after load, gather into the DQ mark —
+  big, behind the headline, from the first screen on. Once formed, a
+  slow light sweeps across it and it breathes. Pointer parallax tilts
   the whole field a little.
 
   `targets` comes from logo.js (sampled from the logo image). If the
   image failed to load the points simply stay as scattered rows.
 
-  `progress` is a framer-motion MotionValue (read with .get() every
-  frame, never subscribed — no React re-renders on scroll). In
-  `ambient` mode the field sits fully formed and just breathes.
+  `progress` is a framer-motion MotionValue for the hero's scroll
+  (read with .get() every frame, never subscribed — no React re-renders
+  on scroll). Scrolling turns the formed mark a little and eases it
+  back, so the story beats sit in front of it. `ambient` only slows
+  the breathing (Work page).
 */
 
 const VERT = /* glsl */ `
@@ -51,7 +54,7 @@ const VERT = /* glsl */ `
 
     vec4 mv = modelViewMatrix * vec4(pos, 1.0);
     gl_Position = projectionMatrix * mv;
-    gl_PointSize = aSize * uPixelRatio * (40.0 / -mv.z) * (0.8 + 0.45 * p);
+    gl_PointSize = aSize * uPixelRatio * (46.0 / -mv.z) * (0.8 + 0.45 * p);
 
     vP = p;
     vT = aT;
@@ -76,7 +79,7 @@ const FRAG = /* glsl */ `
     vec3 col = mix(uColorA, uColorB, clamp(vP * 0.45 + vGlow * 0.7, 0.0, 1.0));
     // additive blending stacks where strokes are dense — keep each
     // grain modest so the mark stays gold rather than burning to white
-    float alpha = a * (0.3 + 0.16 * vP + 0.3 * vGlow);
+    float alpha = a * (0.27 + 0.1 * vP + 0.22 * vGlow);
     gl_FragColor = vec4(col, alpha);
   }
 `;
@@ -84,7 +87,8 @@ const FRAG = /* glsl */ `
 export default function ParticleField({ progress, count = 9000, ambient = false, targets, place = "hero", onFirstFrame }) {
   const groupRef = useRef(null);
   const mouse = useRef({ x: 0, y: 0 });
-  const current = useRef(ambient ? 1 : 0);
+  // time-based gather on load, 0 → 1 over a couple of seconds
+  const intro = useRef(0);
   const framed = useRef(false);
   const { viewport, gl } = useThree();
 
@@ -112,7 +116,7 @@ export default function ParticleField({ progress, count = 9000, ambient = false,
         depthTest: false,
         blending: THREE.AdditiveBlending,
         uniforms: {
-          uProgress: { value: ambient ? 1 : 0 },
+          uProgress: { value: 0 },
           uTime: { value: 0 },
           uPixelRatio: { value: Math.min(gl.getPixelRatio(), 2) },
           uSpread: { value: 1 },
@@ -147,10 +151,9 @@ export default function ParticleField({ progress, count = 9000, ambient = false,
       onFirstFrame?.();
     }
     const u = material.uniforms;
-    const target = ambient ? 1 : progress ? progress.get() : 0;
-    const k = Math.min(1, dt * 3.2);
-    current.current += (target - current.current) * k;
-    u.uProgress.value = current.current;
+    intro.current = Math.min(1, intro.current + Math.min(dt, 0.05) / 2.4);
+    const t = intro.current;
+    u.uProgress.value = t * t * (3 - 2 * t);
     u.uTime.value = state.clock.elapsedTime * (ambient ? 0.7 : 1);
     u.uSpread.value = spreadFor(viewport.aspect);
     if (hasLogo) {
@@ -164,10 +167,18 @@ export default function ParticleField({ progress, count = 9000, ambient = false,
 
     const g = groupRef.current;
     if (g) {
+      const k = Math.min(1, dt * 2.5);
+      const sc = progress ? progress.get() : 0;
       const tx = -mouse.current.y * 0.06;
       const ty = mouse.current.x * 0.1;
-      g.rotation.x += (tx - g.rotation.x) * Math.min(1, dt * 2.5);
-      g.rotation.y += (ty - g.rotation.y) * Math.min(1, dt * 2.5);
+      g.rotation.x += (tx - g.rotation.x) * k;
+      g.rotation.y += (ty - g.rotation.y) * k;
+      // scrolling the story: the mark turns a little and eases back
+      g.rotation.z += (-sc * 0.2 - g.rotation.z) * k;
+      const s = 1 - sc * 0.16;
+      g.scale.x += (s - g.scale.x) * k;
+      g.scale.y += (s - g.scale.y) * k;
+      g.position.y += (sc * 0.9 - g.position.y) * k;
     }
   });
 
