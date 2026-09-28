@@ -12,9 +12,13 @@ export default defineConfig({
       output: {
         // Framework code changes far less often than site code — keep it
         // in its own file so returning visitors reuse the cached copy.
-        manualChunks: {
-          react: ["react", "react-dom", "react-router-dom"],
-          motion: ["framer-motion", "lenis"],
+        // Matched by path so every entry of a package (react-dom/client
+        // included) lands in the same chunk.
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (/node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/.test(id)) return "react";
+          if (/node_modules[\\/](framer-motion|motion-dom|motion-utils|lenis)[\\/]/.test(id)) return "motion";
+          return undefined;
         },
       },
     },

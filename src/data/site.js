@@ -21,21 +21,21 @@ export const STORY_BEATS = [
     t: "Every week, someone re-types",
     em: "what a system already knows.",
     s: "Figures copied between platforms. Reports rebuilt by hand. Alerts that wait for a person to notice.",
-    range: [0.3, 0.52],
+    range: [0.19, 0.46],
   },
   {
     k: "What we build",
     t: "One bridge, and the data",
     em: "moves on its own.",
     s: "Integrations, pipelines and AI agents that read, match and write back — validated on every run.",
-    range: [0.53, 0.75],
+    range: [0.47, 0.72],
   },
   {
     k: "The result",
     t: "Manual days become",
     em: "automated hours.",
     s: "Six production systems, live with professional services firms today. Measured, secured, still running.",
-    range: [0.77, 0.99],
+    range: [0.74, 1],
     cta: true,
   },
 ];
@@ -48,7 +48,7 @@ export const PILLARS = [
   { t: "AI Solutions", s: "Agents and copilots that take real work off the desk: documentation, alerts, weekly reports." },
   { t: "Automation", s: "Systems that talk to each other, so nobody re-types what a platform already knows." },
   { t: "Data Migration", s: "Move platforms and consolidate sources without losing a record or a definition." },
-  { t: "Patient Support Services", s: "Patient-facing support programs, run with the same rigour we bring to systems." },
+  { t: "Patient Support Services", s: "Patient-facing support programs, run with the same rigor we bring to systems." },
   { t: "Staffing", s: "The right people placed where the work is — analysts, developers, support teams." },
 ];
 
@@ -61,8 +61,8 @@ export const DELIVERY = [
   { k: "deliver", t: "Deliver & Grow", s: "We go live, train your team to drive it themselves, and stay on as your estate grows." },
 ];
 
-/* Three studies shown as proof on the landing page. */
-export const PROOF = ["bi-delivery", "teammate", "alerting"];
+/* Three studies shown as proof on the landing page, in chapter order. */
+export const PROOF = ["teammate", "bi-delivery", "alerting"];
 
 export const EVOLUTION = [
   { era: "Chapter 01", t: "Spreadsheets & VBA", s: "Advanced modeling and macros — erasing the first layer of manual work." },
@@ -78,30 +78,34 @@ export const CATS = {
   cloud: "Cloud & Databases",
 };
 
+/* `proj` links a tool to the case study that actually uses it (the
+   chapter names the tool). Tools without one are part of the stack but
+   make no "proven in" claim — the row says so instead of pointing at a
+   chapter that never mentions them. */
 export const TECH = [
   { ico: "python.svg", name: "Python", role: "The automation engine — pipelines, matching, ad-hoc delivery", cat: "data", proj: "teammate" },
   { ico: "sql.svg", name: "SQL", role: "Querying, staging & modeling across SQL Server / MySQL", cat: "data", proj: "teammate" },
   { ico: "powerbi.svg", name: "Power BI", role: "Dashboards, DAX, clean data models & role-based access", cat: "data", proj: "bi-delivery" },
-  { ico: "excel.svg", name: "Excel + VBA", role: "Advanced modeling and macros that erase manual work", cat: "data", proj: "teammate" },
-  { ico: "pandas.svg", name: "pandas / Dask / Polars", role: "Fast data handling — from workbooks to 4GB+ datasets", cat: "data", proj: "alerting" },
-  { ico: "salesforce.svg", name: "Salesforce", role: "CRM data & reporting integration", cat: "data", proj: "modernization" },
+  { ico: "excel.svg", name: "Excel + VBA", role: "Advanced modeling and macros that erase manual work", cat: "data", proj: "modernization" },
+  { ico: "pandas.svg", name: "pandas / Dask / Polars", role: "Fast data handling — from workbooks to 4GB+ datasets", cat: "data", proj: "teammate" },
+  { ico: "salesforce.svg", name: "Salesforce", role: "CRM data & reporting integration", cat: "data" },
 
   { ico: "powerautomate.svg", name: "Power Automate", role: "Scheduled & event-driven flows across Microsoft 365", cat: "auto", proj: "engageai" },
   { ico: "restapi.svg", name: "REST APIs", role: "Platform, workflow & storage APIs — read, match, write back", cat: "auto", proj: "teammate" },
-  { ico: "fastapi.svg", name: "FastAPI", role: "Automation services & always-on detection pipelines", cat: "auto", proj: "alerting" },
+  { ico: "fastapi.svg", name: "FastAPI", role: "Automation services & always-on detection pipelines", cat: "auto" },
 
   { ico: "claude.svg", name: "Claude Code", role: "AI engineering + MCP servers — NL request to live dashboard", cat: "ai", proj: "bi-delivery" },
   { ico: "mcp.svg", name: "Power BI MCP Server", role: "Automated DAX, programmatic RLS, continuous validation", cat: "ai", proj: "bi-delivery" },
-  { ico: "antigravity.svg", name: "Antigravity", role: "Agentic development platform", cat: "ai", proj: "bi-delivery" },
-  { ico: "githubcopilot.svg", name: "GitHub Copilot", role: "AI-assisted development in the IDE", cat: "ai", proj: "bi-delivery" },
-  { ico: "mscopilot.svg", name: "Microsoft Copilot", role: "M365-embedded AI — mail & Teams extraction workflows", cat: "ai", proj: "engageai" },
-  { ico: "coworker.svg", name: "Copilot (Coworker)", role: "Skill-based documentation agent — writes to Confluence via MCP", cat: "ai", proj: "coworker" },
+  { ico: "antigravity.svg", name: "Antigravity", role: "Agentic development platform", cat: "ai" },
+  { ico: "githubcopilot.svg", name: "GitHub Copilot", role: "AI-assisted development in the IDE", cat: "ai" },
+  { ico: "mscopilot.svg", name: "Microsoft Copilot", role: "M365-embedded AI — mail & Teams extraction workflows", cat: "ai" },
+  { ico: "coworker.svg", name: "AI Coworker", role: "Skill-based documentation agent — writes to Confluence via MCP", cat: "ai", proj: "coworker" },
   { ico: "aiml.svg", name: "AI / ML Models", role: "Anomaly detection, scoring & summarization", cat: "ai", proj: "alerting" },
 
-  { ico: "aws.svg", name: "AWS", role: "Cloud data services & compute", cat: "cloud", proj: "modernization" },
-  { ico: "azure.svg", name: "Azure", role: "Microsoft cloud ecosystem", cat: "cloud", proj: "modernization" },
-  { ico: "fabric.svg", name: "Microsoft Fabric", role: "Unified analytics — OneLake, pipelines, Power BI", cat: "cloud", proj: "modernization" },
-  { ico: "sharepoint.svg", name: "SharePoint", role: "Automated, centralized reporting environments", cat: "cloud", proj: "modernization" },
+  { ico: "aws.svg", name: "AWS", role: "Cloud data services & compute", cat: "cloud" },
+  { ico: "azure.svg", name: "Azure", role: "Microsoft cloud ecosystem", cat: "cloud" },
+  { ico: "fabric.svg", name: "Microsoft Fabric", role: "Unified analytics — OneLake, pipelines, Power BI", cat: "cloud" },
+  { ico: "sharepoint.svg", name: "SharePoint", role: "Automated, centralized reporting environments", cat: "cloud" },
   { ico: "mysql.svg", name: "SQL Server / MySQL", role: "Secure structured storage behind every pipeline", cat: "cloud", proj: "alerting" },
 ];
 

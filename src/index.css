@@ -12,7 +12,7 @@
   --paper-2: #ede4d1;
   --ink: #241c13;
   --ink-soft: #57493a;
-  --ink-faint: #85735e;
+  --ink-faint: #6b5b47; /* 5.4:1 on paper — small labels stay AA */
   /* The dark band — espresso, not black */
   --esp: #191209;
   --esp-2: #251c11;
@@ -24,7 +24,7 @@
   --gold-hi: #d8bc8a;
   --gold-deep: #6e5741;
   /* Foil gradients: dark-on-light and light-on-dark */
-  --foil-ink: linear-gradient(105deg, #6a5138 0%, #a08258 40%, #d3b789 72%, #8a6c49 100%);
+  --foil-ink: linear-gradient(105deg, #6a5138 0%, #a08258 40%, #c29d62 72%, #8a6c49 100%);
   --foil-lux: linear-gradient(105deg, #b39877 0%, #f0e0c2 45%, #d3b789 70%, #a5824f 100%);
 
   --font-head: "Fraunces", Georgia, serif;
@@ -37,7 +37,9 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 /* Smooth scrolling is Lenis's job (SmoothScroll.jsx); native smooth
    would fight it. Reduced-motion readers get plain native scrolling. */
-html { scroll-padding-top: 96px; }
+/* The one header clearance for every anchor landing — Lenis and the
+   native fallback both read it (SmoothScroll.jsx). */
+html { scroll-padding-top: 84px; }
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
@@ -62,9 +64,23 @@ button { font-family: inherit; cursor: pointer; }
 img, svg { max-width: 100%; }
 
 :focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--gold-deep);
   outline-offset: 3px;
   border-radius: 2px;
+}
+.band.dark :focus-visible, .topbar :focus-visible { outline-color: var(--gold-hi); }
+
+/* Visually hidden, read by assistive tech */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 ::-webkit-scrollbar { width: 10px; }
@@ -83,7 +99,7 @@ img, svg { max-width: 100%; }
   background: var(--esp);
   color: var(--gold-hi);
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -136,22 +152,22 @@ img, svg { max-width: 100%; }
 /* Ledger label — the mono utility voice */
 .mlabel {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-deep); /* the lighter gold is 2.8:1 on paper */
 }
 .band.dark .mlabel { color: var(--gold-hi); }
 
 /* Kicker kept as an alias (ErrorBoundary and old habits) */
 .kicker {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-deep);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -263,7 +279,7 @@ em.foil { font-style: italic; }
 .band.dark .shead { border-top-color: rgba(216, 188, 138, 0.24); }
 .shead .ser {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.18em;
   color: var(--ink-faint);
@@ -279,7 +295,7 @@ em.foil { font-style: italic; }
   gap: 9px;
   padding: 8px 14px;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -302,7 +318,7 @@ em.foil { font-style: italic; }
   border-radius: 4px;
   font-family: var(--font-mono);
   font-weight: 600;
-  font-size: 12.5px;
+  font-size: 13px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   border: 1px solid transparent;
@@ -404,8 +420,9 @@ em.foil { font-style: italic; }
   width: 100%;
   aspect-ratio: 216 / 121;
   background: var(--foil-lux);
-  -webkit-mask: url("/logo.png") center / contain no-repeat;
-  mask: url("/logo.png") center / contain no-repeat;
+  /* the tagline-free lockup: at 84px wide the tagline is a smear */
+  -webkit-mask: url("/logo-mark.png") center / contain no-repeat;
+  mask: url("/logo-mark.png") center / contain no-repeat;
   /* The mark's strokes are thin; lift it so it reads on espresso. */
   filter: brightness(1.25);
   transition: filter 0.3s ease, transform 0.3s ease;
@@ -415,7 +432,7 @@ em.foil { font-style: italic; }
 .topbar nav a {
   position: relative;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -522,7 +539,7 @@ em.foil { font-style: italic; }
   gap: 16px;
   flex-wrap: wrap;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -564,7 +581,7 @@ em.foil { font-style: italic; }
 }
 .cred-k {
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -642,7 +659,7 @@ em.foil { font-style: italic; }
 }
 .reach a:hover { color: var(--gold-deep); padding-left: 12px; background: rgba(165, 130, 79, 0.06); }
 .reach .k {
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -652,7 +669,6 @@ em.foil { font-style: italic; }
 /* The form — a ruled document, not a boxed card */
 .cform {
   border: 1px solid rgba(36, 28, 19, 0.25);
-  border-radius: 6px;
   padding: 36px 34px 32px;
   background: rgba(255, 252, 244, 0.5);
 }
@@ -669,7 +685,7 @@ em.foil { font-style: italic; }
   display: block;
   margin-bottom: 4px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -692,7 +708,7 @@ em.foil { font-style: italic; }
 }
 .cfield textarea { resize: vertical; min-height: 96px; line-height: 1.55; }
 .cfield input::placeholder,
-.cfield textarea::placeholder { color: #a4917a; }
+.cfield textarea::placeholder { color: #857460; }
 .cfield input:hover,
 .cfield textarea:hover { border-bottom-color: rgba(110, 87, 65, 0.55); }
 .cfield input:focus,
@@ -771,7 +787,7 @@ em.foil { font-style: italic; }
   gap: 10px 30px;
   margin-top: 30px;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -796,7 +812,7 @@ em.foil { font-style: italic; }
 }
 .cta-split .mono-note {
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 13px;
   letter-spacing: 0.12em;
   color: var(--ivory-faint);
   margin-top: 12px;
@@ -825,7 +841,7 @@ em.foil { font-style: italic; }
 }
 .foot-k {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -853,7 +869,7 @@ em.foil { font-style: italic; }
   padding-top: 20px;
   border-top: 1px solid rgba(216, 188, 138, 0.14);
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ivory-faint);
@@ -879,7 +895,7 @@ em.foil { font-style: italic; }
   align-items: center;
   gap: 9px;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   font-weight: 600;
@@ -914,7 +930,7 @@ em.foil { font-style: italic; }
 .filter-btn {
   position: relative;
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -939,7 +955,7 @@ em.foil { font-style: italic; }
 .filter-btn:hover { color: var(--ink); }
 .filter-btn.active { color: var(--gold-deep); }
 .filter-btn.active::after { transform: scaleX(1); }
-.filter-btn .count { margin-left: 7px; font-size: 10.5px; opacity: 0.7; }
+.filter-btn .count { margin-left: 7px; font-size: 13px; opacity: 0.75; }
 
 .ti-rows { border-bottom: 1px solid rgba(36, 28, 19, 0.2); }
 .ti-row {
@@ -974,9 +990,14 @@ em.foil { font-style: italic; }
 .ti-ico img { width: 22px; height: 22px; object-fit: contain; display: block; }
 .ti-name { font-weight: 700; font-size: 16.5px; }
 .ti-role { color: var(--ink-soft); font-size: 15px; line-height: 1.5; }
+/* Rows without a case study are plain text, not links */
+.ti-row-static { cursor: default; }
+.ti-row-static:hover { background: none; padding-left: 0; }
+.ti-row-static:hover .ti-ico { border-color: rgba(216, 188, 138, 0.35); box-shadow: none; }
+.ti-go-plain { color: var(--ink-faint); }
 .ti-go {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1020,7 +1041,7 @@ em.foil { font-style: italic; }
 }
 .met-k {
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1049,9 +1070,11 @@ em.foil { font-style: italic; }
   line-height: 1.55;
 }
 .story-points li::before {
-  content: "▸";
-  color: var(--gold);
-  font-size: 11px;
+  content: "";
+  width: 14px;
+  height: 1px;
+  margin-top: 0.7em;
+  background: var(--gold);
   flex: 0 0 auto;
 }
 .story-points strong { color: var(--ink); font-weight: 700; }
@@ -1059,7 +1082,6 @@ em.foil { font-style: italic; }
 /* Tools — a dot-leader ledger */
 .tools-ledger {
   border: 1px solid rgba(36, 28, 19, 0.22);
-  border-radius: 6px;
   padding: 24px 26px 14px;
   background: rgba(255, 252, 244, 0.5);
   position: sticky;
@@ -1114,11 +1136,11 @@ em.foil { font-style: italic; }
 }
 .flow-stages span {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(216, 188, 138, 0.55);
+  color: rgba(216, 188, 138, 0.82);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1164,7 +1186,7 @@ em.foil { font-style: italic; }
 .ledg-sub { font-size: 15px; color: var(--ink-soft); margin-top: 6px; line-height: 1.6; max-width: 600px; }
 .ledg-go {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1182,16 +1204,27 @@ em.foil { font-style: italic; }
 /* ---------- Two journeys ---------- */
 .journey { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
 .j-col {
+  position: relative;
   border: 1px solid rgba(36, 28, 19, 0.22);
-  border-radius: 6px;
   padding: 32px 30px 26px;
   background: rgba(255, 252, 244, 0.5);
 }
-.j-col.new { border-color: rgba(110, 87, 65, 0.6); background: rgba(255, 250, 238, 0.85); box-shadow: 0 20px 50px rgba(120, 95, 65, 0.12); }
+/* The DataQuin column is marked by a foil rule along its top, not a
+   floating shadow */
+.j-col.new { border-color: rgba(110, 87, 65, 0.6); background: rgba(255, 250, 238, 0.85); }
+.j-col.new::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: -1px;
+  height: 3px;
+  background: var(--foil-ink);
+}
 .j-badge {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -1211,7 +1244,7 @@ em.foil { font-style: italic; }
 .j-step .n {
   flex: 0 0 auto;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--ink-faint);
 }
@@ -1222,7 +1255,7 @@ em.foil { font-style: italic; }
 .j-time {
   flex: 0 0 auto;
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -1239,7 +1272,7 @@ em.foil { font-style: italic; }
 }
 .j-total .k {
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -1277,7 +1310,7 @@ em.foil { font-style: italic; }
   border: 1px solid rgba(216, 188, 138, 0.35);
   color: var(--gold-hi);
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1351,7 +1384,7 @@ em.foil { font-style: italic; }
 .fnode-ico img { width: 20px; height: 20px; object-fit: contain; display: block; }
 .fnode-ico.txt {
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--gold-hi);
   letter-spacing: 0.02em;
@@ -1361,7 +1394,7 @@ em.foil { font-style: italic; }
 .fs {
   display: block;
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--ivory-soft);
   margin-top: 4px;
   line-height: 1.5;
@@ -1376,7 +1409,7 @@ em.foil { font-style: italic; }
 /* Dark halo behind edge labels so they stay legible over the grid */
 .flow-lbl {
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 500;
   fill: var(--gold-hi);
   paint-order: stroke;
@@ -1428,6 +1461,10 @@ em.foil { font-style: italic; }
 .field canvas { display: block; width: 100% !important; height: 100% !important; }
 .field.gl { opacity: 0; }
 .field.gl.ready { animation: fadeIn 1.4s ease 0.1s forwards; }
+/* The WebGL canvas is opaque (bloom needs a ground to composite on),
+   so the ledger grid and aura sit above it, under the copy. */
+.stage .hero-grid, .stage .hero-aura,
+.hero-work .hero-grid, .hero-work .hero-aura { z-index: 1; }
 .poster { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.9; }
 /* Keeps the copy legible over the brightest part of the stream */
 .stage-scrim {
@@ -1440,6 +1477,12 @@ em.foil { font-style: italic; }
     linear-gradient(0deg, rgba(25, 18, 9, 0.92) 0%, rgba(25, 18, 9, 0) 34%);
 }
 .hero-work { min-height: 72vh; display: flex; align-items: flex-end; }
+/* Six chapter tags as a 3x2 grid rather than a 5+1 orphan */
+@media (min-width: 1100px) {
+  .hero-work .hero-actions { display: grid; grid-template-columns: repeat(3, max-content); gap: 10px 14px; }
+}
+/* Short viewports: the cue would land on the credentials */
+@media (max-height: 820px) { .scroll-cue { display: none; } }
 .hero-work .wrap { width: min(1200px, calc(100% - 88px)); }
 .tag-link { transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease; }
 .tag-link:hover { border-color: var(--gold-hi); background: rgba(216, 188, 138, 0.08); }
@@ -1448,28 +1491,40 @@ em.foil { font-style: italic; }
    Hero story — a sticky stage the reader scrolls through
    ============================================================ */
 .story { height: 360vh; }
+/* min-height, not height: on a short viewport (or at 200% zoom) the
+   copy is taller than the screen, and a fixed-height, clipped stage
+   would make its lower part unreachable. A taller sticky stage simply
+   scrolls its tail into view before the section ends. */
 .stage {
   position: sticky;
   top: 0;
-  height: 100vh;
-  height: 100svh;
+  min-height: 100vh;
+  min-height: 100svh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
-.stage-copy { position: relative; z-index: 2; padding-top: 64px; will-change: transform, opacity; }
+.stage-copy { position: relative; z-index: 2; padding: 64px 0 40px; will-change: transform, opacity; }
+/* The copy keeps a text-free lane on the left; the mark owns the right */
+.stage .hero-title { font-size: clamp(2.6rem, 5.9vw, 5.5rem); max-width: 800px; }
 .stage .hero-creds { margin-top: clamp(28px, 5vh, 64px); }
 .stage .hero-meta { margin-bottom: clamp(28px, 5vh, 64px); }
+/* Beats: a static, viewport-tall centring frame; the motion (opacity,
+   rise) lives on the inner element so it never fights the centring. */
 .beat {
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  display: flex;
+  align-items: center;
   z-index: 2;
-  will-change: transform, opacity;
+  pointer-events: none;
 }
+.beat-in { width: 100%; will-change: transform, opacity; }
 .beat-t {
   font-family: var(--font-head);
   font-size: clamp(2rem, 5vw, 4.4rem);
@@ -1499,7 +1554,7 @@ em.foil { font-style: italic; }
   align-items: center;
   gap: 10px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -1523,7 +1578,7 @@ em.foil { font-style: italic; }
 /* ============================================================
    Services strip — sideways travel driven by vertical scroll
    ============================================================ */
-.strip-sec { height: 250vh; }
+.strip-sec { height: 190vh; }
 .strip-stage {
   position: sticky;
   top: 0;
@@ -1531,10 +1586,15 @@ em.foil { font-style: italic; }
   height: 100svh;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  padding-top: clamp(96px, 14vh, 150px);
+  justify-content: center;
+  padding-top: clamp(72px, 10vh, 110px);
   gap: clamp(36px, 6vh, 64px);
   overflow: hidden;
+}
+/* The track's clip fades out at both edges instead of cutting glyphs */
+.strip-clip {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 56px, #000 calc(100% - 56px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 56px, #000 calc(100% - 56px), transparent 100%);
 }
 .strip-track {
   display: flex;
@@ -1555,7 +1615,7 @@ em.foil { font-style: italic; }
 .pillar:last-child { margin-right: 44px; }
 .pillar-num {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.2em;
   color: var(--gold-deep);
@@ -1569,9 +1629,6 @@ em.foil { font-style: italic; }
 }
 .pillar-s { color: var(--ink-soft); font-size: 16px; line-height: 1.6; max-width: 360px; }
 @media (max-width: 899px) {
-  /* The ambient mark has no clear space beside a headline that spans
-     the whole width; the landing keeps its mark (it sits above the copy). */
-  .hero-work .field { display: none; }
   .strip-sec { height: auto; padding: 76px 0; }
   .strip-stage { position: static; height: auto; overflow: visible; gap: 8px; }
   .strip-track { display: block; width: auto; padding: 0 22px; transform: none !important; }
@@ -1590,20 +1647,26 @@ em.foil { font-style: italic; }
 /* ============================================================
    Stacking process rows
    ============================================================ */
-.stack-rows { position: relative; isolation: isolate; padding-bottom: 12vh; }
+.stack-rows { position: relative; isolation: isolate; padding-bottom: 0; }
+/* the stack's own run-out is the section's bottom breathing room */
+#process.pad { padding-bottom: 48px; }
 .stack-row {
   position: sticky;
   background: var(--paper);
-  margin-bottom: 7vh;
-  border-top: 1px solid rgba(36, 28, 19, 0.2);
+  margin-bottom: 5vh;
+  /* the rule fades out as the row is covered (--cov 0 → 1), so covered
+     rows never pile up as a stack of stray hairlines */
+  border-top: 1px solid rgba(36, 28, 19, calc(0.2 * (1 - var(--cov, 0))));
   transform-origin: top center;
   will-change: transform, opacity;
 }
 .stack-row:hover { padding-left: 0; }
+/* The veil also covers the row's top rule, so covered rows do not
+   pile up as a stack of stray hairlines */
 .stack-row::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -1px 0 0 0;
   background: var(--paper);
   opacity: var(--dim, 0);
   pointer-events: none;
@@ -1627,14 +1690,14 @@ em.foil { font-style: italic; }
 }
 .rail.show { opacity: 1; pointer-events: auto; }
 /* Only where the gutter beside the 1200px column can hold it */
-@media (min-width: 1540px) { .rail { display: flex; } }
-.rail .mlabel { margin-bottom: 10px; font-size: 10.5px; }
+@media (min-width: 1580px) { .rail { display: flex; } }
+.rail .mlabel { margin-bottom: 10px; font-size: 13px; }
 .rail a {
   display: flex;
   gap: 10px;
   align-items: baseline;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.06em;
   color: var(--ink-faint);
@@ -1648,7 +1711,6 @@ em.foil { font-style: italic; }
 .rail a:hover { color: var(--ink); }
 .rail a.on { color: var(--gold-deep); border-left-color: var(--gold); }
 
-.chapter { scroll-margin-top: 80px; }
 .ch-head {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -1692,7 +1754,7 @@ em.foil { font-style: italic; }
 
 @media (max-width: 860px) {
   .wrap { width: calc(100% - 44px); }
-  html { scroll-padding-top: 78px; }
+  html { scroll-padding-top: 72px; }
   .pad { padding: 76px 0; }
   .pad-b { padding-bottom: 76px; }
   .pad-s { padding: 56px 0; }
@@ -1700,8 +1762,8 @@ em.foil { font-style: italic; }
   .topbar { padding: 12px 0; }
   .topbar.scrolled { padding: 9px 0; }
   .brand { width: 66px; }
-  .topbar nav { gap: 18px; }
-  .topbar nav a { font-size: 10.5px; letter-spacing: 0.1em; }
+  .topbar nav { gap: 16px; }
+  .topbar nav a { font-size: 13px; letter-spacing: 0.08em; }
   .hero-creds { grid-template-columns: 1fr; }
   .cred { flex-direction: row; align-items: baseline; gap: 16px; padding: 16px 0; }
   .cred + .cred { border-left: none; border-top: 1px solid rgba(216, 188, 138, 0.14); padding-left: 0; }
@@ -1713,7 +1775,6 @@ em.foil { font-style: italic; }
   .met:nth-child(n+3) { border-top: 1px solid rgba(216, 188, 138, 0.14); }
   .met-row.paper .met:nth-child(even) { border-left-color: rgba(36, 28, 19, 0.14); }
   .met-row.paper .met:nth-child(n+3) { border-top-color: rgba(36, 28, 19, 0.14); }
-  .stack-row { top: 76px !important; }
   .hero-work { min-height: 0; }
   .journey { grid-template-columns: 1fr; }
   .ledg-row, .ledg.proof .ledg-row { grid-template-columns: 1fr; gap: 10px; padding: 26px 8px 26px 0; }
@@ -1752,12 +1813,12 @@ em.foil { font-style: italic; }
   .foot-grid { grid-template-columns: 1fr; gap: 28px; }
 }
 
-/* Below 400px the three nav labels need the logo's space; the mark still
+/* Below 360px the three nav labels need the logo's space; the mark still
    lives in the footer and "Home" stays reachable there. */
-@media (max-width: 400px) {
+@media (max-width: 360px) {
   .topbar .brand { display: none; }
   .topbar-in { justify-content: center; }
-  .topbar nav { gap: 16px; }
+  .topbar nav { gap: 14px; }
 }
 
 /* ============================================================
@@ -1779,6 +1840,11 @@ em.foil { font-style: italic; }
   /* Scroll-linked stages still work (they only move when the reader
      does) but nothing pops in late */
   .flow-panel:not(.visible) .fnode { animation-play-state: running; }
+  /* Entrances become instant: no line rise, no fades, no row slide */
+  .hero-title .row span { animation: none !important; transform: none !important; }
+  .fade-in { opacity: 1 !important; animation: none !important; }
+  .ti-row { animation: none !important; }
+  .field.gl.ready { animation: none !important; opacity: 1; }
   .shine { background-position: 30% center; }
   .fnode { animation: fnodeIn 0.01s forwards !important; }
   .fedge { animation: fadeIn 0.01s forwards !important; }

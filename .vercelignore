@@ -2,6 +2,7 @@
 # `npm run build` need to be uploaded.
 node_modules
 dist
+dist-*
 .claude
 
 # Client-confidential source material — the QBR deck names a real client,

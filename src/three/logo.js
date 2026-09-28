@@ -15,7 +15,7 @@ const LOGO_W = 8.8;
 // fractions of the image: rows holding the tagline, box holding "DQ"
 const TAGLINE = [0.585, 0.69];
 const LETTERS = { x: [0.36, 0.64], y: [0.34, 0.58] };
-const LETTER_WEIGHT = 2.0;
+const LETTER_WEIGHT = 1.4;
 
 let cache = null;
 
@@ -90,18 +90,20 @@ function sample(s, count, seed) {
   return { targets, ts };
 }
 
-/* Where the formed mark sits, by viewport shape.
-   "hero":  large, behind the copy, from the first screen on.
-   "aside": the ambient mark on the Work page — pushed to the far right
-            and up, clear of a headline that spans most of the width. */
+/* Where the formed mark sits, by viewport shape. `alpha` dims the solid
+   mark where it must sit behind copy.
+   "hero":  large, owning the right half of the stage and bleeding off
+            its edge on wide screens; peeking from the top-right corner,
+            dimmed, on phones where the copy fills the stage.
+   "aside": the ambient mark on the Work page — far right, clear of a
+            headline that spans most of the width. */
 export function logoPlacement(aspect, place = "hero") {
   if (place === "aside") {
-    if (aspect >= 1.25) return { scale: 0.72, x: 5.9, y: 0.4 };
-    if (aspect >= 0.8) return { scale: 0.55, x: 2.8, y: 1.6 };
-    return { scale: 0.42, x: 1.0, y: 2.6 };
+    if (aspect >= 1.25) return { scale: 0.72, x: 6.0, y: -0.2, alpha: 1 };
+    if (aspect >= 0.8) return { scale: 0.55, x: 2.8, y: 1.2, alpha: 1 };
+    return { scale: 0.42, x: 1.0, y: 2.6, alpha: 1 };
   }
-  // big: the mark is the hero's backdrop, nearly the width of the stage
-  if (aspect >= 1.25) return { scale: 1.65, x: 1.7, y: 0.1 };
-  if (aspect >= 0.8) return { scale: 1.25, x: 0.5, y: 0.5 };
-  return { scale: 0.98, x: 0, y: 0.8 };
+  if (aspect >= 1.25) return { scale: 1.15, x: 4.8, y: 0.2, alpha: 1 };
+  if (aspect >= 0.8) return { scale: 1.0, x: 1.8, y: 0.8, alpha: 0.9 };
+  return { scale: 0.62, x: 1.9, y: 2.6, alpha: 0.6 };
 }

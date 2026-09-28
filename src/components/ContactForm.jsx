@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 
 /* Form UI only for now — no backend is wired up yet, so submitting just
    shows the confirmation state. When the delivery method is chosen
@@ -7,17 +8,22 @@ import { useState } from "react";
 export default function ContactForm() {
   const [form, setForm] = useState({ name: "", email: "", company: "", message: "" });
   const [sent, setSent] = useState(false);
+  const doneRef = useRef(null);
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
+  // After submit the form unmounts under the keyboard user; move focus
+  // to the confirmation so it is read out and Tab continues from here.
+  useEffect(() => { if (sent) doneRef.current?.focus(); }, [sent]);
+
   if (sent) {
     return (
-      <div className="cform cform-sent" role="status">
+      <div className="cform cform-sent" role="status" tabIndex={-1} ref={doneRef}>
         <span className="cform-sent-mark" aria-hidden="true">&#10003;</span>
         <div className="cform-sent-t">Thanks — we&rsquo;ve got it.</div>
         <p className="cform-sent-s">
           We&rsquo;ll come back to you at <strong>{form.email || "your address"}</strong> shortly.
-          In the meantime, the builds behind our claims are worth a look.
+          In the meantime, <Link to="/work">the builds behind our claims</Link> are worth a look.
         </p>
       </div>
     );
@@ -64,8 +70,7 @@ export default function ContactForm() {
 
       <button type="submit" className="btn btn-gold btn-shine">Send</button>
       <p className="cform-privacy">
-        <span aria-hidden="true">&#128274;</span> Your information and business discussions are
-        treated with the highest level of confidentiality and discretion.
+        Everything you share here stays confidential and is never passed on.
       </p>
     </form>
   );

@@ -1,27 +1,39 @@
 import { useEffect, useRef, useState } from "react";
 
 /* ---------- Reveal on scroll (fail-safe: never stays hidden) ---------- */
+/* The observer does the work. Two fail-safes cover the cases where it
+   never fires (odd viewports, hash jumps, a broken observer): anything
+   already inside the viewport is shown after 1.2s, and a scroll
+   listener shows an element the moment it is on screen. Elements below
+   the fold stay hidden until they arrive, so their entrance plays. */
+function onScreen(el, slack = 0) {
+  const r = el.getBoundingClientRect();
+  return r.top < window.innerHeight + slack && r.bottom > -slack;
+}
+
 export function Reveal({ children, as: Tag = "div", delay = 0, className = "", ...rest }) {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    // Fail-safe: if the observer never fires (edge cases, hash jumps,
-    // odd viewports), force the content visible after 1.2s.
-    const safety = setTimeout(() => el.classList.add("visible"), 1200);
+    let done = false;
+    const show = () => {
+      if (done) return;
+      done = true;
+      el.classList.add("visible");
+      obs.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      clearTimeout(safety);
+    };
+    const onScroll = () => { if (onScreen(el, -20)) show(); };
+    const safety = setTimeout(() => { if (onScreen(el)) show(); }, 1200);
     const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add("visible");
-            obs.unobserve(e.target);
-          }
-        });
-      },
+      (entries) => { entries.forEach((e) => { if (e.isIntersecting) show(); }); },
       { threshold: 0.05, rootMargin: "0px 0px -20px 0px" }
     );
     obs.observe(el);
-    return () => { obs.disconnect(); clearTimeout(safety); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { obs.disconnect(); window.removeEventListener("scroll", onScroll); clearTimeout(safety); };
   }, []);
   const d = delay ? ` d${delay}` : "";
   return (
@@ -43,6 +55,9 @@ export function CountUp({ to, suffix = "", duration = 1600 }) {
     const start = () => {
       if (done) return;
       done = true;
+      obs.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      clearTimeout(safety);
       // Someone who asked the OS to reduce motion gets the final figure
       // straight away rather than watching it tick up.
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -58,20 +73,15 @@ export function CountUp({ to, suffix = "", duration = 1600 }) {
       };
       raf = requestAnimationFrame(step);
     };
-    const safety = setTimeout(start, 1500); // fail-safe
+    const onScroll = () => { if (onScreen(el, -20)) start(); };
+    const safety = setTimeout(() => { if (onScreen(el)) start(); }, 1500);
     const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            start();
-            obs.unobserve(e.target);
-          }
-        });
-      },
+      (entries) => { entries.forEach((e) => { if (e.isIntersecting) start(); }); },
       { threshold: 0.4 }
     );
     obs.observe(el);
-    return () => { obs.disconnect(); cancelAnimationFrame(raf); clearTimeout(safety); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { obs.disconnect(); window.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); clearTimeout(safety); };
   }, [to, duration]);
   return <span ref={ref}>{val}{suffix}</span>;
 }

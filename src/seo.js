@@ -50,7 +50,8 @@ function setMeta(attr, key, content) {
 
 export function usePageMeta({ title, description, path, noindex = false }) {
   useEffect(() => {
-    const full = title === BRAND ? title : `${title} — ${BRAND}`;
+    // The home page passes the full brand line; other pages get " — DataQuin".
+    const full = title.startsWith(BRAND) ? title : `${title} — ${BRAND}`;
     const url = SITE_URL + path;
 
     document.title = full;
@@ -64,10 +65,17 @@ export function usePageMeta({ title, description, path, noindex = false }) {
     // "not found" page has to opt out of indexing by hand.
     setMeta("name", "robots", noindex ? "noindex, follow" : "index, follow");
 
-    upsert('link[rel="canonical"]', () => {
-      const l = document.createElement("link");
-      l.setAttribute("rel", "canonical");
-      return l;
-    }).setAttribute("href", url);
+    // A noindex page must not also declare a canonical: the two
+    // contradict each other. The 404 page drops it.
+    const canonical = document.head.querySelector('link[rel="canonical"]');
+    if (noindex) {
+      canonical?.remove();
+    } else {
+      upsert('link[rel="canonical"]', () => {
+        const l = document.createElement("link");
+        l.setAttribute("rel", "canonical");
+        return l;
+      }).setAttribute("href", url);
+    }
   }, [title, description, path, noindex]);
 }

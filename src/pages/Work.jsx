@@ -6,6 +6,7 @@ import { Reveal, CountUp, Magnetic } from "../components/fx.jsx";
 import Flow from "../components/Flow.jsx";
 import { Field } from "../three/Field.jsx";
 import { STUDIES, getStudy } from "../data/caseStudies.js";
+import { useMedia } from "../motion/prefs.js";
 import { IMPACTS, OLD_STEPS, NEW_STEPS, EVOLUTION, CATS, TECH, csHash } from "../data/site.js";
 import { usePageMeta } from "../seo.js";
 
@@ -21,7 +22,8 @@ const RAIL = [
 
 function Rail({ active, show }) {
   return (
-    <nav className={`rail${show ? " show" : ""}`} aria-label="Sections">
+    /* inert while invisible: no blind tab stops */
+    <nav className={`rail${show ? " show" : ""}`} aria-label="Sections" inert={!show}>
       <span className="mlabel">Contents</span>
       {RAIL.map((r) => (
         <Link key={r.id} to={`/work#${r.id}`} className={active === r.id ? "on" : ""}>
@@ -107,10 +109,10 @@ function Impact() {
       <div className="wrap">
         <Reveal className="shead">
           <span className="mlabel">Measured outcomes</span>
-          <span className="ser">§ 07 · six entries</span>
+          <span className="ser">§ 01 · six entries</span>
         </Reveal>
         <Reveal className="sec-intro">
-          <h2 className="h1">We don't sell effort. <em className="foil">We sell outcomes.</em></h2>
+          <h2 className="h1">We don&rsquo;t sell effort. <em className="foil">We sell outcomes.</em></h2>
           <p className="lead">
             Every build is judged on hours returned, errors removed and decisions unblocked.
             Each number below traces back to a chapter above.
@@ -135,13 +137,13 @@ function Impact() {
 
         <Reveal className="shead" style={{ marginTop: 96 }}>
           <span className="mlabel">The difference in practice</span>
-          <span className="ser">§ 08</span>
+          <span className="ser">§ 02</span>
         </Reveal>
         <Reveal className="sec-intro">
           <h2 className="h1">The same request, <em className="foil">two journeys.</em></h2>
           <p className="lead">
-            "I need a regional dashboard, secured per role, by Friday." Here is what
-            actually happens next — with and without DataQuin.
+            &ldquo;I need a regional sales dashboard with row-level security by Friday.&rdquo; Here is
+            what actually happens next — with and without DataQuin.
           </p>
         </Reveal>
         <div className="journey">
@@ -197,7 +199,7 @@ function Stack() {
       <div className="wrap">
         <Reveal className="shead">
           <span className="mlabel">Who we are</span>
-          <span className="ser">§ 09</span>
+          <span className="ser">§ 03</span>
         </Reveal>
         <Reveal className="sec-intro">
           <h2 className="h1">Technology keeps evolving. <em className="foil">So do we.</em></h2>
@@ -219,13 +221,13 @@ function Stack() {
 
         <Reveal className="shead" style={{ marginTop: 96 }}>
           <span className="mlabel">Tech stack</span>
-          <span className="ser">§ 10 · {TECH.length} tools</span>
+          <span className="ser">§ 04 · twenty-one tools</span>
         </Reveal>
         <Reveal className="sec-intro">
           <h2 className="h1">The tools <em className="foil">we build with.</em></h2>
           <p className="lead">
-            Every tool below is proven in a production build — open any line to jump to
-            the chapter where we used it.
+            The stack behind the six chapters. Where a tool carried one of them, the row
+            links straight to that case study.
           </p>
         </Reveal>
 
@@ -243,23 +245,26 @@ function Stack() {
         </div>
 
         <div className="ti-rows" key={cat}>
-          {list.map((t, i) => (
-            <Link
-              className="ti-row"
-              key={t.name}
-              to={`/work${csHash(t.proj)}`}
-              style={{ animationDelay: `${Math.min(i * 0.04, 0.5)}s` }}
-            >
-              <span className="ti-ico">
-                <img src={`/icons/${t.ico}`} alt={t.name} loading="lazy" />
-              </span>
-              <span className="ti-name">{t.name}</span>
-              <span className="ti-role">{t.role}</span>
-              <span className="ti-go">
-                Proven in CS {getStudy(t.proj).num} <span className="arr" aria-hidden="true">→</span>
-              </span>
-            </Link>
-          ))}
+          {list.map((t, i) => {
+            const inner = (
+              <>
+                <span className="ti-ico">
+                  <img src={`/icons/${t.ico}`} alt="" loading="lazy" />
+                </span>
+                <span className="ti-name">{t.name}</span>
+                <span className="ti-role">{t.role}</span>
+                <span className="ti-go">
+                  {t.proj
+                    ? <>Case Study {getStudy(t.proj).num} <span className="arr" aria-hidden="true">→</span></>
+                    : <span className="ti-go-plain">In our stack</span>}
+                </span>
+              </>
+            );
+            const style = { animationDelay: `${Math.min(i * 0.04, 0.5)}s` };
+            return t.proj
+              ? <Link className="ti-row" key={t.name} to={`/work${csHash(t.proj)}`} style={style}>{inner}</Link>
+              : <div className="ti-row ti-row-static" key={t.name} style={style}>{inner}</div>;
+          })}
         </div>
       </div>
     </section>
@@ -275,6 +280,7 @@ export default function Work() {
   });
 
   const heroRef = useRef(null);
+  const wideHero = useMedia("(min-width: 900px)");
   // Field keeps rendering while any of the hero is on screen; the rail
   // appears once most of it has gone.
   const heroIn = useInView(heroRef);
@@ -303,7 +309,9 @@ export default function Work() {
       <section className="band dark hero-band hero-sub hero-work pad-b" ref={heroRef}>
         <div className="hero-grid" aria-hidden="true" />
         <div className="hero-aura" aria-hidden="true" />
-        <Field ambient active={heroIn} />
+        {/* not mounted on narrow screens at all — there it would sit behind
+            the headline, and mounting it would still download the 3D chunk */}
+        {wideHero && <Field ambient active={heroIn} />}
         <div className="stage-scrim" aria-hidden="true" />
         <div className="wrap">
           <div className="hero-meta fade-in">
@@ -311,8 +319,8 @@ export default function Work() {
             <span>DQ / 02</span>
           </div>
           <h1 className="h-xl sm hero-title">
-            <span className="row"><span>Systems we've shipped.</span></span>
-            <span className="row"><span><em className="foil">Bottlenecks we've deleted.</em></span></span>
+            <span className="row"><span>Systems we&rsquo;ve shipped.</span></span>
+            <span className="row"><span><em className="foil">Bottlenecks we&rsquo;ve deleted.</em></span></span>
           </h1>
           <p className="lead hero-lead fade-in">
             Six production systems built for professional services firms — anonymized,
@@ -341,7 +349,7 @@ export default function Work() {
               <h2 className="h1">Built once. <em className="foil">Running every day.</em></h2>
               <div className="mono-note">Six production systems · secured · validated · self-service</div>
             </div>
-            <Magnetic><Link to="/#contact" className="btn btn-gold">Start a conversation <span className="arr" aria-hidden="true">→</span></Link></Magnetic>
+            <Magnetic><Link to="/#contact" className="btn btn-gold">Start a conversation</Link></Magnetic>
           </Reveal>
         </div>
       </section>

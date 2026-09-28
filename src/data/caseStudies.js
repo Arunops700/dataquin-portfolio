@@ -30,7 +30,7 @@ export const STUDIES = [
     ],
     metrics: [
       { v: "0", k: "manual data entry" },
-      { v: "2 → 1", k: "systems, one source of truth" },
+      { v: "2", k: "platforms kept in sync, one source of truth" },
       { to: 100, suffix: "%", k: "always current — WIP & hours" },
       { v: "auto", k: "runs unattended, end to end" },
     ],
@@ -87,7 +87,7 @@ export const STUDIES = [
     ],
     metrics: [
       { to: 90, suffix: "%+", k: "faster turnaround" },
-      { to: 85, suffix: "%", k: "effort reduction" },
+      { to: 85, suffix: "%+", k: "less human effort — 28 hours to under 3" },
       { to: 100, suffix: "%", k: "auditable security" },
       { v: "0", k: "queue wait" },
     ],
@@ -129,7 +129,7 @@ export const STUDIES = [
       metric: "detection → inbox",
     },
     intro: [
-      "Analysts were manually searching huge transaction datasets for suspicious activity — combing through millions of rows, dataset by dataset, waiting days per request and unable to scale without adding people. And after finding something, the work wasn't done: someone still had to write it up and notify the right people.",
+      "Analysts were manually searching high-volume transaction datasets for suspicious activity — combing through millions of rows, dataset by dataset, waiting days per request and unable to scale without adding people. And after finding something, the work wasn't done: someone still had to write it up and notify the right people.",
       "The replacement automates the whole chain. The system scans the full dataset and applies the firm's fraud conditions — the rules that define exactly what suspicious looks like. Every detection is handed to AI, which generates a clear case report: what was flagged, the amounts, the pattern, why it matters. Then the AI drafts the alert mail and sends it to the right people. From raw data to a finished report in someone's inbox — automatically, every time.",
     ],
     points: [
@@ -145,7 +145,7 @@ export const STUDIES = [
       { v: "min", k: "from detection to inbox" },
     ],
     tools: [
-      ["Transaction data", "the huge datasets being screened, stored in MySQL"],
+      ["Transaction data", "the datasets being screened — millions of rows in MySQL"],
       ["Python", "scans every row and applies the fraud conditions"],
       ["Fraud conditions", "the firm's rules for exactly what suspicious looks like"],
       ["AI report writer", "turns each detection into a clear, readable case report"],
@@ -153,7 +153,7 @@ export const STUDIES = [
     ],
     flow: {
       nodes: [
-        { id: "d", t: "Huge dataset", s: "millions of transactions", ico: "mysql.svg", col: 0 },
+        { id: "d", t: "Transaction data", s: "millions of rows", ico: "mysql.svg", col: 0 },
         { id: "c", t: "Fraud conditions", s: "rules applied to every row", ab: "IF", col: 1 },
         { id: "f", t: "Fraud detected", s: "flagged cases only", ab: "!", col: 2 },
         { id: "ai", t: "AI", s: "understands the case", ico: "aiml.svg", col: 3 },
@@ -190,8 +190,10 @@ export const STUDIES = [
       ["Client-ready", " — weekly visibility without lifting a finger"],
     ],
     metrics: [
-      { v: "<3h", k: "weekly reporting" },
+      { v: "<3h", k: "weekly reporting — down from days" },
       { v: "100%", k: "billability classified" },
+      { v: "3", k: "feeds combined — mail, calls, meetings" },
+      { v: "auto", k: "report ships itself every week" },
     ],
     tools: [
       ["Outlook", "sent-mail feed — what was communicated, to whom"],
@@ -243,10 +245,10 @@ export const STUDIES = [
       ["Access control built in", " — each person sees only what they should"],
     ],
     metrics: [
-      { to: 5, suffix: " mo", k: "engagement" },
       { v: "2 → 1", k: "data sources into one model" },
       { v: "0", k: "copy-paste refreshes" },
       { to: 100, suffix: "%", k: "reports on the central model" },
+      { v: "auto", k: "scheduled refresh, access control built in" },
     ],
     tools: [
       ["SQL Server", "the database holding the core business data"],

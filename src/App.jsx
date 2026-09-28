@@ -69,13 +69,13 @@ function Topbar() {
         <NavLink to="/" className="brand" end aria-label="DataQuin — home">
           <span className="brand-logo" role="img" aria-label="DataQuin — Driven by Purpose, Powered by Precision" />
         </NavLink>
-        <nav>
+        <nav aria-label="Primary">
           {NAV.map((n) => {
             const active =
               location.pathname === n.path &&
               (n.hash ? location.hash === n.hash : !NAV.some((o) => o.path === n.path && o.hash && o.hash === location.hash));
             return (
-              <Link key={n.to} to={n.to} className={active ? "active" : ""}>
+              <Link key={n.to} to={n.to} className={active ? "active" : ""} aria-current={active ? "page" : undefined}>
                 {n.label}
               </Link>
             );
@@ -153,27 +153,40 @@ function Footer() {
 
 /* Route + hash navigation. A new path starts at the top; a hash scrolls
    to its section once it exists in the DOM (the page may still be
-   mounting when the effect first runs). */
+   mounting when the effect first runs), moves keyboard focus there so
+   the next Tab continues from the section, and re-aims once web fonts
+   have arrived on a cold deep link (the target moves as they swap). */
 function useScrollNavigation() {
   const location = useLocation();
+  const lastPath = useRef(null);
   useLayoutEffect(() => {
     const id = location.hash.slice(1);
+    // a hash on a freshly mounted page jumps (there is nothing to glide
+    // from); a hash on the page already open glides
+    const newPage = lastPath.current !== location.pathname;
+    lastPath.current = location.pathname;
     if (!id) {
       scrollTo(0, { immediate: true });
       return;
     }
     let tries = 0;
     let raf = 0;
+    let alive = true;
     const go = () => {
       const el = document.getElementById(id);
       if (el) {
-        scrollTo(el, { offset: -84 });
+        scrollTo(el, { immediate: newPage });
+        if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+        el.focus({ preventScroll: true });
+        if (document.fonts?.status !== "loaded") {
+          document.fonts?.ready?.then(() => { if (alive) scrollTo(el, { immediate: true }); });
+        }
       } else if (tries++ < 30) {
         raf = requestAnimationFrame(go);
       }
     };
     go();
-    return () => cancelAnimationFrame(raf);
+    return () => { alive = false; cancelAnimationFrame(raf); };
   }, [location.pathname, location.hash, location.key]);
 }
 

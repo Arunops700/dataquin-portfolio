@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { m, useTransform, useInView } from "framer-motion";
+import { m, useTransform, useInView, useMotionValueEvent } from "framer-motion";
 import { useProgress } from "../motion/scroll.js";
 import { Reveal, Magnetic } from "../components/fx.jsx";
 import ContactForm from "../components/ContactForm.jsx";
@@ -15,13 +15,29 @@ import { usePageMeta } from "../seo.js";
    The 3D field pours from scattered rows into one stream while the
    headline gives way to three beats: problem, build, result.
    ============================================================ */
-function Beat({ beat, p }) {
+/* Faded-out copy must also leave the tab order and the accessibility
+   tree: `inert` follows the opacity, toggled on the DOM node directly so
+   scrolling never re-renders React. */
+function useInertWhenHidden(opacity) {
+  const ref = useRef(null);
+  useMotionValueEvent(opacity, "change", (v) => {
+    const el = ref.current;
+    if (el) el.inert = v < 0.5;
+  });
+  useEffect(() => { if (ref.current) ref.current.inert = opacity.get() < 0.5; }, [opacity]);
+  return ref;
+}
+
+function Beat({ beat, p, last }) {
   const [a, b] = beat.range;
-  const o = useTransform(p, [a, a + 0.07, b - 0.07, b], [0, 1, 1, 0]);
-  const y = useTransform(p, [a, a + 0.07, b - 0.07, b], [34, 0, 0, -34]);
+  // the last beat holds to the end so the stage never unpins on an empty screen
+  const o = useTransform(p, last ? [a, a + 0.06, 1, 1] : [a, a + 0.06, b - 0.05, b], last ? [0, 1, 1, 1] : [0, 1, 1, 0]);
+  const y = useTransform(p, last ? [a, a + 0.06, 1, 1] : [a, a + 0.06, b - 0.05, b], last ? [34, 0, 0, 0] : [34, 0, 0, -34]);
   const pe = useTransform(o, (v) => (v > 0.5 ? "auto" : "none"));
+  const ref = useInertWhenHidden(o);
   return (
-    <m.div className="beat" style={{ opacity: o, y, pointerEvents: pe }}>
+    <div className="beat">
+    <m.div className="beat-in" ref={ref} style={{ opacity: o, y, pointerEvents: pe }}>
       <div className="wrap">
         <span className="mlabel">{beat.k}</span>
         <h2 className="beat-t">
@@ -30,13 +46,12 @@ function Beat({ beat, p }) {
         <p className="beat-s">{beat.s}</p>
         {beat.cta && (
           <Magnetic>
-            <Link to="/work" className="btn btn-gold btn-shine">
-              See the work <span className="arr" aria-hidden="true">→</span>
-            </Link>
+            <Link to="/work" className="btn btn-gold btn-shine">See the work</Link>
           </Magnetic>
         )}
       </div>
     </m.div>
+    </div>
   );
 }
 
@@ -46,9 +61,11 @@ function HeroStory() {
   const p = useProgress(ref);
 
   const field = useTransform(p, [0.12, 0.8], [0, 1]);
-  const headO = useTransform(p, [0, 0.11, 0.24], [1, 1, 0]);
-  const headY = useTransform(p, [0, 0.24], [0, -56]);
+  // the headline hands over to the first beat with a short cross-fade
+  const headO = useTransform(p, [0, 0.1, 0.22], [1, 1, 0]);
+  const headY = useTransform(p, [0, 0.22], [0, -56]);
   const headPE = useTransform(headO, (v) => (v > 0.5 ? "auto" : "none"));
+  const copyRef = useInertWhenHidden(headO);
   const cueO = useTransform(p, [0, 0.07], [1, 0]);
 
   return (
@@ -59,7 +76,7 @@ function HeroStory() {
         <Field progress={field} active={inView} />
         <div className="stage-scrim" aria-hidden="true" />
 
-        <m.div className="wrap stage-copy" style={{ opacity: headO, y: headY, pointerEvents: headPE }}>
+        <m.div className="wrap stage-copy" ref={copyRef} style={{ opacity: headO, y: headY, pointerEvents: headPE }}>
           <div className="hero-meta fade-in">
             <span><b>DataQuin</b> — Your partner in success</span>
             <span>Data · Automation · AI Engineering</span>
@@ -74,7 +91,9 @@ function HeroStory() {
           </p>
           <div className="hero-actions fade-in">
             <Magnetic><Link to="/work" className="btn btn-gold btn-shine">See the work</Link></Magnetic>
-            <Magnetic><a href="#contact" className="btn btn-line">Start a conversation <span className="arr" aria-hidden="true">→</span></a></Magnetic>
+            {/* a router link, not a native anchor: the native jump would
+                fight the smooth scroller and snap back to the hero */}
+            <Magnetic><Link to="/#contact" className="btn btn-line">Start a conversation <span className="arr" aria-hidden="true">→</span></Link></Magnetic>
           </div>
           <div className="hero-creds fade-in">
             {CREDS.map((c) => (
@@ -86,7 +105,7 @@ function HeroStory() {
           </div>
         </m.div>
 
-        {STORY_BEATS.map((b) => <Beat key={b.k} beat={b} p={p} />)}
+        {STORY_BEATS.map((b, i) => <Beat key={b.k} beat={b} p={p} last={i === STORY_BEATS.length - 1} />)}
 
         <m.div className="scroll-cue" style={{ opacity: cueO }} aria-hidden="true">
           Scroll
@@ -108,11 +127,14 @@ function ServicesStrip() {
   const [shift, setShift] = useState(0);
 
   useEffect(() => {
+    // travel exactly far enough that the last pillar ends on the right
+    // gutter, mirroring the left one
     const measure = () => {
       const t = trackRef.current;
       const s = stageRef.current;
       if (!t || !s) return;
-      setShift(Math.max(0, t.scrollWidth - s.clientWidth));
+      const gutter = Math.max(44, (s.clientWidth - 1200) / 2);
+      setShift(Math.max(0, t.scrollWidth - s.clientWidth + gutter));
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -136,6 +158,7 @@ function ServicesStrip() {
             <h2 className="h1">Seven ways in. <em className="foil">One standard.</em></h2>
           </Reveal>
         </div>
+        <div className={wide ? "strip-clip" : undefined}>
         <m.div className="strip-track" ref={trackRef} style={wide ? { x } : undefined}>
           {PILLARS.map((pl, i) => (
             <Reveal className="pillar" key={pl.t} delay={wide ? 0 : Math.min(i, 4)}>
@@ -145,6 +168,7 @@ function ServicesStrip() {
             </Reveal>
           ))}
         </m.div>
+        </div>
       </div>
     </section>
   );
@@ -159,7 +183,7 @@ function Proof() {
       <div className="wrap">
         <Reveal className="shead">
           <span className="mlabel">Proof, not promises</span>
-          <span className="ser">§ 02 · {STUDIES.length} builds</span>
+          <span className="ser">§ 02 · six builds</span>
         </Reveal>
         <Reveal className="sec-intro">
           <h2 className="h1">Every claim on this page <em className="foil">has a build behind it.</em></h2>
@@ -197,18 +221,24 @@ function Proof() {
    PROCESS — five steps that stack as the reader scrolls: each row
    sticks and the one beneath slides over it.
    ============================================================ */
-function StackRow({ s, i, n, p }) {
-  const end = (i + 1) / n;
-  const scale = useTransform(p, [end, Math.min(1, end + 1 / n)], [1, 0.965]);
-  /* Rows stay opaque; a paper veil (::after) fades over the content of
-     a row once the next one has covered it. Dimming the row's own
-     opacity would let the stack show through. */
-  const dim = useTransform(p, [end, Math.min(1, end + 1 / n)], [0, 0.62]);
+/* Each row is veiled by the row that actually covers it: the veil runs
+   from the moment the next row's top reaches this row's foot to the
+   moment it reaches its own pin line. Rows stay opaque (the veil is a
+   paper ::after); dimming the row itself would let the stack show. */
+const PIN = 96;
+const STEP = 18;
+function StackRow({ s, i, n, rowRef, nextRef, wide }) {
+  const pin = wide ? PIN + i * STEP : 76;
+  const nextPin = wide ? PIN + (i + 1) * STEP : 76;
+  const p = useProgress(nextRef, [`start ${pin + 150}px`, `start ${nextPin}px`]);
+  const scale = useTransform(p, [0, 1], [1, 0.97]);
+  const dim = useTransform(p, [0, 1], [0, 0.45]);
   const last = i === n - 1;
   return (
     <m.div
+      ref={rowRef}
       className="step-row stack-row"
-      style={{ top: 96 + i * 18, zIndex: i + 1, scale: last ? 1 : scale, "--dim": last ? 0 : dim }}
+      style={{ top: pin, zIndex: i + 1, scale: last ? 1 : scale, "--dim": last ? 0 : dim, "--cov": last ? 0 : p }}
     >
       <span className="step-num" aria-hidden="true">0{i + 1}</span>
       <div className="step-t">{s.t}</div>
@@ -218,8 +248,8 @@ function StackRow({ s, i, n, p }) {
 }
 
 function Process() {
-  const ref = useRef(null);
-  const p = useProgress(ref, ["start 30%", "end 70%"]);
+  const wide = useMedia("(min-width: 861px)");
+  const refs = useRef(DELIVERY.map(() => ({ current: null }))).current;
   return (
     <section className="band pad" id="process">
       <div className="wrap">
@@ -235,8 +265,18 @@ function Process() {
             validated continuously, delivered fast, supported after.
           </p>
         </Reveal>
-        <div className="stack-rows" ref={ref}>
-          {DELIVERY.map((s, i) => <StackRow key={s.k} s={s} i={i} n={DELIVERY.length} p={p} />)}
+        <div className="stack-rows">
+          {DELIVERY.map((s, i) => (
+            <StackRow
+              key={s.k}
+              s={s}
+              i={i}
+              n={DELIVERY.length}
+              rowRef={refs[i]}
+              nextRef={refs[Math.min(i + 1, DELIVERY.length - 1)]}
+              wide={wide}
+            />
+          ))}
         </div>
       </div>
     </section>
@@ -265,7 +305,7 @@ function Contact() {
               that are still running today.
             </p>
             <div className="values">
-              {["Precision", "Accuracy", "Agile", "Reliable"].map((v) => (
+              {["Precise", "Accurate", "Agile", "Reliable"].map((v) => (
                 <span className="tag" key={v}>{v}</span>
               ))}
             </div>
@@ -298,18 +338,15 @@ function Closing() {
             <em className="foil">The measured impact.</em>
           </h2>
           <p className="cta-s">
-            One page holds every case study, the tools we built it with and the numbers
-            it delivered — open for you to read.
+            One page holds every case study, the tools behind each one and the numbers
+            they delivered — open for you to read.
           </p>
           <Magnetic>
-            <Link to="/work" className="btn btn-gold btn-shine">
-              Explore the work
-              <span className="arr" aria-hidden="true">→</span>
-            </Link>
+            <Link to="/work" className="btn btn-gold btn-shine">Explore the work</Link>
           </Magnetic>
           <div className="cta-meta">
             <span>{TECH.length} tools</span>
-            <span>{STUDIES.length} production builds</span>
+            <span>six production builds</span>
             <span>90%+ faster delivery</span>
           </div>
         </Reveal>
@@ -320,7 +357,7 @@ function Closing() {
 
 export default function Landing() {
   usePageMeta({
-    title: "DataQuin",
+    title: "DataQuin — Data · Automation · AI Engineering",
     description:
       "DataQuin turns manual days into automated hours — dashboards and reporting, system-to-system integration and AI pipelines for professional services firms, proven with six production builds.",
     path: "/",

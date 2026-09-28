@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DataQuin — Data · Automation · AI Engineering</title>
-  <meta name="description" content="DataQuin engineering portfolio: the tech stack, production builds and measured impact behind our data, automation and AI solutions." />
+  <meta name="description" content="DataQuin turns manual days into automated hours — dashboards and reporting, system-to-system integration and AI pipelines for professional services firms, proven with six production builds." />
   <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta name="theme-color" content="#191209" />
 
   <!-- Link previews. Scrapers (LinkedIn, WhatsApp, Slack) don't run JS, so
@@ -27,17 +28,48 @@
   <meta name="twitter:title" content="DataQuin — Data · Automation · AI Engineering" />
   <meta name="twitter:description" content="We turn manual days into automated hours. Six production systems — shipped, secured and measured." />
   <meta name="twitter:image" content="https://dataquin.vercel.app/og.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "DataQuin",
+    "url": "https://dataquin.vercel.app/",
+    "logo": "https://dataquin.vercel.app/og.png",
+    "image": "https://dataquin.vercel.app/og.png",
+    "description": "Data, automation and AI engineering for professional services firms: dashboards and reporting, system-to-system integration and AI pipelines.",
+    "email": "kavita@dataquin.com",
+    "telephone": "+1-908-672-0809",
+    "slogan": "Driven by Purpose, Powered by Precision",
+    "areaServed": "US",
+    "knowsAbout": ["Business analytics", "Data science", "AI solutions", "Automation", "Data migration"]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <!-- Three voices: Fraunces display (roman + true italics — the italic is
        the "spoken emphasis" cut for gold phrases), Plus Jakarta Sans body,
        IBM Plex Mono for ledger labels, serials and figures. -->
   <!-- Only the weights the stylesheet uses: Fraunces 600 roman + italic,
-       Jakarta 500/600/700, Plex Mono 500/600. -->
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&family=Plus+Jakarta+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+       Jakarta 500/600/700, Plex Mono 500/600. Loaded without blocking
+       first paint: the sheet is fetched at high priority but applied
+       only when it arrives (print → all), so React boots immediately. -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&family=Plus+Jakarta+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&family=Plus+Jakarta+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&family=Plus+Jakarta+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" /></noscript>
+  <!-- The logo is the topbar's brand mask and the 3D hero's source. -->
+  <link rel="preload" href="/logo-mark.png" as="image" />
+  <link rel="preload" href="/logo.png" as="image" />
 </head>
 <body>
   <div id="root"></div>
+  <noscript>
+    <div style="max-width:720px;margin:0 auto;padding:64px 24px;font-family:Georgia,'Times New Roman',serif;color:#f3ead9;line-height:1.6">
+      <p style="font-family:Consolas,monospace;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:#d8bc8a">DataQuin — Data · Automation · AI Engineering</p>
+      <h1 style="font-weight:600;font-size:2.2rem;line-height:1.1;margin:16px 0">We turn manual days into automated hours.</h1>
+      <p>Dashboards and reporting, system-to-system integration and AI pipelines for professional services firms — six production systems, live, measured and still running.</p>
+      <p>This site needs JavaScript to show the case studies. Reach us directly at <a href="mailto:kavita@dataquin.com" style="color:#d8bc8a">kavita@dataquin.com</a> or +1 908 672 0809.</p>
+    </div>
+  </noscript>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

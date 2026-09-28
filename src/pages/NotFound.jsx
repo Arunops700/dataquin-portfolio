@@ -1,14 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { STUDIES } from "../data/caseStudies.js";
 import { usePageMeta } from "../seo.js";
 
 /* Any unknown URL — including the retired /stack, /projects and /impact
    addresses — says what happened and offers the way back. */
 export default function NotFound() {
+  const { pathname } = useLocation();
   usePageMeta({
     title: "Page not found",
     description: "That page doesn't exist. Browse the DataQuin case studies, tech stack and measured impact instead.",
-    path: "/404",
+    path: pathname,
     noindex: true,
   });
 
@@ -23,10 +24,10 @@ export default function NotFound() {
           </div>
           <h1 className="h-xl hero-title" style={{ maxWidth: 820 }}>
             <span className="row"><span>That page</span></span>
-            <span className="row"><span><em className="foil">doesn't exist.</em></span></span>
+            <span className="row"><span><em className="foil">doesn&rsquo;t exist.</em></span></span>
           </h1>
           <p className="lead hero-lead fade-in" style={{ maxWidth: 620 }}>
-            The link may be out of date, or the address mistyped. Everything we've
+            The link may be out of date, or the address mistyped. Everything we&rsquo;ve
             built is one click away.
           </p>
           <div className="hero-actions fade-in">

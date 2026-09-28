@@ -51,9 +51,11 @@ function hasWebGL() {
   return webglCache;
 }
 
+/* Reduced motion no longer disables the scene — it renders the finished
+   mark without motion (see Field.jsx). Only a missing WebGL context or
+   a Save-Data request falls back to the 2D poster. */
 export function canRun3D() {
   if (typeof window === "undefined") return false;
-  if (prefersReducedMotion()) return false;
   if (navigator.connection?.saveData) return false;
   return hasWebGL();
 }
@@ -63,6 +65,6 @@ export function canRun3D() {
 export function particleBudget() {
   const small = window.innerWidth < 760 || isCoarsePointer();
   const weak = (navigator.hardwareConcurrency || 8) <= 4;
-  if (small || weak) return 5000;
-  return 14000;
+  if (small || weak) return 7000;
+  return 18000;
 }

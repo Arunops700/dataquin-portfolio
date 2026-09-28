@@ -1,52 +1,62 @@
-import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
-import { canRun3D, particleBudget } from "../motion/prefs.js";
-import { makeLayout, spreadFor, CAMERA_Z, CAMERA_FOV } from "./layout.js";
+import { Component, Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
+
+/* The scene is decoration. If the chunk fails to load or WebGL throws,
+   the hero keeps its copy and the espresso ground — the page-level
+   boundary must never see it. */
+class SceneBoundary extends Component {
+  constructor(props) { super(props); this.state = { failed: false }; }
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch(error) { console.error("3D scene disabled:", error); }
+  render() { return this.state.failed ? null : this.props.children; }
+}
+import { canRun3D, particleBudget, useReducedMotion } from "../motion/prefs.js";
+import { CAMERA_Z, CAMERA_FOV } from "./layout.js";
 import { loadLogoTargets, logoPlacement } from "./logo.js";
+import { loadLogoShapes } from "./trace.js";
 
 const HeroScene = lazy(() => import("./HeroScene.jsx"));
 
 /*
   The gate in front of the 3D scene.
 
-  - Capable device, motion allowed: sample the logo, load the WebGL
-    chunk after the page has painted, fade the scene in over the
-    espresso ground.
-  - Otherwise: draw the formed mark once on a plain 2D canvas. No
-    WebGL, no animation, same picture — reduced-motion readers and old
-    devices get a finished-looking hero, never a blank one. If the logo
-    image failed to load, the scattered rows are drawn instead.
+  - WebGL available: trace the logo and sample the grains, load the
+    WebGL chunk after the page has painted, fade the scene in. With
+    reduced motion the same gold mark is rendered still: no gather, no
+    sway, no parallax.
+  - No WebGL (or Save-Data): draw the mark's outline once, filled gold,
+    on a plain 2D canvas. Never a blank hero.
 */
 export function Field({ progress, ambient = false, active = true }) {
-  const mode = useMemo(() => (canRun3D() ? "gl" : "poster"), []);
+  const gl = useMemo(() => canRun3D(), []);
+  const still = useReducedMotion();
   const place = ambient ? "aside" : "hero";
-  // the poster samples fewer points than the live scene
-  const count = useMemo(() => (mode === "gl" ? particleBudget() : 9000), [mode]);
-  const [targets, setTargets] = useState(undefined);
+  // the ambient mark on the Work page is smaller: a third of the grains
+  // keeps its dust halo airy rather than a snow globe
+  const count = useMemo(() => (ambient ? Math.round(particleBudget() / 3) : particleBudget()), [ambient]);
+  const [assets, setAssets] = useState(undefined);
   const [load, setLoad] = useState(false);
   const [ready, setReady] = useState(false);
 
-  // Sample the logo once; `null` means the image failed and the scene
-  // will use its built-in stream layout instead.
   useEffect(() => {
     let alive = true;
-    loadLogoTargets(count).then((t) => { if (alive) setTargets(t); });
+    Promise.all([loadLogoShapes(), loadLogoTargets(count)]).then(([traced, targets]) => {
+      if (alive) setAssets({ traced, targets });
+    });
     return () => { alive = false; };
   }, [count]);
 
   useEffect(() => {
-    if (mode !== "gl" || targets === undefined) return;
-    // Let the headline and fonts paint first; the field is decoration
-    // until then.
+    if (!gl || assets === undefined) return;
     const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 180));
     const cancel = window.cancelIdleCallback || clearTimeout;
     const id = idle(() => setLoad(true));
     return () => cancel(id);
-  }, [mode, targets]);
+  }, [gl, assets]);
 
-  if (mode === "poster") {
+  if (!gl) {
     return (
       <div className="field poster-mode" aria-hidden="true">
-        {targets !== undefined && <Poster targets={targets} place={place} count={count} />}
+        {assets?.traced && <Poster traced={assets.traced} place={place} />}
       </div>
     );
   }
@@ -54,33 +64,34 @@ export function Field({ progress, ambient = false, active = true }) {
   return (
     <div className={`field gl${ready ? " ready" : ""}`} aria-hidden="true">
       {load && (
+        <SceneBoundary>
         <Suspense fallback={null}>
           <HeroScene
             progress={progress}
             count={count}
-            ambient={ambient}
-            targets={targets}
+            targets={assets.targets}
+            outers={assets.traced ? assets.traced.outers : null}
             place={place}
-            active={active}
+            still={still}
+            /* keep the loop running until the first frame has been drawn;
+               only then does visibility get to pause it */
+            active={active || !ready}
             onReady={() => setReady(true)}
           />
         </Suspense>
+        </SceneBoundary>
       )}
     </div>
   );
 }
 
-/* Static render of the formed mark, projected with the same camera
-   maths as the WebGL scene. Redrawn on resize. */
-function Poster({ targets, place = "hero", count = 9000 }) {
+/* No-WebGL fallback: the traced outline filled with a gold gradient,
+   projected with the same camera maths as the scene. */
+function Poster({ traced, place }) {
   const ref = useRef(null);
-
   useEffect(() => {
     const c = ref.current;
     if (!c) return;
-    const layout = makeLayout(count, 11);
-    const logo = targets && targets.targets.length >= count * 3 ? targets : null;
-
     const draw = () => {
       const w = c.clientWidth;
       const h = c.clientHeight;
@@ -91,38 +102,35 @@ function Poster({ targets, place = "hero", count = 9000 }) {
       const ctx = c.getContext("2d");
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
-      ctx.globalCompositeOperation = "lighter";
-
-      const aspect = w / h;
       const f = (h / 2) / Math.tan((CAMERA_FOV / 2) * (Math.PI / 180));
-      const pl = logo ? logoPlacement(aspect, place) : { scale: 1, x: 0, y: 0 };
-      const src = logo ? logo.targets : layout.chaos;
-      const ts = logo ? logo.ts : layout.ts;
-      const { sizes } = layout;
-      const xScale = logo ? pl.scale : spreadFor(aspect);
-
-      for (let i = 0; i < count; i++) {
-        const x = src[i * 3] * xScale + pl.x;
-        const y = src[i * 3 + 1] * pl.scale + pl.y;
-        const z = src[i * 3 + 2];
-        const s = f / (CAMERA_Z - z);
-        const px = w / 2 + x * s;
-        const py = h / 2 - y * s;
-        const t = ts[i];
-        const r = Math.max(0.7, sizes[i] * 1.1 * (s / f) * 4.4);
-        const light = 0.45 + 0.4 * Math.sin(t * Math.PI);
-        ctx.fillStyle = `rgba(${Math.round(200 + 46 * light)}, ${Math.round(168 + 60 * light)}, ${Math.round(120 + 88 * light)}, ${0.5 + 0.3 * light})`;
-        ctx.beginPath();
-        ctx.arc(px, py, r, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      const s = f / CAMERA_Z;
+      const pl = logoPlacement(w / h, place);
+      const { polys, W, H } = traced;
+      const toScreen = ([x, y]) => [
+        w / 2 + ((x / W - 0.5) * 8.8 * pl.scale + pl.x) * s,
+        h / 2 - (-(y / H - 0.5) * 8.8 * (H / W) * pl.scale + pl.y) * s,
+      ];
+      const path = new Path2D();
+      polys.forEach((p) => {
+        p.forEach((pt, i) => {
+          const [px, py] = toScreen(pt);
+          if (i === 0) path.moveTo(px, py); else path.lineTo(px, py);
+        });
+        path.closePath();
+      });
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, "#8a6c49");
+      grad.addColorStop(0.45, "#d3b789");
+      grad.addColorStop(0.7, "#f0e0c2");
+      grad.addColorStop(1, "#a5824f");
+      ctx.fillStyle = grad;
+      ctx.fill(path, "evenodd");
     };
-
     draw();
-    const ro = new ResizeObserver(draw);
+    let raf = 0;
+    const ro = new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); });
     ro.observe(c);
-    return () => ro.disconnect();
-  }, [count, targets, place]);
-
+    return () => { ro.disconnect(); cancelAnimationFrame(raf); };
+  }, [traced, place]);
   return <canvas className="poster" ref={ref} />;
 }

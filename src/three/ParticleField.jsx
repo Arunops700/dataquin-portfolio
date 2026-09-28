@@ -3,32 +3,30 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { makeLayout, spreadFor } from "./layout.js";
 import { logoPlacement } from "./logo.js";
-import { isCoarsePointer } from "../motion/prefs.js";
+import { GATHER, MATERIALISE } from "./GoldMark.jsx";
 
 /*
-  The signature scene: champagne-gold points that begin as scattered
-  rows and, in the first seconds after load, gather into the DQ mark —
-  big, behind the headline, from the first screen on. Once formed, a
-  slow light sweeps across it and it breathes. Pointer parallax tilts
-  the whole field a little.
+  Champagne-gold grains. Three states, driven by the shared timeline:
+    chaos  — scattered rows, like cells in a sheet (on load)
+    mark   — gathered onto the DQ logo's strokes (by GATHER seconds)
+    halo   — dispersed into a slow-orbiting dust cloud around the solid
+             mark once it has materialised
+  A soft band of light sweeps the gathered mark. In `still` mode the
+  grains sit in the halo state and nothing moves.
 
-  `targets` comes from logo.js (sampled from the logo image). If the
-  image failed to load the points simply stay as scattered rows.
-
-  `progress` is a framer-motion MotionValue for the hero's scroll
-  (read with .get() every frame, never subscribed — no React re-renders
-  on scroll). Scrolling turns the formed mark a little and eases it
-  back, so the story beats sit in front of it. `ambient` only slows
-  the breathing (Work page).
+  `targets` comes from logo.js (sampled from the logo image). Without
+  it the grains gather nowhere and simply drift as rows.
 */
 
 const VERT = /* glsl */ `
   attribute vec3 aChaos;
   attribute vec3 aTarget;
+  attribute vec3 aHalo;
   attribute float aSeed;
   attribute float aT;
   attribute float aSize;
   uniform float uProgress;
+  uniform float uPhase;
   uniform float uTime;
   uniform float uPixelRatio;
   uniform float uSpread;
@@ -36,31 +34,38 @@ const VERT = /* glsl */ `
   uniform vec2 uOffset;
   varying float vP;
   varying float vGlow;
-  varying float vT;
+  varying float vHalo;
 
   void main() {
-    // staggered arrival: each point starts its journey at a different moment
     float p = smoothstep(0.0, 1.0, clamp((uProgress - aSeed * 0.42) / 0.58, 0.0, 1.0));
     vec3 chaos = vec3(aChaos.x * uSpread, aChaos.y, aChaos.z);
-    vec3 target = vec3(aTarget.xy * uScale + uOffset, aTarget.z);
-    // a gentle arc on the way, so the gather reads as a pour, not a slide
-    vec3 pos = mix(chaos, target, p);
-    pos.y += sin(p * 3.14159) * (0.6 + aSeed * 0.9) * (1.0 - aSeed * 0.5);
+    vec3 mark = vec3(aTarget.xy * uScale + uOffset, aTarget.z);
+
+    // halo: orbit slowly round the mark's centre
+    float ang = uTime * 0.05 + aSeed * 6.2831;
+    vec3 h = aHalo;
+    float cx = h.x * cos(ang) - h.z * sin(ang);
+    float cz = h.x * sin(ang) + h.z * cos(ang);
+    h = vec3(cx, h.y + sin(uTime * 0.6 + aSeed * 9.0) * 0.08, cz);
+    vec3 halo = vec3(h.xy * uScale + uOffset, h.z);
+
+    float ph = smoothstep(0.0, 1.0, clamp((uPhase - aSeed * 0.5) / 0.5, 0.0, 1.0));
+    vec3 pos = mix(mix(chaos, mark, p), halo, ph);
+    pos.y += sin(p * 3.14159) * (0.6 + aSeed * 0.9) * (1.0 - aSeed * 0.5) * (1.0 - ph);
 
     float drift = 1.0 - p * 0.9;
     pos.x += sin(uTime * 0.5 + aSeed * 6.2831) * 0.09 * drift;
-    pos.y += cos(uTime * 0.42 + aSeed * 4.71) * 0.09 * drift
-           + sin(uTime * 1.1 + aSeed * 20.0) * 0.012 * p;
+    pos.y += cos(uTime * 0.42 + aSeed * 4.71) * 0.09 * drift;
 
     vec4 mv = modelViewMatrix * vec4(pos, 1.0);
     gl_Position = projectionMatrix * mv;
-    gl_PointSize = aSize * uPixelRatio * (46.0 / -mv.z) * (0.8 + 0.45 * p);
+    float size = aSize * uPixelRatio * (46.0 / -mv.z) * (0.8 + 0.45 * p) * (1.0 - 0.35 * ph);
+    gl_PointSize = size;
 
     vP = p;
-    vT = aT;
-    // a soft band of light crossing the mark from left to right
+    vHalo = ph;
     float wave = fract(aT * 0.85 - uTime * 0.07);
-    vGlow = p * smoothstep(0.22, 0.0, wave);
+    vGlow = p * (1.0 - ph) * smoothstep(0.22, 0.0, wave);
   }
 `;
 
@@ -70,29 +75,41 @@ const FRAG = /* glsl */ `
   uniform vec3 uColorB;
   varying float vP;
   varying float vGlow;
-  varying float vT;
+  varying float vHalo;
 
   void main() {
     vec2 c = gl_PointCoord - 0.5;
     float d = length(c);
     float a = smoothstep(0.5, 0.08, d);
     vec3 col = mix(uColorA, uColorB, clamp(vP * 0.45 + vGlow * 0.7, 0.0, 1.0));
-    // additive blending stacks where strokes are dense — keep each
-    // grain modest so the mark stays gold rather than burning to white
-    float alpha = a * (0.27 + 0.1 * vP + 0.22 * vGlow);
+    float alpha = a * (0.22 + 0.08 * vP + 0.16 * vGlow) * (1.0 - 0.6 * vHalo);
     gl_FragColor = vec4(col, alpha);
   }
 `;
 
-export default function ParticleField({ progress, count = 9000, ambient = false, targets, place = "hero", onFirstFrame }) {
-  const groupRef = useRef(null);
-  const mouse = useRef({ x: 0, y: 0 });
-  // time-based gather on load, 0 → 1 over a couple of seconds
-  const intro = useRef(0);
+/* Dust cloud around the mark, in the mark's local units. */
+function makeHalo(count, seed = 41) {
+  let s = seed;
+  const rand = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+  const out = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const ang = rand() * Math.PI * 2;
+    const r = 0.75 + Math.pow(rand(), 0.6) * 0.55; // ring around the mark's extent
+    const rx = 6.4 * r;
+    const ry = 3.9 * r;
+    out[i * 3] = Math.cos(ang) * rx;
+    out[i * 3 + 1] = Math.sin(ang) * ry * (0.7 + rand() * 0.6);
+    out[i * 3 + 2] = (rand() - 0.5) * 2.4;
+  }
+  return out;
+}
+
+export default function ParticleField({ count = 9000, targets, place = "hero", timeline, still = false, onFirstFrame }) {
   const framed = useRef(false);
   const { viewport, gl } = useThree();
 
   const layout = useMemo(() => makeLayout(count), [count]);
+  const halo = useMemo(() => makeHalo(count), [count]);
   const hasLogo = !!(targets && targets.targets && targets.targets.length === count * 3);
 
   const geometry = useMemo(() => {
@@ -100,11 +117,12 @@ export default function ParticleField({ progress, count = 9000, ambient = false,
     g.setAttribute("position", new THREE.BufferAttribute(layout.chaos, 3));
     g.setAttribute("aChaos", new THREE.BufferAttribute(layout.chaos, 3));
     g.setAttribute("aTarget", new THREE.BufferAttribute(hasLogo ? targets.targets : layout.chaos, 3));
+    g.setAttribute("aHalo", new THREE.BufferAttribute(halo, 3));
     g.setAttribute("aSeed", new THREE.BufferAttribute(layout.seeds, 1));
     g.setAttribute("aT", new THREE.BufferAttribute(hasLogo ? targets.ts : layout.ts, 1));
     g.setAttribute("aSize", new THREE.BufferAttribute(layout.sizes, 1));
     return g;
-  }, [layout, targets, hasLogo]);
+  }, [layout, halo, targets, hasLogo]);
 
   const material = useMemo(
     () =>
@@ -115,8 +133,10 @@ export default function ParticleField({ progress, count = 9000, ambient = false,
         depthWrite: false,
         depthTest: false,
         blending: THREE.AdditiveBlending,
+        toneMapped: false,
         uniforms: {
-          uProgress: { value: 0 },
+          uProgress: { value: still ? 1 : 0 },
+          uPhase: { value: still ? 1 : 0 },
           uTime: { value: 0 },
           uPixelRatio: { value: Math.min(gl.getPixelRatio(), 2) },
           uSpread: { value: 1 },
@@ -132,59 +152,25 @@ export default function ParticleField({ progress, count = 9000, ambient = false,
 
   useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
 
-  // Pointer parallax from the window, not the canvas — hero copy sits
-  // above the canvas and would otherwise swallow the events.
-  useEffect(() => {
-    if (isCoarsePointer()) return;
-    const onMove = (e) => {
-      mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.current.y = (e.clientY / window.innerHeight) * 2 - 1;
-    };
-    window.addEventListener("mousemove", onMove, { passive: true });
-    return () => window.removeEventListener("mousemove", onMove);
-  }, []);
-
-  useFrame((state, dt) => {
-    // The fade-in waits for a drawn frame, never for a blank canvas.
+  useFrame((state) => {
     if (!framed.current) {
       framed.current = true;
+      if (timeline.current.start == null) timeline.current.start = state.clock.elapsedTime;
       onFirstFrame?.();
     }
     const u = material.uniforms;
-    intro.current = Math.min(1, intro.current + Math.min(dt, 0.05) / 2.4);
-    const t = intro.current;
-    u.uProgress.value = t * t * (3 - 2 * t);
-    u.uTime.value = state.clock.elapsedTime * (ambient ? 0.7 : 1);
+    const age = state.clock.elapsedTime - (timeline.current.start ?? state.clock.elapsedTime);
+    if (!still) {
+      const t = Math.min(1, age / GATHER);
+      u.uProgress.value = t * t * (3 - 2 * t);
+      u.uPhase.value = Math.min(1, Math.max(0, (age - GATHER - 0.2) / (MATERIALISE + 0.6)));
+      u.uTime.value = state.clock.elapsedTime;
+    }
     u.uSpread.value = spreadFor(viewport.aspect);
-    if (hasLogo) {
-      const pl = logoPlacement(viewport.aspect, place);
-      u.uScale.value = pl.scale;
-      u.uOffset.value.set(pl.x, pl.y);
-    } else {
-      u.uScale.value = u.uSpread.value;
-      u.uOffset.value.set(0, 0);
-    }
-
-    const g = groupRef.current;
-    if (g) {
-      const k = Math.min(1, dt * 2.5);
-      const sc = progress ? progress.get() : 0;
-      const tx = -mouse.current.y * 0.06;
-      const ty = mouse.current.x * 0.1;
-      g.rotation.x += (tx - g.rotation.x) * k;
-      g.rotation.y += (ty - g.rotation.y) * k;
-      // scrolling the story: the mark turns a little and eases back
-      g.rotation.z += (-sc * 0.2 - g.rotation.z) * k;
-      const s = 1 - sc * 0.16;
-      g.scale.x += (s - g.scale.x) * k;
-      g.scale.y += (s - g.scale.y) * k;
-      g.position.y += (sc * 0.9 - g.position.y) * k;
-    }
+    const pl = logoPlacement(viewport.aspect, place);
+    u.uScale.value = pl.scale;
+    u.uOffset.value.set(pl.x, pl.y);
   });
 
-  return (
-    <group ref={groupRef}>
-      <points geometry={geometry} material={material} frustumCulled={false} />
-    </group>
-  );
+  return <points geometry={geometry} material={material} frustumCulled={false} />;
 }

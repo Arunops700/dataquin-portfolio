@@ -43,10 +43,8 @@ export function makeLayout(count, seed = 7) {
     // position across the sheet, 0 → 1, for the light sweep when no
     // logo targets are available
     ts[i] = col / Math.max(perRow - 1, 1);
-    // mostly fine grains, a few larger flecks — enough to catch the
-    // light without piling up into white where strokes are dense
-    const big = rand() < 0.015;
-    sizes[i] = 0.5 + rand() * 0.95 + (big ? 1.0 : 0);
+    // fine grains only — dust, not glitter
+    sizes[i] = 0.32 + rand() * 0.5;
   }
 
   return { count, chaos, seeds, ts, sizes };

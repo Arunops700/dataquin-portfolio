@@ -118,7 +118,9 @@ export default function Flow({ nodes, edges, progress }) {
   }, [nodes, edges]);
 
   /* Apply a progress value to the drawn SVG: dash-offset each line,
-     park the pulse at its tip, land arrowheads, light reached nodes. */
+     park the pulse at its tip, land arrowheads, light reached nodes.
+     All geometry reads happen before any style write, so a scroll
+     frame costs one layout, not one per edge. */
   const apply = useCallback((v) => {
     const E = paths.length;
     if (!E) return;
@@ -128,18 +130,25 @@ export default function Flow({ nodes, edges, progress }) {
     // first-column nodes light as soon as the story starts
     if (v > 0.02) nodes.forEach((n) => { if (n.col === 0) lit.add(n.id); });
 
-    paths.forEach((p, k) => {
+    // reads
+    const frames = paths.map((p, k) => {
       const r = edgeRefs.current[k];
-      if (!r || !r.line) return;
+      if (!r || !r.line) return null;
       const e = Math.min(1, Math.max(0, (v - k * step) / span));
       const len = r.len || (r.len = r.line.getTotalLength());
+      const pt = r.pulse ? r.line.getPointAtLength(len * e) : null;
+      return { r, e, len, pt, to: p.to };
+    });
+    // writes
+    frames.forEach((f) => {
+      if (!f) return;
+      const { r, e, len, pt } = f;
       const off = len * (1 - e);
       r.line.style.strokeDasharray = `${len}`;
       r.line.style.strokeDashoffset = `${off}`;
       r.halo.style.strokeDasharray = `${len}`;
       r.halo.style.strokeDashoffset = `${off}`;
-      if (r.pulse) {
-        const pt = r.line.getPointAtLength(len * e);
+      if (r.pulse && pt) {
         r.pulse.setAttribute("cx", pt.x);
         r.pulse.setAttribute("cy", pt.y);
         r.pulseHalo.setAttribute("cx", pt.x);
@@ -150,7 +159,7 @@ export default function Flow({ nodes, edges, progress }) {
       }
       r.line.setAttribute("marker-end", e > 0.96 ? `url(#arr-${uid})` : "");
       if (r.lbl) r.lbl.classList.toggle("on", e > 0.85);
-      if (e > 0.97) lit.add(p.to);
+      if (e > 0.97) lit.add(f.to);
     });
 
     nodes.forEach((n) => {
@@ -164,12 +173,17 @@ export default function Flow({ nodes, edges, progress }) {
 
   return (
     <div className="flow-shell">
+    {/* The edges are drawn, not written: this is the diagram in words. */}
+    <p className="sr-only">
+      System flow: {edges.map((e) => `${byId[e.from]?.t} to ${byId[e.to]?.t}${e.label ? ` (${e.label})` : ""}`).join("; ")}.
+    </p>
     <div
       className={`flow-scroll${overflowing ? " is-scrollable" : ""}${scrolled ? " is-scrolled" : ""}`}
       ref={scrollRef}
-      tabIndex={0}
-      role="group"
-      aria-label="System flow diagram — scrolls horizontally"
+      /* keyboard-scrollable only when there is something to scroll */
+      tabIndex={overflowing ? 0 : undefined}
+      role={overflowing ? "group" : undefined}
+      aria-label={overflowing ? "System flow diagram — scrolls horizontally" : undefined}
       onScroll={() => { if (!scrolled) setScrolled(true); }}
     >
       <div
