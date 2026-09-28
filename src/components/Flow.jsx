@@ -1,31 +1,34 @@
-import { useLayoutEffect, useRef, useState, useId } from "react";
+import { useLayoutEffect, useRef, useState, useId, useEffect, useCallback } from "react";
+import { useMotionValue, useMotionValueEvent } from "framer-motion";
 
 /*
-  Custom animated flow diagram (replaces mermaid).
+  Scroll-scrubbed flow diagram.
 
   Nodes are laid out on a CSS grid (col/row per node; nodes without a row
   vertically span all rows and self-center). After mount we measure the real
-  DOM positions and draw an SVG layer underneath with curved connectors,
-  arrowheads and glowing pulses that travel each edge via SMIL animateMotion.
+  DOM positions and draw an SVG layer above with curved connectors.
+
+  The reader drives the data through the pipeline: `progress` (a
+  framer-motion MotionValue, 0 → 1) draws each edge in stage order, a gold
+  pulse rides the tip of the line as it draws, the arrowhead lands when the
+  line arrives, and the node it reaches lights up. Without a `progress`
+  prop the diagram renders fully drawn and lit.
 
   Node spec:  { id, t, s, ico?, ab?, col, row? }
   Edge spec:  { from, to, label? }   (backward edges loop under the diagram)
 */
-export default function Flow({ nodes, edges }) {
+export default function Flow({ nodes, edges, progress }) {
   const wrapRef = useRef(null);
   const nodeRefs = useRef({});
+  const edgeRefs = useRef([]);
   const [paths, setPaths] = useState([]);
-  // On phones the diagram is far wider than the screen. Track that so we can
-  // tell the reader it scrolls — mobile scrollbars are invisible until touched.
   const [overflowing, setOverflowing] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const scrollRef = useRef(null);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
-  // SMIL animation can't be disabled from CSS, so reduced-motion has to be
-  // honoured here by not rendering the travelling pulses at all.
-  const still =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const fallback = useMotionValue(1);
+  const prog = progress || fallback;
 
   const cols = Math.max(...nodes.map((n) => n.col)) + 1;
   const rows = Math.max(...nodes.map((n) => n.row ?? 0)) + 1;
@@ -39,28 +42,50 @@ export default function Flow({ nodes, edges }) {
     const measure = () => {
       const wr = wrap.getBoundingClientRect();
       if (!wr.width) return;
+
+      const rects = {};
+      nodes.forEach((n) => {
+        const el = nodeRefs.current[n.id];
+        if (el) rects[n.id] = el.getBoundingClientRect();
+      });
+
+      /* Fan-in / fan-out: when several forward edges share one side of a
+         node, spread their attachment points across that side. */
+      const fwd = edges.filter(
+        (e) => byId[e.to] && byId[e.from] && rects[e.to] && rects[e.from] &&
+               byId[e.to].col > byId[e.from].col
+      );
+      const outs = {};
+      const ins = {};
+      fwd.forEach((e) => {
+        (outs[e.from] = outs[e.from] || []).push(e);
+        (ins[e.to] = ins[e.to] || []).push(e);
+      });
+      const cy = (id) => rects[id].top + rects[id].height / 2;
+      Object.values(outs).forEach((l) => l.sort((a, b) => cy(a.to) - cy(b.to)));
+      Object.values(ins).forEach((l) => l.sort((a, b) => cy(a.from) - cy(b.from)));
+      const slot = (list, e, r) =>
+        r.top + (r.height * (list.indexOf(e) + 1)) / (list.length + 1);
+
       const out = [];
       edges.forEach((e, i) => {
-        const s = nodeRefs.current[e.from];
-        const t = nodeRefs.current[e.to];
         const sN = byId[e.from];
         const tN = byId[e.to];
-        if (!s || !t || !sN || !tN) return;
-        const sr = s.getBoundingClientRect();
-        const tr = t.getBoundingClientRect();
-        let d, lx, ly;
+        const sr = rects[e.from];
+        const tr = rects[e.to];
+        if (!sr || !tr || !sN || !tN) return;
+        let d, lx, ly, anchor;
         if (tN.col > sN.col) {
-          // forward: right edge → left edge, smooth S-curve
           const sx = sr.right - wr.left;
-          const sy = sr.top + sr.height / 2 - wr.top;
+          const sy = slot(outs[e.from], e, sr) - wr.top;
           const tx = tr.left - wr.left - 5;
-          const ty = tr.top + tr.height / 2 - wr.top;
+          const ty = slot(ins[e.to], e, tr) - wr.top;
           const mx = (sx + tx) / 2;
           d = `M ${sx} ${sy} C ${mx} ${sy}, ${mx} ${ty}, ${tx} ${ty}`;
-          lx = (sx + tx) / 2;
-          ly = (sy + ty) / 2 - 9;
+          lx = tx - 10;
+          ly = ty - 11;
+          anchor = "end";
         } else {
-          // backward: loop under the diagram, bottom → bottom
           const sx = sr.left + sr.width / 2 - wr.left;
           const sy = sr.bottom - wr.top;
           const tx = tr.left + tr.width / 2 - wr.left;
@@ -69,9 +94,12 @@ export default function Flow({ nodes, edges }) {
           d = `M ${sx} ${sy} C ${sx} ${dip}, ${tx} ${dip}, ${tx} ${ty}`;
           lx = (sx + tx) / 2;
           ly = dip + 4;
+          anchor = "middle";
         }
-        out.push({ d, label: e.label, lx, ly, i });
+        // stage order: edges leaving earlier columns draw first
+        out.push({ d, label: e.label, lx, ly, anchor, i, order: sN.col, to: e.to, from: e.from });
       });
+      out.sort((a, b) => a.order - b.order || a.i - b.i);
       setPaths(out);
 
       const sc = scrollRef.current;
@@ -81,19 +109,58 @@ export default function Flow({ nodes, edges }) {
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(wrap);
-
-    // Edges are drawn from measured DOM geometry. On a cold load that
-    // measurement can happen while the fallback fonts are still in use; when
-    // Fraunces/Jakarta swap in, node text reflows and the connectors would
-    // otherwise stay pinned to the old positions.
     let alive = true;
     if (document.fonts?.ready) {
       document.fonts.ready.then(() => { if (alive) measure(); });
     }
-
     return () => { alive = false; ro.disconnect(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges]);
+
+  /* Apply a progress value to the drawn SVG: dash-offset each line,
+     park the pulse at its tip, land arrowheads, light reached nodes. */
+  const apply = useCallback((v) => {
+    const E = paths.length;
+    if (!E) return;
+    const span = E > 1 ? 0.5 : 1;
+    const step = E > 1 ? (1 - span) / (E - 1) : 0;
+    const lit = new Set();
+    // first-column nodes light as soon as the story starts
+    if (v > 0.02) nodes.forEach((n) => { if (n.col === 0) lit.add(n.id); });
+
+    paths.forEach((p, k) => {
+      const r = edgeRefs.current[k];
+      if (!r || !r.line) return;
+      const e = Math.min(1, Math.max(0, (v - k * step) / span));
+      const len = r.len || (r.len = r.line.getTotalLength());
+      const off = len * (1 - e);
+      r.line.style.strokeDasharray = `${len}`;
+      r.line.style.strokeDashoffset = `${off}`;
+      r.halo.style.strokeDasharray = `${len}`;
+      r.halo.style.strokeDashoffset = `${off}`;
+      if (r.pulse) {
+        const pt = r.line.getPointAtLength(len * e);
+        r.pulse.setAttribute("cx", pt.x);
+        r.pulse.setAttribute("cy", pt.y);
+        r.pulseHalo.setAttribute("cx", pt.x);
+        r.pulseHalo.setAttribute("cy", pt.y);
+        const vis = e > 0.01 && e < 0.995 ? 1 : 0;
+        r.pulse.style.opacity = vis;
+        r.pulseHalo.style.opacity = vis;
+      }
+      r.line.setAttribute("marker-end", e > 0.96 ? `url(#arr-${uid})` : "");
+      if (r.lbl) r.lbl.classList.toggle("on", e > 0.85);
+      if (e > 0.97) lit.add(p.to);
+    });
+
+    nodes.forEach((n) => {
+      const el = nodeRefs.current[n.id];
+      if (el) el.classList.toggle("lit", lit.has(n.id));
+    });
+  }, [paths, nodes, uid]);
+
+  useMotionValueEvent(prog, "change", apply);
+  useEffect(() => { apply(prog.get()); }, [apply, prog]);
 
   return (
     <div className="flow-shell">
@@ -106,11 +173,23 @@ export default function Flow({ nodes, edges }) {
       onScroll={() => { if (!scrolled) setScrolled(true); }}
     >
       <div
+        className="flow-stages"
+        aria-hidden="true"
+        style={{
+          gridTemplateColumns: `repeat(${cols}, minmax(182px, 1fr))`,
+          minWidth: cols * 192 + (cols - 1) * 40,
+        }}
+      >
+        {Array.from({ length: cols }, (_, c) => (
+          <span key={c}>Stage {String(c + 1).padStart(2, "0")}</span>
+        ))}
+      </div>
+      <div
         className="flow"
         ref={wrapRef}
         style={{
           gridTemplateColumns: `repeat(${cols}, minmax(182px, 1fr))`,
-          minWidth: cols * 200 + (cols - 1) * 46,
+          minWidth: cols * 192 + (cols - 1) * 40,
           "--n": nodes.length,
           paddingBottom: hasBack ? 56 : 4,
         }}
@@ -126,24 +205,24 @@ export default function Flow({ nodes, edges }) {
               markerHeight="7"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 9 5 L 0 9 z" fill="#8f7355" />
+              <path d="M 0 1 L 9 5 L 0 9 z" fill="#d8bc8a" />
             </marker>
           </defs>
-          {paths.map((p) => (
-            <g key={p.i} className="fedge" style={{ animationDelay: `${0.3 + p.i * 0.12}s` }}>
-              <path className="fedge-line" d={p.d} markerEnd={`url(#arr-${uid})`} />
-              {!still && (
-                <>
-                  <circle className="fpulse-halo" r="6.5">
-                    <animateMotion dur="2.6s" repeatCount="indefinite" path={p.d} begin={`${-p.i * 0.45}s`} />
-                  </circle>
-                  <circle className="fpulse" r="3.2">
-                    <animateMotion dur="2.6s" repeatCount="indefinite" path={p.d} begin={`${-p.i * 0.45}s`} />
-                  </circle>
-                </>
-              )}
+          {paths.map((p, k) => (
+            <g key={p.i} className="fedge">
+              <path className="fedge-halo" d={p.d}
+                ref={(el) => { (edgeRefs.current[k] = edgeRefs.current[k] || {}).halo = el; }} />
+              <path className="fedge-line" d={p.d}
+                ref={(el) => { const r = (edgeRefs.current[k] = edgeRefs.current[k] || {}); r.line = el; r.len = 0; }} />
+              <circle className="fpulse-halo" r="6.5" style={{ opacity: 0 }}
+                ref={(el) => { (edgeRefs.current[k] = edgeRefs.current[k] || {}).pulseHalo = el; }} />
+              <circle className="fpulse" r="3.2" style={{ opacity: 0 }}
+                ref={(el) => { (edgeRefs.current[k] = edgeRefs.current[k] || {}).pulse = el; }} />
               {p.label && (
-                <text className="flow-lbl" x={p.lx} y={p.ly} textAnchor="middle">{p.label}</text>
+                <text className="flow-lbl" x={p.lx} y={p.ly} textAnchor={p.anchor}
+                  ref={(el) => { (edgeRefs.current[k] = edgeRefs.current[k] || {}).lbl = el; }}>
+                  {p.label}
+                </text>
               )}
             </g>
           ))}
@@ -153,7 +232,7 @@ export default function Flow({ nodes, edges }) {
           <div
             key={n.id}
             ref={(el) => { nodeRefs.current[n.id] = el; }}
-            className="fnode"
+            className={`fnode${n.col === cols - 1 ? " end" : ""}`}
             style={{
               gridColumn: n.col + 1,
               gridRow: n.row != null ? n.row + 1 : `1 / ${rows + 1}`,

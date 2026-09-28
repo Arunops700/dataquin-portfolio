@@ -2,52 +2,12 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://dataquin.vercel.app/</loc>
-    <lastmod>2026-08-28</lastmod>
+    <lastmod>2026-09-28</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://dataquin.vercel.app/stack</loc>
-    <lastmod>2026-08-28</lastmod>
+    <loc>https://dataquin.vercel.app/work</loc>
+    <lastmod>2026-09-28</lastmod>
     <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://dataquin.vercel.app/projects</loc>
-    <lastmod>2026-08-28</lastmod>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://dataquin.vercel.app/impact</loc>
-    <lastmod>2026-08-28</lastmod>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://dataquin.vercel.app/projects/teammate</loc>
-    <lastmod>2026-08-28</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://dataquin.vercel.app/projects/bi-delivery</loc>
-    <lastmod>2026-08-28</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://dataquin.vercel.app/projects/alerting</loc>
-    <lastmod>2026-08-28</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://dataquin.vercel.app/projects/engageai</loc>
-    <lastmod>2026-08-28</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://dataquin.vercel.app/projects/modernization</loc>
-    <lastmod>2026-08-28</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://dataquin.vercel.app/projects/coworker</loc>
-    <lastmod>2026-08-28</lastmod>
-    <priority>0.8</priority>
   </url>
 </urlset>

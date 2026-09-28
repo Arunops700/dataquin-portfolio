@@ -1,13 +1,12 @@
-import { Component, useEffect, useState } from "react";
-import { Routes, Route, NavLink, useLocation } from "react-router-dom";
+import { Component, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Routes, Route, NavLink, Link, useLocation } from "react-router-dom";
+import { LazyMotion, MotionConfig, domAnimation } from "framer-motion";
 import Landing from "./pages/Landing.jsx";
-import Stack from "./pages/Stack.jsx";
-import Projects from "./pages/Projects.jsx";
-import CaseStudy from "./pages/CaseStudy.jsx";
-import Impact from "./pages/Impact.jsx";
+import Work from "./pages/Work.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import { SmoothScroll, scrollTo } from "./motion/SmoothScroll.jsx";
 
-/* If any component throws at runtime, React 18 unmounts the whole tree,
+/* If any component throws at runtime, React unmounts the whole tree,
    leaving a blank page. This boundary catches the error, keeps the shell
    alive, and recovers automatically on the next navigation. */
 class ErrorBoundary extends Component {
@@ -29,76 +28,121 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.error) {
       return (
-        <div className="wrap" style={{ padding: "140px 0" }}>
-          <div className="kicker">Recoverable error</div>
-          <h1 className="h1">Something glitched — <span className="grad-text">the site is still here.</span></h1>
-          <p className="lead" style={{ marginTop: 14 }}>
-            A section failed to load. Use the menu to switch pages, or reload.
-          </p>
-          <button className="btn btn-grad" style={{ marginTop: 26 }}
-            onClick={() => window.location.reload()}>
-            Reload page
-          </button>
-        </div>
+        <section className="band dark pad" style={{ minHeight: "70vh" }}>
+          <div className="wrap" style={{ paddingTop: 90 }}>
+            <div className="kicker">Recoverable error</div>
+            <h1 className="h1">Something glitched — <em className="foil">the site is still here.</em></h1>
+            <p className="lead" style={{ marginTop: 16 }}>
+              A section failed to load. Use the menu to switch pages, or reload.
+            </p>
+            <button className="btn btn-gold" style={{ marginTop: 28 }}
+              onClick={() => window.location.reload()}>
+              Reload page
+            </button>
+          </div>
+        </section>
       );
     }
     return this.props.children;
   }
 }
 
-/* No "Home" entry — the landing page has no header at all, and the logo
-   is the way back to it from every page that does. */
+/* Two pages. Hash links land on sections of the Work page. */
 const NAV = [
-  { to: "/stack", label: "Tech Stack" },
-  { to: "/projects", label: "Case Studies" },
-  { to: "/impact", label: "Impact" },
+  { to: "/work", label: "The Work", path: "/work", hash: "" },
+  { to: "/work#impact", label: "Impact", path: "/work", hash: "#impact" },
+  { to: "/#contact", label: "Contact", path: "/", hash: "#contact" },
 ];
 
-/* The official DataQuin logo (white-on-transparent PNG) is used as a CSS
-   mask filled with the site's gold gradient, so it sits directly on the
-   ivory background like an engraved mark — no box around it. */
-function Brand() {
-  return (
-    <NavLink to="/" className="brand" end aria-label="DataQuin — home">
-      <span className="brand-logo" role="img" aria-label="DataQuin — Driven by Purpose, Powered by Precision" />
-    </NavLink>
-  );
-}
-
-/* Floating dark-glass pill navigation — logo + links, centered at top.
-   Once the page scrolls, the pill darkens and its shadow deepens so it
-   reads as floating above the content it now overlaps. */
-function Header() {
+function Topbar() {
   const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 14);
+    const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
   return (
-    <header className={`header${scrolled ? " scrolled" : ""}`}>
-      <Brand />
-      <nav>
-        {NAV.map((n) => (
-          <NavLink key={n.to} to={n.to}
-            className={({ isActive }) => (isActive ? "active" : "")}>
-            {n.label}
-          </NavLink>
-        ))}
-      </nav>
+    <header className={`topbar${scrolled ? " scrolled" : ""}`}>
+      <div className="wrap topbar-in">
+        <NavLink to="/" className="brand" end aria-label="DataQuin — home">
+          <span className="brand-logo" role="img" aria-label="DataQuin — Driven by Purpose, Powered by Precision" />
+        </NavLink>
+        <nav>
+          {NAV.map((n) => {
+            const active =
+              location.pathname === n.path &&
+              (n.hash ? location.hash === n.hash : !NAV.some((o) => o.path === n.path && o.hash && o.hash === location.hash));
+            return (
+              <Link key={n.to} to={n.to} className={active ? "active" : ""}>
+                {n.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
     </header>
+  );
+}
+
+/* Gold hairline that fills as the reader moves through the document. */
+function Progress() {
+  const ref = useRef(null);
+  useEffect(() => {
+    let raf = 0;
+    const paint = () => {
+      raf = 0;
+      const el = ref.current;
+      if (!el) return;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      el.style.transform = `scaleX(${max > 0 ? Math.min(window.scrollY / max, 1) : 0})`;
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(paint); };
+    paint();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+  return (
+    <div className="progress" aria-hidden="true">
+      <div className="progress-bar" ref={ref} />
+    </div>
   );
 }
 
 function Footer() {
   return (
-    <footer className="footer">
+    <footer className="footer band dark">
       <div className="wrap">
-        <div className="footer-statement">
-          Driven by Purpose. <span className="grad-text">Powered by Precision.</span>
+        <div className="foot-state">
+          Driven by Purpose. <em className="foil">Powered by Precision.</em>
         </div>
-        <div className="footer-inner">
+        <div className="foot-grid">
+          <div className="foot-col">
+            <div className="foot-k">Explore</div>
+            <Link to="/">Home</Link>
+            <Link to="/work">The Work</Link>
+            <Link to="/work#impact">Impact</Link>
+            <Link to="/work#stack">Tech Stack</Link>
+            <Link to="/#contact">Contact</Link>
+          </div>
+          <div className="foot-col">
+            <div className="foot-k">Contact</div>
+            <a href="mailto:kavita@dataquin.com">kavita@dataquin.com</a>
+            <a href="tel:+19086720809">+1 908 672 0809</a>
+          </div>
+          <div className="foot-col foot-brand-col">
+            <div className="foot-brand">
+              <span className="brand-logo" role="img" aria-label="DataQuin" />
+            </div>
+          </div>
+        </div>
+        <div className="foot-rule">
           <span>© {new Date().getFullYear()} DataQuin</span>
           <span>Data · Automation · AI Engineering</span>
         </div>
@@ -107,18 +151,37 @@ function Footer() {
   );
 }
 
-export default function App() {
+/* Route + hash navigation. A new path starts at the top; a hash scrolls
+   to its section once it exists in the DOM (the page may still be
+   mounting when the effect first runs). */
+function useScrollNavigation() {
   const location = useLocation();
-  /* The landing page is the front door: no nav pill competing with the
-     headline, one button onward to the Tech Stack. Every other page keeps
-     the header. */
-  const bare = location.pathname === "/";
+  useLayoutEffect(() => {
+    const id = location.hash.slice(1);
+    if (!id) {
+      scrollTo(0, { immediate: true });
+      return;
+    }
+    let tries = 0;
+    let raf = 0;
+    const go = () => {
+      const el = document.getElementById(id);
+      if (el) {
+        scrollTo(el, { offset: -84 });
+      } else if (tries++ < 30) {
+        raf = requestAnimationFrame(go);
+      }
+    };
+    go();
+    return () => cancelAnimationFrame(raf);
+  }, [location.pathname, location.hash, location.key]);
+}
 
-  // Start every navigation at the top of the new page.
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
-  }, [location.pathname]);
+function Shell() {
+  const location = useLocation();
+  useScrollNavigation();
 
+  // Cursor-following warm light — fine pointers, motion allowed.
   useEffect(() => {
     const noMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const coarse = window.matchMedia("(pointer: coarse)").matches;
@@ -147,31 +210,37 @@ export default function App() {
 
   return (
     <>
-      <div className="bg-fx"></div>
-      <div className="bg-aura a"></div>
-      <div className="bg-aura b"></div>
-      <div className="bg-mark" aria-hidden="true">DQ</div>
-      <div className="spotlight"></div>
-      <div className="bg-noise"></div>
+      <Progress />
+      <div className="spotlight" aria-hidden="true"></div>
+      <div className="grain" aria-hidden="true"></div>
       <a className="skip-link" href="#main">Skip to content</a>
-      <div className="shell">
-        {!bare && <Header />}
-        <main className="main" id="main">
-          <div className={`page${bare ? " page-bare" : ""}`} key={location.pathname}>
-            <ErrorBoundary resetKey={location.pathname}>
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/stack" element={<Stack />} />
-                <Route path="/projects" element={<Projects />} />
-                <Route path="/projects/:id" element={<CaseStudy />} />
-                <Route path="/impact" element={<Impact />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </ErrorBoundary>
-            <Footer />
-          </div>
-        </main>
-      </div>
+      <Topbar />
+      <main id="main">
+        <div className="page" key={location.pathname}>
+          <ErrorBoundary resetKey={location.pathname}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/work" element={<Work />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </ErrorBoundary>
+          <Footer />
+        </div>
+      </main>
     </>
+  );
+}
+
+export default function App() {
+  // LazyMotion + `m` components keep framer-motion's runtime small; the
+  // pages only bind MotionValues to style, which needs no extra features.
+  return (
+    <LazyMotion features={domAnimation} strict>
+      <MotionConfig reducedMotion="user">
+        <SmoothScroll>
+          <Shell />
+        </SmoothScroll>
+      </MotionConfig>
+    </LazyMotion>
   );
 }
