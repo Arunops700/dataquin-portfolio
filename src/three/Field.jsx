@@ -13,7 +13,8 @@ const HeroScene = lazy(() => import("./HeroScene.jsx"));
     espresso ground.
   - Otherwise: draw the formed mark once on a plain 2D canvas. No
     WebGL, no animation, same picture — reduced-motion readers and old
-    devices get a finished-looking hero, never a blank one.
+    devices get a finished-looking hero, never a blank one. If the logo
+    image failed to load, the scattered rows are drawn instead.
 */
 export function Field({ progress, ambient = false, active = true }) {
   const mode = useMemo(() => (canRun3D() ? "gl" : "poster"), []);
@@ -93,13 +94,14 @@ function Poster({ targets, place = "hero", count = 6000 }) {
 
       const aspect = w / h;
       const f = (h / 2) / Math.tan((CAMERA_FOV / 2) * (Math.PI / 180));
-      const pl = logo ? logoPlacement(aspect, place) : { scale: spreadFor(aspect), x: 0, y: 0 };
-      const src = logo ? logo.targets : layout.stream;
+      const pl = logo ? logoPlacement(aspect, place) : { scale: 1, x: 0, y: 0 };
+      const src = logo ? logo.targets : layout.chaos;
       const ts = logo ? logo.ts : layout.ts;
       const { sizes } = layout;
+      const xScale = logo ? pl.scale : spreadFor(aspect);
 
       for (let i = 0; i < count; i++) {
-        const x = src[i * 3] * pl.scale + pl.x;
+        const x = src[i * 3] * xScale + pl.x;
         const y = src[i * 3 + 1] * pl.scale + pl.y;
         const z = src[i * 3 + 2];
         const s = f / (CAMERA_Z - z);

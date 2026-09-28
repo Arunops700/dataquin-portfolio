@@ -3,7 +3,6 @@
 node_modules
 dist
 .claude
-_archive_static_site
 
 # Client-confidential source material — the QBR deck names a real client,
 # and the site itself anonymizes every client. It must never leave this

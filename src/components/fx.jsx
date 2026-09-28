@@ -32,7 +32,7 @@ export function Reveal({ children, as: Tag = "div", delay = 0, className = "", .
 }
 
 /* ---------- Animated counter ---------- */
-export function CountUp({ to, suffix = "", prefix = "", duration = 1600 }) {
+export function CountUp({ to, suffix = "", duration = 1600 }) {
   const ref = useRef(null);
   const [val, setVal] = useState(0);
   useEffect(() => {
@@ -73,7 +73,7 @@ export function CountUp({ to, suffix = "", prefix = "", duration = 1600 }) {
     obs.observe(el);
     return () => { obs.disconnect(); cancelAnimationFrame(raf); clearTimeout(safety); };
   }, [to, duration]);
-  return <span ref={ref}>{prefix}{val}{suffix}</span>;
+  return <span ref={ref}>{val}{suffix}</span>;
 }
 
 /* ---------- Magnetic wrapper for primary CTAs ---------- */
@@ -108,21 +108,5 @@ export function Magnetic({ children, strength = 0.16, max = 6 }) {
     <span className="magnet" ref={ref} onMouseMove={onMove} onMouseLeave={onLeave}>
       {children}
     </span>
-  );
-}
-
-/* ---------- Panel with cursor glow ---------- */
-export function Panel({ children, className = "", ...rest }) {
-  const ref = useRef(null);
-  const onMove = (e) => {
-    if (!ref.current) return;
-    const r = ref.current.getBoundingClientRect();
-    ref.current.style.setProperty("--mx", e.clientX - r.left + "px");
-    ref.current.style.setProperty("--my", e.clientY - r.top + "px");
-  };
-  return (
-    <div ref={ref} className={`panel ${className}`} onMouseMove={onMove} {...rest}>
-      {children}
-    </div>
   );
 }

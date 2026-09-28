@@ -11,8 +11,8 @@ import { isCoarsePointer } from "../motion/prefs.js";
   formed, a slow light sweeps across the mark. Pointer parallax tilts
   the whole field a little.
 
-  `targets`/`ts` come from logo.js (sampled from the logo image). If
-  they are missing the points fall back to the stream layout.
+  `targets` comes from logo.js (sampled from the logo image). If the
+  image failed to load the points simply stay as scattered rows.
 
   `progress` is a framer-motion MotionValue (read with .get() every
   frame, never subscribed — no React re-renders on scroll). In
@@ -95,7 +95,7 @@ export default function ParticleField({ progress, count = 9000, ambient = false,
     const g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.BufferAttribute(layout.chaos, 3));
     g.setAttribute("aChaos", new THREE.BufferAttribute(layout.chaos, 3));
-    g.setAttribute("aTarget", new THREE.BufferAttribute(hasLogo ? targets.targets : layout.stream, 3));
+    g.setAttribute("aTarget", new THREE.BufferAttribute(hasLogo ? targets.targets : layout.chaos, 3));
     g.setAttribute("aSeed", new THREE.BufferAttribute(layout.seeds, 1));
     g.setAttribute("aT", new THREE.BufferAttribute(hasLogo ? targets.ts : layout.ts, 1));
     g.setAttribute("aSize", new THREE.BufferAttribute(layout.sizes, 1));

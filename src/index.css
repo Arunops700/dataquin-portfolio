@@ -220,7 +220,7 @@ em.foil { font-style: italic; }
 }
 
 /* Figures never jitter */
-.tab-num, .met-v, .ledg-num, .cred-v { font-variant-numeric: tabular-nums; }
+.met-v, .ledg-num, .cred-v { font-variant-numeric: tabular-nums; }
 
 /* ============================================================
    Bands & layout
@@ -247,7 +247,6 @@ em.foil { font-style: italic; }
 }
 
 .pad { padding: 110px 0; }
-.pad-t { padding-top: 110px; }
 .pad-b { padding-bottom: 110px; }
 .pad-s { padding: 72px 0; }
 
@@ -534,7 +533,6 @@ em.foil { font-style: italic; }
 }
 .hero-meta b { color: var(--gold-hi); font-weight: 600; }
 
-.hero-home { padding: 128px 0 0; }
 .hero-sub { padding: 128px 0 0; }
 .hero-lead { margin-top: 30px; }
 .hero-actions { display: flex; gap: 14px; margin-top: 42px; flex-wrap: wrap; }
@@ -576,7 +574,6 @@ em.foil { font-style: italic; }
 /* ============================================================
    Ledger step rows (landing: five steps, stacking)
    ============================================================ */
-.step-rows { border-top: 1px solid rgba(36, 28, 19, 0.2); }
 .step-row {
   position: relative;
   display: grid;
@@ -1697,10 +1694,9 @@ em.foil { font-style: italic; }
   .wrap { width: calc(100% - 44px); }
   html { scroll-padding-top: 78px; }
   .pad { padding: 76px 0; }
-  .pad-t { padding-top: 76px; }
   .pad-b { padding-bottom: 76px; }
   .pad-s { padding: 56px 0; }
-  .hero-home, .hero-sub { padding-top: 104px; }
+  .hero-sub { padding-top: 104px; }
   .topbar { padding: 12px 0; }
   .topbar.scrolled { padding: 9px 0; }
   .brand { width: 66px; }
@@ -1747,7 +1743,7 @@ em.foil { font-style: italic; }
   .stage .hero-actions { margin-top: 28px; gap: 10px; }
   .beat-t { font-size: clamp(1.8rem, 9vw, 2.4rem); }
   .beat-s { font-size: 1rem; }
-  .hero-home, .hero-sub { padding-top: 96px; }
+  .hero-sub { padding-top: 96px; }
   /* Full-width CTA: the magnetic wrapper must stretch with its button */
   .cta-band .btn { width: 100%; justify-content: center; }
   .cta-band .magnet { width: 100%; }

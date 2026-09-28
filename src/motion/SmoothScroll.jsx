@@ -7,7 +7,7 @@ import { useReducedMotion } from "./prefs.js";
    topbar's scroll listener keep working unchanged. Reduced motion:
    no Lenis at all, native scrolling. */
 
-export const scroller = { lenis: null };
+const scroller = { lenis: null };
 
 export function SmoothScroll({ children }) {
   const reduced = useReducedMotion();

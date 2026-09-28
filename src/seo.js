@@ -25,7 +25,7 @@ import { useEffect } from "react";
   redirecting to the new one so existing links and search results survive.
   ─────────────────────────────────────────────────────────────────────
 */
-export const SITE_URL = "https://dataquin.vercel.app";
+const SITE_URL = "https://dataquin.vercel.app";
 
 const BRAND = "DataQuin";
 

@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 
 const mq = (q) => (typeof window !== "undefined" ? window.matchMedia(q) : null);
 
-export const prefersReducedMotion = () => !!mq("(prefers-reduced-motion: reduce)")?.matches;
+const prefersReducedMotion = () => !!mq("(prefers-reduced-motion: reduce)")?.matches;
 export const isCoarsePointer = () => !!mq("(pointer: coarse)")?.matches;
 
 export function useReducedMotion() {
