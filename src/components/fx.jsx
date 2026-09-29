@@ -76,7 +76,7 @@ function observerFor(threshold, rootMargin) {
 
 
 /* Calls `cb` once, the first time `el` is on screen. Returns a cleanup. */
-export function whenOnScreen(el, cb, { threshold = 0.05, rootMargin = "0px 0px -20px 0px", safety = 1200 } = {}) {
+function whenOnScreen(el, cb, { threshold = 0.05, rootMargin = "0px 0px -20px 0px", safety = 1200 } = {}) {
   if (!el) return () => {};
   if (typeof IntersectionObserver !== "function" || prefersReducedMotion()) {
     cb();
@@ -161,7 +161,7 @@ export function CountUp({ to, suffix = "", duration = 1.6 }) {
     };
   }, [to, suffix, duration, still]);
   return (
-    <span className="countup">
+    <span>
       <span ref={ref} aria-hidden="true" />
       <span className="sr-only">{to}{suffix}</span>
     </span>
@@ -170,7 +170,7 @@ export function CountUp({ to, suffix = "", duration = 1.6 }) {
 
 /* ---------- "Before → after", read aloud ---------- */
 /* The arrow is drawn; a screen reader says "to". */
-export const TO = (
+const TO = (
   <>
     <span aria-hidden="true"> → </span>
     <span className="sr-only"> to </span>

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { storyWeights, stepSpring, TIMING, STILL_TIME } from "./story.js";
 import { POSE, logoPlacement, stageLayout } from "./logo.js";
@@ -28,19 +28,14 @@ import { MQ } from "../motion/tokens.js";
 */
 
 const smooth = (t) => t * t * (3 - 2 * t);
-const lerp = THREE.MathUtils.lerp;
 const clamp01 = (v) => (v > 0 ? (v < 1 ? v : 1) : 0);   // NaN → 0: one bad scroll value must not poison the spring
-const LIFT = new THREE.Vector3(0, 1.3, 0.6);            // world: off the page, toward the camera
-const THROAT_LIFT = new THREE.Vector3(0, 0.2, 1.0);
-const SHEET_START = 0.45 * 16;                           // the sheet is ~half written when it first appears
 const SLIDE = [0.02, 0.17];                              // story progress: the view slides to a tall stage's foot
 
 export function createRig() {
   return {
     time: 0, t: 0, start: null, last: 0, spring: { x: 0, v: 0 }, inited: false, speed: 0, w: {}, motion: 1,
-    gather: 0, halo: 0, reveal: 0, typing: 0, clear: 0, sheetT: SHEET_START,
+    gather: 0, halo: 0, reveal: 0,
     mark: Object.assign(new THREE.Object3D(), { matrixAutoUpdate: false }),
-    sheet: new THREE.Matrix4(), throat: new THREE.Vector3(), lift: LIFT.clone(),
     lane: new THREE.Vector4(2, 2, 0.12, 0),               // ndc x edge, ndc y edge, feather, strength
     aspect: 1, pl: null, layout: null, layoutKey: "",     // the composed window's shape and layout
     pointer: { tx: 0, ty: 0, x: 0, y: 0, vx: 0, vy: 0 },
@@ -82,10 +77,6 @@ export function StoryRig({ rig, place, progress, yaw, fixed, still, active, skip
   useEffect(() => { invalidate(); }, [win, invalidate]);
 
   usePointerSpring(rig, still || place === "band");
-  const e = useRef({
-    v: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3(), eul: new THREE.Euler(),
-    a: new THREE.Vector3(), b: new THREE.Vector3(),
-  }).current;
 
   useFrame((state, delta) => {
     const r = rig.current;
@@ -117,17 +108,8 @@ export function StoryRig({ rig, place, progress, yaw, fixed, still, active, skip
     r.speed = still ? 0 : Math.min(1, Math.abs(r.spring.v) / 1.2);
     const w = storyWeights(r.spring.x, r.w, still);
 
-    // ledger sheet (20s cycle, counted from when the sheet appears): fills,
-    // holds 2s, wipes in reading order for 2s. Shown full once it streams away.
-    if (w.leave > 0) r.sheetT += dt;
-    else r.sheetT = SHEET_START;
-    const k = ((still ? STILL_TIME : r.sheetT) % 20) / 20;
-    const hand = clamp01(w.cross * 4);
-    r.typing = lerp(Math.min(1, k / 0.8), 1, hand);
-    r.clear = lerp(k < 0.9 ? 0 : (k - 0.9) / 0.1, 0, hand);
-
-    // the window the scene composes in, its placement, copy lane and
-    // ledger sheet (recomputed only when a size changes)
+    // the window the scene composes in, its placement and copy lane
+    // (recomputed only when a size changes)
     const { width, height } = state.size;
     const view = place === "hero" && win > 0 ? Math.min(height, win) : height;
     const key = `${width}x${height}x${view}`;
@@ -135,7 +117,7 @@ export function StoryRig({ rig, place, progress, yaw, fixed, still, active, skip
       r.layoutKey = key;
       r.aspect = width / Math.max(1, view);
       r.pl = logoPlacement(r.aspect, place, view);
-      r.layout = stageLayout(width, r.aspect, view, place === "hero" ? r.pl : null);
+      r.layout = stageLayout(width, r.aspect, view);
     }
     const over = height - view;
     const top = over > 0.5 ? over * smooth(clamp01((r.spring.x - SLIDE[0]) / (SLIDE[1] - SLIDE[0]))) : 0;
@@ -143,25 +125,22 @@ export function StoryRig({ rig, place, progress, yaw, fixed, still, active, skip
     const pl = r.pl;
     const L = r.layout;
 
-    // the mark: recedes and turns away while the work is manual, returns
-    // as the bridge delivers, squares up for the result. Sway and pointer
-    // together turn it by at most POSE.lean (0.07 + 0.025 + 0.16).
-    const d = w.dim;
+    // the mark: squares up for the result. Sway and pointer together turn
+    // it by at most POSE.lean (0.07 + 0.025 + 0.16).
     const s = w.settle;
     const P = r.pointer;
     const sway = still ? 0 : 0.07 * Math.sin(0.31 * t) + 0.025 * Math.sin(0.83 * t + 1.3);
     const nod = still ? 0 : 0.03 * Math.sin(0.23 * t + 0.7);
     const bob = still ? 0 : 0.05 * Math.sin(0.4 * t);
     const turn = yaw ? clamp01(yaw.get()) * 0.5 : 0;
-    const { recede } = POSE;
     const m = r.mark;
-    m.position.set(pl.x + (pl.dim[0] + L.drift) * d, pl.y + pl.dim[1] * d + bob, recede.z * d);
+    m.position.set(pl.x, pl.y + bob, 0);
     m.rotation.set(
-      -0.12 + 0.06 * d + 0.08 * s + nod + P.y * 0.1,
-      POSE.yaw + recede.yaw * d - 0.14 * s + sway + P.x * 0.16 + turn,
+      -0.12 + 0.08 * s + nod + P.y * 0.1,
+      POSE.yaw - 0.14 * s + sway + P.x * 0.16 + turn,
       0
     );
-    m.scale.setScalar(pl.scale * (0.94 + 0.06 * smooth(r.reveal)) * (1 - recede.scale * d + 0.03 * s));
+    m.scale.setScalar(pl.scale * (0.94 + 0.06 * smooth(r.reveal)) * (1 + 0.03 * s));
     m.updateMatrix();
 
     // the copy lane, in the canvas's ndc (a y edge is given in the window's)
@@ -170,20 +149,12 @@ export function StoryRig({ rig, place, progress, yaw, fixed, still, active, skip
       r.lane.set(L.lane[0], ly, L.lane[2], 0.5 * w.leave);   // the headline keeps today's look
     } else if (place === "aside") r.lane.set(0.3, 2, 0.12, 0.35);   // the Work headline, left
     else r.lane.w = 0;
-    const sp = L.sheet;
-    r.sheet.compose(e.v.set(sp.x, sp.y, sp.z), e.q.setFromEuler(e.eul.set(sp.rx, sp.ry, sp.rz)), e.s.set(sp.w, sp.h, 1));
-
-    // the bridge's throat: between the sheet's upper left and the mark's
-    // lower left, lifted toward the camera — one narrow crossing
-    e.a.set(-0.25, 0.3, 0).applyMatrix4(r.sheet);
-    e.b.set(-1.4, -1.8, 0).applyMatrix4(m.matrix);
-    r.throat.lerpVectors(e.a, e.b, 0.5).add(THROAT_LIFT);
 
     // light. Phones dim the mark by light, never by transparency.
     const dimPl = pl.alpha ?? 1;
-    r.mat.roughness = lerp(0.3, 0.45, d) - 0.04 * s;
-    r.mat.env = (lerp(1.0, 0.5, d) + 0.15 * s) * dimPl;
-    r.mat.clearcoat = lerp(0.6, 0.2, d);                 // never 0: crossing 0 recompiles the program
+    r.mat.roughness = 0.3 - 0.04 * s;
+    r.mat.env = (1.0 + 0.15 * s) * dimPl;
+    r.mat.clearcoat = 0.6;                               // never 0: crossing 0 recompiles the program
     r.mat.emissive = 0.02 + 0.25 * 4 * w.cross * (1 - w.cross);   // a warm lift as the grains arrive
 
     // light sweep: scroll owns it while the result's sweep is under way;

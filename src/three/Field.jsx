@@ -66,7 +66,7 @@ function useHeight() {
              units of STORY_BEATS[i].range; the grains and the mark play
              the beats with it.
   - "aside": the Work hero on desktop — the settled result (the mark in
-             its ruled orbit rings), far right, turning as the hero scrolls
+             its data streams), far right, turning as the hero scrolls
              away. (`ambient` is kept as an alias.)
   - "band":  the Work hero at ≤ 860px — the same settled mark in a ruled
              strip of reserved height above the headline; lite render

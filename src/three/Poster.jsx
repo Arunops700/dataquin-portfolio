@@ -10,8 +10,8 @@ import { PAL } from "./palette.js";
   composed for the window it opens on (`win` tall, at the top of a stage
   taller than the screen) — so the crossfade into the live mark does not
   jump. Settled places also draw
-  the four orbit rings, dotted — the near arcs over the mark, the far
-  arcs under it. Main bundle, no three.js.
+  the six data streams, dotted, flowing behind the mark. Main bundle,
+  no three.js.
 */
 export default function Poster({ outline, place, settled, win = 0 }) {
   const ref = useRef(null);
@@ -37,24 +37,31 @@ export default function Poster({ outline, place, settled, win = 0 }) {
       const cy = view / 2 - pl.y * s;
       const k = pl.scale * s;
 
-      // the rings, as the scene draws them settled: flat ellipses tipped
-      // toward the viewer
-      const rings = (from, to) => {
+      // the streams, as the scene draws them settled: six dotted waves
+      // behind the mark, fading in and out at their ends
+      if (settled) {
         ctx.save();
-        ctx.strokeStyle = PAL.goldHi;
+        const fade = ctx.createLinearGradient(cx - 5 * k, 0, cx + 5 * k, 0);
+        fade.addColorStop(0, `${PAL.goldHi}00`);
+        fade.addColorStop(0.14, PAL.goldHi);
+        fade.addColorStop(0.86, PAL.goldHi);
+        fade.addColorStop(1, `${PAL.goldHi}00`);
+        ctx.strokeStyle = fade;
         ctx.globalAlpha = 0.34;
         ctx.lineWidth = 1.2;
         ctx.lineCap = "round";
         ctx.setLineDash([0.1, 4.2]);
-        for (let lane = 0; lane < 4; lane++) {
-          const rr = 1 + 0.12 * lane;
+        for (let lane = 0; lane < 6; lane++) {
           ctx.beginPath();
-          ctx.ellipse(cx, cy, 3.3 * rr * k, 2 * rr * Math.sin(0.55 + 0.04 * lane) * k, 0, from, to);
+          for (let i = 0; i <= 100; i++) {
+            const x = -5 + i * 0.1;
+            const y = (lane - 2.5) * 0.62 + 0.42 * Math.sin(x * 0.45 + lane * 1.1);
+            if (i) ctx.lineTo(cx + x * k, cy - y * k); else ctx.moveTo(cx + x * k, cy - y * k);
+          }
           ctx.stroke();
         }
         ctx.restore();
-      };
-      if (settled) rings(Math.PI, Math.PI * 2);   // far (upper) arcs: behind the mark
+      }
 
       const path = new Path2D();
       const trace = (pts) => {
@@ -76,7 +83,6 @@ export default function Poster({ outline, place, settled, win = 0 }) {
       ctx.fill(path, "evenodd");
       ctx.globalAlpha = 1;
 
-      if (settled) rings(0, Math.PI);   // near (lower) arcs: in front
     };
     draw();
     let raf = 0;

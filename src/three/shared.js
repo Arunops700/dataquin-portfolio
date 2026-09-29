@@ -4,7 +4,7 @@
   No three.js import and no browser API at module level: Node imports
   this file too.
 */
-export const LOGO_SRC = "/logo.png";
+const LOGO_SRC = "/logo.png";
 export const LOGO_W = 8.8;              // world units across the logo
 export const TAGLINE = [0.585, 0.69];   // image rows holding the tagline (skipped)
 export const CAMERA_Z = 11;

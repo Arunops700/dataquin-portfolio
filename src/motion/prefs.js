@@ -14,7 +14,7 @@ const mq = (q) => (typeof window !== "undefined" ? window.matchMedia(q) : null);
 
 /* one reader for code outside React (the hook below keeps components live) */
 export const prefersReducedMotion = () => !!mq("(prefers-reduced-motion: reduce)")?.matches;
-export const isCoarsePointer = () => !!mq("(pointer: coarse)")?.matches;
+const isCoarsePointer = () => !!mq("(pointer: coarse)")?.matches;
 
 export function useReducedMotion() {
   const [reduced, setReduced] = useState(prefersReducedMotion);

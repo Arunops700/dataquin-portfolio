@@ -401,7 +401,7 @@ export default function Flow({ nodes, edges, progress, onMode }) {
               </marker>
             </defs>
             {shown?.spine && (
-              <g className="fspine">
+              <g>
                 <path className="fedge-halo" d={shown.spine.d} ref={(el) => { spineEls.current.halo = el; }} />
                 <path className="fedge-line" d={shown.spine.d} ref={(el) => { spineEls.current.line = el; }} />
                 {shown.ticks.map((t) => (
@@ -412,7 +412,7 @@ export default function Flow({ nodes, edges, progress, onMode }) {
               </g>
             )}
             {shown?.paths.map((p) => (
-              <g key={p.i} className="fedge">
+              <g key={p.i}>
                 <path className="fedge-halo" d={p.d} ref={edgeRef(p.i, "halo")} />
                 <path className="fedge-line" d={p.d} ref={edgeRef(p.i, "line")} />
                 <circle className="fpulse-halo" r="6.5" ref={edgeRef(p.i, "pulseHalo")} />

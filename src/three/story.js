@@ -8,8 +8,8 @@
 import { STORY_BEATS } from "../data/site.js";
 
 export const TIMING = { GATHER: 2.2, MATERIALISE: 1.2 };   // the entrance, in seconds
-/* The frozen clock of reduced motion: the ledger sheet ~78% filled, the
-   looping grains spread along the bridge — every hold a finished frame. */
+/* The frozen clock of reduced motion: the grains spread along their
+   lanes — every hold a finished frame. */
 export const STILL_TIME = 12.4;
 
 const [PROBLEM, BUILD, RESULT] = STORY_BEATS.map((b) => b.range);
@@ -26,13 +26,10 @@ const span = (v, a, b) => clamp01((v - a) / (b - a));
    shader staggers them per grain. */
 export function storyWeights(sp, w = {}, still = false) {
   const done = (still ? COPY_IN.still : COPY_IN.motion) - 0.01;
-  w.leave = span(sp, PROBLEM[0] - 0.05, PROBLEM[0] + done);           // the halo drains into the ledger sheet
-  w.cross = span(sp, BUILD[0], BUILD[1] - 0.03);                       // sheet → bridge → mark
-  w.loop = span(sp, BUILD[0] - 0.03, BUILD[0] + 0.03) *
-    (1 - span(sp, BUILD[1] - 0.02, BUILD[1] + 0.04));                  // the live stream on the bridge
-  w.settle = span(sp, RESULT[0] - 0.02, RESULT[0] + done);            // mark → ruled orbit rings
+  w.leave = span(sp, PROBLEM[0] - 0.05, PROBLEM[0] + done);           // beat 1: the drift pulls taut into ruled lines
+  w.cross = span(sp, BUILD[0] - 0.05, BUILD[0] + done);               // beat 2: the lines drawn through the mark
+  w.settle = span(sp, RESULT[0] - 0.02, RESULT[0] + done);            // mark → data streams
   w.sweep = span(sp, RESULT[0] + 0.02, RESULT[0] + 0.24);             // light crosses the mark
-  w.dim = w.leave * (1 - w.cross);                                     // lights down while the work is manual
   return w;
 }
 

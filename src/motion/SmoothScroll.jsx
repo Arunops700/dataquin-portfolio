@@ -1,9 +1,12 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
+import { frame, cancelFrame } from "framer-motion";
 import { useMedia, useReducedMotion, prefersReducedMotion } from "./prefs.js";
 import { MQ } from "./tokens.js";
 
-/* One Lenis instance for the whole app, driven by its own frame loop.
+/* One Lenis instance for the whole app, stepped by framer-motion's own
+   frame loop (not a second requestAnimationFrame loop), so the smoothed
+   scroll and every scroll-linked style advance together, frame by frame.
    Lenis scrolls the real window, so framer-motion's useScroll (and
    everything built on it: progress, topbar, scroll-linked styles) keeps
    working unchanged. Reduced motion: no Lenis at all, native scrolling.
@@ -21,14 +24,17 @@ export function SmoothScroll({ children }) {
   useEffect(() => {
     if (reduced || coarse) return;
     const lenis = new Lenis({
-      lerp: 0.09,
+      lerp: 0.1,              // Lenis' own default: smooth, but settles promptly
       wheelMultiplier: 1,
       smoothWheel: true,
       syncTouch: false,
-      autoRaf: true,
+      autoRaf: false,
     });
+    const step = ({ timestamp }) => lenis.raf(timestamp);
+    frame.update(step, true);   // every frame, in framer's update phase
     scroller.lenis = lenis;
     return () => {
+      cancelFrame(step);
       lenis.destroy();
       scroller.lenis = null;
     };

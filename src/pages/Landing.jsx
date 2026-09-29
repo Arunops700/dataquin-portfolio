@@ -2,15 +2,14 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { m, useInView, useMotionValue, useMotionValueEvent, useTransform } from "framer-motion";
 import { useProgress, stepRoll } from "../motion/scroll.js";
-import { Reveal, Magnetic, CountUp, TO, Email } from "../components/fx.jsx";
+import { Reveal, Magnetic, Email } from "../components/fx.jsx";
 import ContactForm from "../components/ContactForm.jsx";
 import FoilSheen from "../components/landing/FoilSheen.jsx";
-import FlowGlyph from "../components/landing/FlowGlyph.jsx";
 import { Field } from "../three/Field.jsx";
 import {
-  CREDS, STORY_BEATS, PILLARS, DELIVERY, PROOF, VALUES, TECH, IMPACTS, CONTACT, csHash,
+  CREDS, STORY_BEATS, PILLARS, DELIVERY, VALUES, TECH, CATS, CONTACT,
 } from "../data/site.js";
-import { STUDIES, getStudy } from "../data/caseStudies.js";
+import { STUDIES } from "../data/caseStudies.js";
 import { cap, countWord, pad2 } from "../data/format.js";
 import { useMedia, useReducedMotion } from "../motion/prefs.js";
 import { MQ } from "../motion/tokens.js";
@@ -208,18 +207,17 @@ function HeroStory() {
 
         <m.div className="wrap stage-copy" ref={copyRef} style={{ opacity: headO, y: headY, pointerEvents: headPE }}>
           <div className="hero-meta fade-in">
-            <span><b>DataQuin</b> — Your partner in success</span>
-            <span>Data · Automation · AI Engineering</span>
+            <span><b>Who we are</b> — DataQuin, your partner in success</span>
           </div>
           <h1 className="h-xl hero-title">
-            <span className="row"><span>We turn <em className="foil">manual days</em></span></span>
             <span className="row">
-              <span>into <FoilSheen progress={sp} range={[0, 0.12]} intro>automated hours.</FoilSheen></span>
+              <span>We are <FoilSheen progress={sp} range={[0, 0.12]} intro>DataQuin.</FoilSheen></span>
             </span>
           </h1>
           <p className="lead hero-lead fade-in">
-            Dashboards, integrations and AI systems for firms that are tired of copy-paste
-            work — every one of them live, measured and still running today.
+            25+ years of data management and analytics for pharmaceutical, healthcare,
+            finance and professional services teams — now with automation and AI. This brief
+            shows what we offer, what we&rsquo;ve built and the technology behind it.
           </p>
           <div className="hero-actions fade-in">
             <Magnetic><Link to="/work" className="btn btn-gold btn-shine">See the work</Link></Magnetic>
@@ -393,7 +391,7 @@ function ServicesStrip() {
 
   const word = countWord(N);
   return (
-    <section className="strip-sec band" ref={ref} id="services" style={{ "--n": N }}>
+    <section className="strip-sec band deep" ref={ref} id="services" style={{ "--n": N }}>
       <div className="strip-stage" ref={stageRef}>
         <div className="wrap">
           <Reveal className="shead">
@@ -440,69 +438,6 @@ function ServicesStrip() {
             </span>
           )}
         </div>
-      </div>
-    </section>
-  );
-}
-
-/* ============================================================
-   PROOF — builds shown as exhibits, each a row into its chapter on
-   /work: the study's own headline figure, the shift it made, and a
-   thumbnail of its system flow drawn from the flow data.
-   ============================================================ */
-function Exhibit({ id, fig, i }) {
-  const s = getStudy(id);
-  const f = s.metrics[fig] ?? s.metrics[0];
-  const shift = s.card.metric.includes(" → ") ? s.card.metric.split(" → ") : null; // "days → <4 hrs"
-  const lastCol = Math.max(...s.flow.nodes.map((n) => n.col));
-  const ends = (col) => s.flow.nodes.filter((n) => n.col === col).map((n) => n.t).join(" + ");
-  return (
-    <Reveal as={Link} to={`/work${csHash(id)}`} className="exh" delay={Math.min(i, 4)}>
-      <span className="exh-ser">
-        <span className="exh-no" aria-hidden="true">CS·{s.num}</span>
-        <span className="exh-type">{s.type}</span>
-      </span>
-      <span className="exh-fig">
-        <span className="exh-v">{f.to != null ? <CountUp to={f.to} suffix={f.suffix || ""} /> : f.v}</span>
-        <span className="exh-k">{f.k}</span>
-        {shift && <span className="exh-shift">{shift[0]}{TO}{shift[1]}</span>}
-      </span>
-      <span className="exh-main">
-        <span className="exh-t">{s.title}</span>
-        <span className="exh-line">{s.card.line}</span>
-        <span className="exh-flow">
-          <FlowGlyph flow={s.flow} />
-          <span className="exh-route">{ends(0)}{TO}<b>{ends(lastCol)}</b></span>
-        </span>
-      </span>
-      <span className="exh-go">
-        Case Study {s.num} <span className="arr" aria-hidden="true">→</span>
-      </span>
-    </Reveal>
-  );
-}
-
-function Proof() {
-  return (
-    <section className="band deep pad" id="proof">
-      <div className="wrap">
-        <Reveal className="shead">
-          <span className="mlabel">Proof, not promises</span>
-          <span className="ser">§ 02 · {countWord(PROOF.length)} of {countWord(STUDIES.length)} builds</span>
-        </Reveal>
-        <Reveal className="sec-intro">
-          <h2 className="h1">Every claim on this page <em className="foil">has a build behind it.</em></h2>
-        </Reveal>
-        <div className="exhibits">
-          {PROOF.map((x, i) => <Exhibit key={x.id} {...x} i={i} />)}
-        </div>
-        <Reveal className="sec-foot">
-          <Magnetic>
-            <Link to="/work" className="btn btn-line">
-              All {STUDIES.length} case studies <span className="arr" aria-hidden="true">→</span>
-            </Link>
-          </Magnetic>
-        </Reveal>
       </div>
     </section>
   );
@@ -569,7 +504,7 @@ function Process() {
       <div className="wrap">
         <Reveal className="shead">
           <span className="mlabel">How we work</span>
-          <span className="ser">§ 03 · {word} steps</span>
+          <span className="ser">§ 02 · {word} steps</span>
         </Reveal>
         <Reveal className="sec-intro">
           <h2 className="h1">{cap(word)} steps. <em className="foil">No surprises.</em></h2>
@@ -607,17 +542,16 @@ function Contact() {
       <div className="wrap">
         <Reveal className="shead">
           <span className="mlabel">Why DataQuin</span>
-          <span className="ser">§ 04</span>
+          <span className="ser">§ 03</span>
         </Reveal>
         <div className="contact-grid">
-          <Reveal className="contact-copy">
+          <Reveal>
             <h2 className="h1">
               Your challenges are unique. <em className="foil">Your solution should be too.</em>
             </h2>
             <p className="lead contact-lead">
               We combine business expertise, data, technology and AI to deliver solutions that
-              are practical, scalable and aligned with your goals — then prove it with systems
-              that are still running today.
+              are practical, scalable and aligned with your goals — and measure the result.
             </p>
             <ul className="values-line">
               {VALUES.map((v) => <li key={v}>{v}</li>)}
@@ -640,49 +574,36 @@ function Contact() {
 }
 
 /* ============================================================
-   CLOSING — the closing balance: the invitation on the left, the
-   page's totals on the right under an accountant's double rule. The
-   page opens with a credentials ledger and closes with this one.
+   CLOSING — the way on to the Work page: what's there, and two ways in.
    ============================================================ */
 function Closing() {
   const ref = useRef(null);
   const p = useProgress(ref, ["start 90%", "center 45%"]);
   const live = useInView(ref); // the glow drifts only while the band is in view
-  const bi = IMPACTS.find((x) => x.cs === "bi-delivery");
-  const totals = [
-    { to: TECH.length, k: "Tools" },
-    { to: STUDIES.length, k: "Production builds" },
-    { to: bi.to, suffix: bi.suffix, k: bi.label },
-  ];
   return (
-    <section className="band dark cta-band cta-ledger pad" ref={ref} data-live={live || undefined}>
+    <section className="band dark cta-band cta-next pad" ref={ref} data-live={live || undefined}>
       <span className="cta-glow" aria-hidden="true" />
-      <div className="wrap cta-grid">
+      <div className="wrap">
         <Reveal className="cta-copy">
-          <span className="mlabel">The work</span>
+          <span className="mlabel">Next: the work</span>
           <h2 className="cta-h">
-            {cap(countWord(STUDIES.length))} systems. The exact stack.<br />
-            <FoilSheen progress={p}>The measured impact.</FoilSheen>
+            See the stack. <FoilSheen progress={p}>See what it solved.</FoilSheen>
           </h2>
           <p className="cta-s">
-            One page holds every case study, the tools behind each one and the numbers
-            they delivered — open for you to read.
+            {cap(countWord(TECH.length))} tools across {countWord(Object.keys(CATS).length)} disciplines,
+            and {countWord(STUDIES.length)} real problems solved with them — the modern way, not the
+            traditional one.
           </p>
           <div className="cta-act">
             <Magnetic>
               <Link to="/work" className="btn btn-gold btn-shine">Explore the work</Link>
             </Magnetic>
+            <Magnetic>
+              <Link to="/work#stack" className="btn btn-line">
+                Tech stack <span className="arr" aria-hidden="true">→</span>
+              </Link>
+            </Magnetic>
           </div>
-        </Reveal>
-        <Reveal as="dl" className="cta-totals" delay={1}>
-          {totals.map((t) => (
-            <div className="tot" key={t.k}>
-              <dt className="tot-k">{t.k}</dt>
-              <dd className="tot-v" data-final={`${t.to}${t.suffix || ""}`}>
-                <CountUp to={t.to} suffix={t.suffix || ""} />
-              </dd>
-            </div>
-          ))}
         </Reveal>
       </div>
     </section>
@@ -698,7 +619,6 @@ export default function Landing() {
     <>
       <HeroStory />
       <ServicesStrip />
-      <Proof />
       <Process />
       <Contact />
       <Closing />

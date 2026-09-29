@@ -12,7 +12,7 @@
     legible against the larger arcs. Resolves to null if the image fails;
     the grains then run the story from their entrance rows instead.
   - logoPlacement() / stageLayout() / POSE: where the mark, the copy
-    lane and the ledger sheet sit, by the shape of the window they are
+    lane sit, by the shape of the window they are
     seen in.
 */
 import { LOGO_W, TAGLINE, halfHeightAt, loadLogoImage, rng } from "./shared.js";
@@ -114,17 +114,14 @@ function sample(s, count, seed) {
 }
 
 /* The mark's pose as the rig plays it: at rest it is turned `yaw` (a 3/4
-   view); in the problem beat it recedes (`recede`: pushed back, turned
-   further away, made smaller); idle sway and the pointer turn it by up to
-   `lean` either way. */
-export const POSE = { yaw: 0.2, lean: 0.255, recede: { z: -1.8, yaw: 0.5, scale: 0.14 } };
+   view); idle sway and the pointer turn it by up to `lean` either way. */
+export const POSE = { yaw: 0.2, lean: 0.255 };
 
 /* Where the formed mark sits, by the shape of the window it is seen in
    (the drawn mark is about 4.4 × 4.6 world units at scale 1). `win` is
    that window's height in CSS px, so px rules can be kept. `alpha` dims
    the mark where it must sit behind copy — by light, never by
-   transparency. `dim` is how far it drifts (x, y) as it recedes in the
-   problem beat.
+   transparency.
    "hero":  large, owning the right of the stage. Where the copy runs
             wider than half the window (near-square desktop windows,
             landscape phones) the mark takes the room right of it, smaller.
@@ -134,28 +131,28 @@ export const POSE = { yaw: 0.2, lean: 0.255, recede: { z: -1.8, yaw: 0.5, scale:
             that spans most of the width; beside the copy when the window
             is near square.
    "band":  the Work page on phones — centred in its own ruled strip, two
-            thirds of its height, the outer orbit ring inside its faded
+            thirds of its height, the data streams inside its faded
             edges. */
 export function logoPlacement(aspect, place = "hero", win = 0) {
   const width = aspect * win;
-  if (place === "band") return { scale: Math.min(1.3, (0.8 * halfHeightAt(0) * aspect) / 4.5), x: 0, y: 0, alpha: 1, dim: [0, 0] };
+  if (place === "band") return { scale: Math.min(1.3, (0.8 * halfHeightAt(0) * aspect) / 4.5), x: 0, y: 0, alpha: 1 };
   if (place === "aside") {
-    if (aspect >= 1.25) return { scale: 0.72, x: 6.0, y: -0.2, alpha: 1, dim: [0, 0] };
+    if (aspect >= 1.25) return { scale: 0.72, x: 6.0, y: -0.2, alpha: 1 };
     if (aspect >= 0.8 && width > 860) {
       // work.css: the lead's 660px measure; the headline, at 5.4vw, runs ~0.6 of the width
-      return { ...besideCopy(width, win, Math.max(Math.min(660, wrapOf(width)), 0.6 * width), 0.55), y: 1.2, dim: [0, 0] };
+      return { ...besideCopy(width, win, Math.max(Math.min(660, wrapOf(width)), 0.6 * width), 0.55), y: 1.2 };
     }
-    if (aspect >= 0.8) return { scale: 0.55, x: 2.8, y: 1.2, alpha: 1, dim: [0, 0] };
-    return { scale: 0.42, x: 1.0, y: 2.6, alpha: 1, dim: [0, 0] };
+    if (aspect >= 0.8) return { scale: 0.55, x: 2.8, y: 1.2, alpha: 1 };
+    return { scale: 0.42, x: 1.0, y: 2.6, alpha: 1 };
   }
   // landing.css: the lead's 620px measure; the headline, at 5.9vw, runs ~0.56 of the width
   const reach = () => Math.max(Math.min(620, wrapOf(width)), 0.56 * width);
   if (aspect >= 1.25) {
-    const wide = { scale: 1.15, x: 4.8, y: 0.2, alpha: 1, dim: [0.7, 0.6] };
+    const wide = { scale: 1.15, x: 4.8, y: 0.2, alpha: 1 };
     return width > 560 && width <= 860 ? { ...wide, ...besideCopy(width, win, reach(), 1.15) } : wide;
   }
-  if (aspect >= 0.8 && width > 860) return { ...besideCopy(width, win, reach(), 1.0), y: 0.3, dim: [0.4, 0.5] };
-  if (aspect >= 0.8 && !win) return { scale: 1.0, x: 1.8, y: 0.8, alpha: 0.9, dim: [0.4, 0.5] };
+  if (aspect >= 0.8 && width > 860) return { ...besideCopy(width, win, reach(), 1.0), y: 0.3 };
+  if (aspect >= 0.8 && !win) return { scale: 1.0, x: 1.8, y: 0.8, alpha: 0.9 };
   return phonePlacement(win);
 }
 
@@ -180,69 +177,21 @@ function besideCopy(width, win, reach, max) {
 function phonePlacement(win) {
   const H0 = halfHeightAt(0);
   const k = win / (2 * H0);   // CSS px per world unit at the mark's depth
-  const base = { scale: 0.62, x: 1.9, y: 2.6, alpha: 0.6, dim: [-0.8, 0.4] };
+  const base = { scale: 0.62, x: 1.9, y: 2.6, alpha: 0.6 };
   if (!(k > 0)) return base;
   const scale = Math.max(0.4, Math.min(0.62, (H0 - 180 / k - 0.05) / 3.09));
   return { ...base, scale, y: 118 / k + 2.37 * scale + 0.05 };
 }
 
-/* The copy lane and the ledger sheet of the "problem" beat, for a window
-   of `width` × `win` CSS px (its `aspect`) on the landing hero, and the
-   extra `drift` the placement `pl` needs as the mark recedes.
-
-   lane:  [ndc x edge, ndc y edge, feather] — grains inside are dimmed so
-          the beat copy always reads. Wide screens: the text column on the
-          left (the .wrap gutter plus .beat-t's 860px measure). Narrow
-          screens: everything below the top of the centred beat copy.
-   sheet: a page lying back on a desk, in front of and below the receding
-          mark, sized to the free space right of the lane; on narrow
-          screens it takes the top band instead, above the copy.
-   drift: world units added to the mark's rightward drift at full
-          recession, so its left end stays clear of the lane where the
-          widest beat titles run (wide screens only). */
-export function stageLayout(width, aspect, win = 0, pl = null) {
+/* The copy lane, for a window of `width` × `win` CSS px (its `aspect`)
+   on the landing hero: [ndc x edge, ndc y edge, feather] — grains inside
+   are dimmed so the beat copy always reads. Wide screens: the text column
+   on the left (the .wrap gutter plus .beat-t's 860px measure). Narrow
+   screens: everything below the top of the centred beat copy. */
+export function stageLayout(width, aspect, win = 0) {
   const wrap = wrapOf(width);
   const laneX = (((width - wrap) / 2 + Math.min(860, wrap)) / width) * 2 - 1;
-  const z = 1.0;
-  const hw = halfHeightAt(z) * aspect;
-  const free = (1 - laneX) * hw;
-  if (aspect >= 0.8 && free >= 3) {
-    const left = laneX * hw;
-    const w = Math.min(7.6, Math.max(4.8, free * 1.25));
-    // a little into the lane rather than all of the overflow off the right edge
-    const x = Math.min(left - 0.1 * w + w / 2, hw - 0.3 * w);
-    return {
-      lane: [laneX, 2, 0.12],
-      sheet: { x, y: -0.2 * halfHeightAt(z), z, w, h: 0.6 * w, rx: -0.95, ry: -0.18, rz: -0.03 },
-      drift: pl ? recessionDrift(pl, aspect, laneX) : 0,
-    };
-  }
-  const zt = 0.4;
-  const hh = halfHeightAt(zt);
-  const w = Math.min(4.8, 1.8 * hh * aspect);   // tilted, it stays inside the band above the copy
-  return {
-    lane: [2, win > 0 ? Math.min(0.9, Math.max(0.2, 300 / win)) : 0.45, 0.12],
-    sheet: { x: 0, y: 0.72 * hh, z: zt, w, h: 0.62 * w, rx: -0.85, ry: -0.1, rz: 0 },
-    drift: 0,
-  };
-}
-
-/* How much further right the fully receded mark must sit for the left end
-   of its outline (x −2.23, both faces) to clear ndc `edge` at any lean.
-   Turned less, the mark is wider on screen, so every lean is tried. */
-function recessionDrift(pl, aspect, edge) {
-  const { recede } = POSE;
-  const s = pl.scale * (1 - recede.scale);
-  const x = pl.x + pl.dim[0];
-  const yaw = POSE.yaw + recede.yaw;
-  let need = 0;
-  for (let i = 0; i <= 10; i++) {
-    const a = yaw - POSE.lean + (i / 10) * 2 * POSE.lean;
-    for (const zl of [-0.185, 0.185]) {
-      const X = x + s * (-2.23 * Math.cos(a) + zl * Math.sin(a));
-      const Z = recede.z + s * (2.23 * Math.sin(a) + zl * Math.cos(a));
-      need = Math.max(need, edge * halfHeightAt(Z) * aspect - X);
-    }
-  }
-  return Math.min(1.5, need);
+  const free = (1 - laneX) * halfHeightAt(1.0) * aspect;
+  if (aspect >= 0.8 && free >= 3) return { lane: [laneX, 2, 0.12] };
+  return { lane: [2, win > 0 ? Math.min(0.9, Math.max(0.2, 300 / win)) : 0.45, 0.12] };
 }

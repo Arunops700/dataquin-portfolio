@@ -1,5 +1,5 @@
 /* ============================================================
-   Work page — hero index, recto/verso chapters, impact ledger,
+   Work page — hero index, recto/verso chapters,
    journeys, stack, orientation. Colours come from the surface tokens
    (--fg, --accent, --rule, --foil…), so one rule reads right on a
    paper chapter and on an espresso one.
@@ -473,245 +473,7 @@
 }
 
 /* ============================================================
-   Impact — a figure-first ruled grid. The cell is an always-opaque
-   link; hairlines are the 1px gaps over a --rule ground.
-   ============================================================ */
-.imp-grid {
-  --cell-x: clamp(20px, 2.4vw, 30px);
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1px;
-  background: var(--rule);
-  border-block: 1px solid var(--rule-strong);
-  margin-inline: calc(-1 * var(--cell-x)); /* text aligns with the column */
-}
-.imp-cell {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  container-type: inline-size;
-  padding: 30px var(--cell-x) 28px;
-  background: var(--paper);
-  transition: box-shadow var(--dur-fast) ease;
-}
-/* the wash is laid over the paper (an inset shadow), so the cell stays
-   opaque and the change can fade */
-.imp-cell:focus-visible { box-shadow: inset 0 0 0 999px var(--wash); }
-.imp-cell:focus-visible { outline-offset: -3px; }
-.imp-cell::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -1px;
-  height: 2px;
-  z-index: 1;
-  background: var(--foil);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.5s var(--ease);
-}
-.imp-cell:focus-visible::before { transform: scaleX(1); }
-.imp-in { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-.imp-fig {
-  min-height: 1em;
-  font-family: var(--font-head);
-  font-weight: 600;
-  line-height: 0.95;
-  letter-spacing: -0.025em;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  font-size: clamp(2.6rem, 4.4vw, 3.9rem);
-  background: var(--foil);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-/* auto-fit to the cell (cqi = .imp-cell), gated like .ch-lead-v */
-@supports (width: 1cqi) {
-  .imp-fig { font-size: min(clamp(2.6rem, 4.4vw, 3.9rem), calc(100cqi / (var(--len, 4) * 0.58))); }
-}
-.imp-label { margin-top: 6px; font-size: 17.5px; font-weight: 700; line-height: 1.35; color: var(--fg); }
-.imp-sub { font-size: 15px; line-height: 1.6; color: var(--fg-soft); }
-.imp-go {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 14px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.4;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--fg-faint);
-  transition: color var(--dur-fast) ease;
-}
-.imp-cell:focus-visible .imp-go { color: var(--accent); }
-.imp-cell:focus-visible .imp-go .arr { transform: translateX(4px); }
-@media (hover: none) {
-  .imp-cell:active { box-shadow: inset 0 0 0 999px var(--wash); }
-}
-
-/* ---------- Two journeys: open ruled columns, aligned totals ---------- */
-.journey { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--rule-strong); }
-.j-col {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  padding: 28px clamp(24px, 3vw, 44px) 0 0;
-}
-.j-col.new { border-left: 1px solid var(--rule); padding: 28px 0 0 clamp(24px, 3vw, 44px); }
-/* The DataQuin column is marked by a foil rule along its top */
-.j-col.new::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -2px;
-  height: 3px;
-  background: var(--foil);
-}
-/* A mono label with a lead-in rule. align-self, or the flex column
-   would stretch it full width. */
-.j-badge {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-.j-badge::before { content: ""; width: 22px; height: 1px; background: currentColor; }
-.j-col.old .j-badge { color: var(--fg-faint); }
-.j-col.new .j-badge { color: var(--accent); }
-.j-steps { display: grid; margin: 26px 0 22px; }
-.j-step {
-  display: flex;
-  gap: 14px;
-  align-items: baseline;
-  padding: 13px 0;
-  border-top: 1px solid var(--rule-soft);
-}
-.j-step .n {
-  flex: 0 0 auto;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--fg-faint);
-}
-.j-col.new .j-step .n { color: var(--accent); }
-.j-body { min-width: 0; flex: 1; }
-.j-step .t { display: block; font-size: 16px; font-weight: 700; line-height: 1.35; }
-.j-step .d { display: block; margin-top: 3px; font-size: 14.5px; line-height: 1.5; color: var(--fg-soft); }
-.j-time {
-  flex: 0 0 auto;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.j-col.old .j-time { color: var(--fg-faint); }
-.j-col.new .j-time { color: var(--accent); }
-/* margin-top: auto lines the two totals up whatever the step count */
-.j-total {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-  margin-top: auto;
-  padding-top: 18px;
-  border-top: 1px solid var(--rule-strong);
-}
-.j-total .k {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--fg-faint);
-}
-.j-total .v { font-family: var(--font-head); font-weight: 600; font-size: 19px; }
-.j-col.old .j-total .v { color: var(--fg-faint); }
-/* 19px text: solid gold-deep (6:1). The ink foil's pale stops fall
-   under 4.5:1 on paper, so small figures don't take it. */
-.j-col.new .j-total .v { color: var(--accent); }
-
-/* The time scale — the ledger's grand total, drawn to scale */
-.jt {
-  display: grid;
-  gap: 34px;
-  margin-top: clamp(40px, 5vw, 64px);
-  padding-top: 26px;
-  border-top: 1px solid var(--rule-strong);
-}
-.jt-block {
-  display: grid;
-  grid-template-columns: minmax(150px, 210px) minmax(0, 1fr) minmax(96px, auto);
-  column-gap: 22px;
-  row-gap: 12px;
-  align-items: center;
-}
-.jt-head { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
-.jt-unit {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--fg-faint);
-}
-.jt-row { display: contents; }
-.jt-who { font-size: 15px; font-weight: 600; color: var(--fg-soft); }
-.jt-row.now .jt-who { color: var(--fg); }
-.jt-track { position: relative; height: 14px; }
-/* ink for the certain part, hatching for the uncertain end of "3–5" */
-.jt-bar {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  display: block;
-  width: calc(var(--b) * 100%);
-  transform-origin: left;
-  background: repeating-linear-gradient(135deg, rgb(var(--ink-rgb) / 0.3) 0 1.5px, transparent 1.5px 5px);
-}
-.jt-bar::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: calc(var(--a) / var(--b) * 100%);
-  background: rgb(var(--ink-rgb) / 0.38);
-}
-.jt-row.now .jt-bar { background: none; }
-.jt-row.now .jt-bar::before { width: 100%; background: var(--foil); }
-.jt-v { font-family: var(--font-head); font-weight: 600; font-size: 19px; white-space: nowrap; text-align: right; }
-.jt-row.old .jt-v { color: var(--fg-faint); }
-.jt-row.now .jt-v { color: var(--accent); }   /* 19px: solid, as .j-total .v */
-.jt-axis { grid-column: 2; position: relative; height: 22px; border-top: 1px solid var(--rule); }
-.jt-axis span {
-  position: absolute;
-  top: 5px;
-  left: calc(var(--x) * 100%);
-  transform: translateX(-50%);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--fg-faint);
-}
-.jt-axis span:first-child { transform: none; }
-.jt-axis span:last-child { transform: translateX(-100%); }
-
-/* ============================================================
-   Stack — evolution line and the tech index
+   Stack — the tool sphere and ledger, then the evolution line
    ============================================================ */
 /* The eras on one scroll-drawn line (--p, 0–1, from Stack.jsx); each
    diamond fills as the line reaches its measured position (--at). */
@@ -781,148 +543,187 @@
   50% { box-shadow: 0 0 0 5px rgb(var(--gold-rgb) / 0.2); }
 }
 
-/* ---------- Tech index — ruled rows, not cards ---------- */
-.filters {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 26px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid var(--rule);
+/* ---------- The stack showcase: a sphere of tools beside the ledger ---------- */
+.stk {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(36px, 4.5vw, 72px);
+  align-items: start;
+  margin-top: 8px;
 }
-/* one foil ink bar slides to the active filter (--ink-* from Stack.jsx) */
-.filters::after {
-  content: "";
+/* The sphere sits in a machine-room panel: espresso, a faint gold grid,
+   one orbit ring. Sticky beside the ledger on desktops. */
+.stk-stage {
+  position: sticky;
+  top: 112px;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid rgb(var(--gold-hi-rgb) / 0.22);
+  background: radial-gradient(circle at 50% 50%, rgb(var(--gold-hi-rgb) / 0.1), transparent 62%), var(--esp);
+  box-shadow: var(--shadow-panel);
+}
+.stk-stage::before,
+.stk-stage::after { content: ""; position: absolute; pointer-events: none; }
+.stk-stage::before {
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(var(--gold-hi-rgb) / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--gold-hi-rgb) / 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: center;
+}
+.stk-stage::after {
+  left: 50%;
+  top: 50%;
+  width: 84%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px dashed rgb(var(--gold-hi-rgb) / 0.16);
+}
+.stk-hint {
   position: absolute;
   left: 0;
-  top: 0;
-  width: 100px;
-  height: 2px;
-  background: var(--foil);
-  transform-origin: left;
-  transform: translate(var(--ink-x, 0px), var(--ink-y, 0px)) scaleX(var(--ink-s, 0));
-  transition: transform 0.45s var(--ease-in-out);
+  right: 0;
+  bottom: 14px;
+  z-index: 2;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
   pointer-events: none;
 }
-.filter-btn {
-  position: relative;
-  min-height: 44px;
-  padding: 12px 2px 14px;
-  border: none;
-  background: none;
+.tsp {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  cursor: grab;
+  touch-action: pan-y; /* a vertical swipe still scrolls the page */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.tsp:active { cursor: grabbing; }
+.tsp-core { position: relative; width: 0; height: 0; }
+/* each tile is placed by TechSphere (transform, opacity, z-index per frame) */
+.tsp-tile {
+  position: absolute;
+  left: -24px;
+  top: -24px;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  background: var(--esp-0);
+  border: 1px solid rgb(var(--gold-hi-rgb) / 0.35);
+  box-shadow: var(--shadow-node);
+  will-change: transform, opacity;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+}
+.tsp-tile img { width: 24px; height: 24px; object-fit: contain; pointer-events: none; }
+.tsp-name {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--fg-faint);
-  transition: color var(--dur-fast) ease;
+  color: var(--gold-hi);
+  opacity: 0;
+  transition: opacity var(--dur-fast) ease;
 }
-/* hover/focus preview: a short rule where the ink bar would land */
-.filter-btn::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -1px;
-  width: 100%;
-  height: 2px;
-  background: var(--foil);
-  opacity: 0.5;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--dur) var(--ease);
-}
-.filter-btn:focus-visible { color: var(--fg); outline-offset: -2px; }
-.filter-btn:focus-visible:not(.active)::after { transform: scaleX(0.4); }
-.filter-btn.active { color: var(--accent); }
-.filter-btn .count { color: var(--accent); }   /* a real space precedes it (Stack.jsx) */
+.tsp-tile.hot { border-color: var(--gold-hi); box-shadow: 0 0 0 1px var(--gold-hi), 0 0 28px rgb(var(--gold-hi-rgb) / 0.35); }
+.tsp-tile.hot .tsp-name { opacity: 1; }
 
-.ti-rows { border-bottom: 1px solid var(--rule); }
-/* A filter closes rows up (1fr → 0fr) instead of remounting the list */
-.ti-item {
-  display: grid;
-  grid-template-rows: 1fr;
-  transition: grid-template-rows 0.42s var(--ease), opacity 0.3s ease;
+/* The ledger: four disciplines, every tool with what we use it for */
+.stk-ledger { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 44px 36px; }
+.stk-cat { border-top: 1px solid var(--rule-strong); }
+.stk-cat-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0 12px;
 }
-.ti-item.is-out { grid-template-rows: 0fr; opacity: 0; }
-.ti-clip { min-height: 0; overflow: hidden; }
-.ti-row {
-  display: grid;
-  grid-template-columns: 46px minmax(180px, 240px) 1fr auto;
-  gap: 20px;
-  align-items: center;
-  padding: 18px 10px 18px 0;
-  border-top: 1px solid var(--rule-soft);
-}
-/* Rows with a case study are links: hover, focus and press look alike */
-a.ti-row { transition: background-color var(--dur-fast) ease, padding var(--dur) var(--ease); }
-a.ti-row:focus-visible { background-color: var(--wash); padding-left: 14px; }
-a.ti-row:focus-visible { outline-offset: -2px; } /* the ring stays inside the clip */
-.ti-ico {
-  width: 42px;
-  height: 42px;
-  border-radius: 4px;
-  display: grid;
-  place-items: center;
-  background: var(--esp);
-  border: 1px solid rgb(var(--gold-hi-rgb) / 0.35);
-  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
-}
-a.ti-row:focus-visible .ti-ico {
-  border-color: var(--gold-hi);
-  box-shadow: 0 4px 12px rgb(var(--shadow-rgb) / 0.25); /* fits inside the row's clip */
-}
-.ti-ico img { width: 22px; height: 22px; object-fit: contain; display: block; }
-.ti-name { font-weight: 700; font-size: 16.5px; }
-.ti-role { color: var(--fg-soft); font-size: 15px; line-height: 1.5; }
-.ti-go {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.stk-cat-t { font-family: var(--font-head); font-weight: 600; font-size: 1.3rem; line-height: 1.2; }
+.stk-n {
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--fg-faint);
-  transition: color var(--dur-fast) ease;
+  letter-spacing: 0.18em;
+  color: var(--accent);
 }
-a.ti-row:focus-visible .ti-go { color: var(--accent); }
-a.ti-row:focus-visible .ti-go .arr { transform: translateX(4px); }
-/* Rows without a case study are plain text, not links */
-.ti-row-static { cursor: default; }
-@media (hover: none) {
-  a.ti-row:active { background-color: var(--wash); }
+.stk-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-areas: "ico name" "ico role";
+  column-gap: 14px;
+  row-gap: 2px;
+  align-items: start;
+  padding: 12px 8px 12px 0;
+  border-top: 1px solid var(--rule-soft);
+  transition: background-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease, padding var(--dur) var(--ease);
+}
+.stk-row.hot { background-color: var(--wash); box-shadow: inset 2px 0 0 var(--accent-mark); padding-left: 10px; }
+.stk-ico {
+  grid-area: ico;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  background: var(--esp);
+  border: 1px solid rgb(var(--gold-hi-rgb) / 0.35);
+}
+.stk-ico img { width: 20px; height: 20px; object-fit: contain; display: block; }
+.stk-name { grid-area: name; font-weight: 700; font-size: 16px; line-height: 1.35; }
+.stk-role { grid-area: role; font-size: 14.5px; line-height: 1.5; color: var(--fg-soft); }
+
+/* ---------- Problems we have solved: the intro band and its index ---------- */
+.probs .ch-index { max-width: none; margin-top: 8px; }
+/* the two-part contents in the Work hero */
+.ch-index.toc { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: min(640px, 60%); }
+
+/* A chapter's story in two labelled parts */
+.story-part + .story-part { margin-top: 22px; }
+.story-k {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 
 /* Hover where a pointer can really hover: the keyboard-focus looks
-   above. On a touch screen a tapped row answers with the press wash
-   instead of staying lit. The selected rail entry and filter keep
-   their gold (hover sits later in the cascade than .on/.active). */
+   above. On a touch screen a tapped cell answers with the press wash
+   instead of staying lit. The selected rail entry keeps its gold
+   (hover sits later in the cascade than .on). */
 @media (hover: hover) {
   .ci-cell:hover::before { transform: scaleX(1); }
   .ci-cell:hover .ci-arr { transform: translateX(4px); }
   .rail a:not(.on):hover { color: var(--fg); }
-  .imp-cell:hover { box-shadow: inset 0 0 0 999px var(--wash); }
-  .imp-cell:hover::before { transform: scaleX(1); }
-  .imp-cell:hover .imp-go { color: var(--accent); }
-  .imp-cell:hover .imp-go .arr { transform: translateX(4px); }
-  .filter-btn:not(.active):hover { color: var(--fg); }
-  .filter-btn:not(.active):hover::after { transform: scaleX(0.4); }
-  a.ti-row:hover { background-color: var(--wash); padding-left: 14px; }
-  a.ti-row:hover .ti-ico {
-    border-color: var(--gold-hi);
-    box-shadow: 0 4px 12px rgb(var(--shadow-rgb) / 0.25);
-  }
-  a.ti-row:hover .ti-go { color: var(--accent); }
-  a.ti-row:hover .ti-go .arr { transform: translateX(4px); }
 }
 
 /* ============================================================
    Responsive: 1080 → 860 → 560 → reduced motion
    ============================================================ */
 @media (max-width: 1080px) {
+  /* the sphere above, the ledger below it */
+  .stk { grid-template-columns: 1fr; }
+  .stk-stage { position: relative; top: auto; width: min(100%, 460px); margin: 0 auto; }
   .ch-index { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 100%; }
   /* one column; the numeral becomes an inline row above the title and
      the chapter bar shows position instead of the track */
@@ -939,7 +740,6 @@ a.ti-row:focus-visible .ti-go .arr { transform: translateX(4px); }
   /* continuous with the desktop aside at 1081 (it used to jump up here) */
   .ch-num { font-size: clamp(4rem, 8.2vw, 5.5rem); }
   .ch-track { display: none; }
-  .imp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   /* four eras in ~170px columns: tighter gap and tracking keep
      "Chapter 04 · Now" on one line */
   .evo { column-gap: 24px; }
@@ -947,10 +747,8 @@ a.ti-row:focus-visible .ti-go .arr { transform: translateX(4px); }
 }
 
 @media (max-width: 860px) {
+  .ch-index.toc { grid-template-columns: 1fr; max-width: none; }
   .hero-work { min-height: 0; }
-  /* the grid's overhang equals the 22px gutter: rules run edge to edge,
-     text stays on the column (≤560 drops the overhang) */
-  .imp-grid { --cell-x: 22px; }
   /* Phones and tablets: the gilt spine index is the hero's visual */
   .ch-index { position: relative; grid-template-columns: 1fr; max-width: none; margin-top: 36px; padding-left: 28px; }
   .ch-index::before {
@@ -990,10 +788,6 @@ a.ti-row:focus-visible .ti-go .arr { transform: translateX(4px); }
   .ci-arr { align-self: center; }
   .ci-fig { font-size: 1.05rem; }
 
-  .journey { grid-template-columns: 1fr; }
-  .j-col, .j-col.new { padding-inline: 0; border-left: none; }
-  .j-col.new { margin-top: 44px; padding-top: 28px; }
-
   .evo { grid-template-columns: 1fr; row-gap: 30px; padding: 4px 0 0 32px; }
   .evo-line { top: 0; bottom: 0; left: 5px; right: auto; width: 1px; height: auto; }
   .evo-line i {
@@ -1008,10 +802,6 @@ a.ti-row:focus-visible .ti-go .arr { transform: translateX(4px); }
   }
   .evo-step::before { left: -32px; top: 5px; }
   .evo-step.now::before { left: -33px; top: 4px; }
-
-  .ti-row { grid-template-columns: 42px 1fr; row-gap: 6px; }
-  .ti-role { grid-column: 2; }
-  .ti-go { grid-column: 2; justify-self: start; }
 
   .ch-bar { height: 32px; }
 
@@ -1029,15 +819,12 @@ a.ti-row:focus-visible .ti-go .arr { transform: translateX(4px); }
 @keyframes spineDraw { from { transform: scaleY(0); } }
 
 @media (max-width: 560px) {
+  .stk-ledger { grid-template-columns: 1fr; gap: 32px; }
+  .stk-stage { width: 100%; }
   .chapter .shead .ser { display: none; } /* the numeral carries it; no 2-line wrap */
   .met-k { letter-spacing: 0.06em; }      /* 2–3 lines at 390px, not 4–5 */
   .tool-row { grid-template-columns: 1fr; row-gap: 2px; }
   .tool-name::after { display: none; }
-  .imp-grid { grid-template-columns: 1fr; margin-inline: 0; }
-  .imp-cell { padding-inline: 0; }
-  .jt-block { grid-template-columns: minmax(0, 1fr) auto; }
-  .jt-who { grid-column: 1 / -1; margin-bottom: -6px; }
-  .jt-axis { grid-column: 1; }
 
   /* no container queries: the exhibit stacks by the viewport instead */
   @supports not (container-type: inline-size) {
@@ -1059,6 +846,5 @@ a.ti-row:focus-visible .ti-go .arr { transform: translateX(4px); }
   .ch-num-ink { clip-path: none; transition: none; }
   .fig-was::after { transform: none; transition: none; }
   .evo-dot { animation: none; }
-  .ti-item, .filters::after { transition-duration: 0.01s; }
   .rail, .rail::after, .ch-bar { transition: none; }
 }

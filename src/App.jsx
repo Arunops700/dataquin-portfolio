@@ -5,12 +5,9 @@ import Landing from "./pages/Landing.jsx";
 import Work from "./pages/Work.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import { SmoothScroll, scrollTo } from "./motion/SmoothScroll.jsx";
-import { Email } from "./components/fx.jsx";
 import { usePageProgress } from "./motion/scroll.js";
 import { useMedia, useReducedMotion, prefersReducedMotion } from "./motion/prefs.js";
 import { MQ } from "./motion/tokens.js";
-import { CONTACT } from "./data/site.js";
-import { pad2 } from "./data/format.js";
 
 /* Moves keyboard focus to the start of the page — its h1, else <main> —
    without scrolling, so the next Tab continues from the top of the new
@@ -91,11 +88,9 @@ class ErrorBoundary extends Component {
   }
 }
 
-/* Two pages. "The Work" is a page; Impact and Contact are sections —
-   Impact on the Work page, Contact on the landing page. */
+/* Two pages. "The Work" is a page; Contact is a section of the landing page. */
 const NAV = [
   { to: "/work", label: "The Work", path: "/work" },
-  { to: "/work#impact", label: "Impact", path: "/work", section: "impact" },
   { to: "/#contact", label: "Contact", path: "/", section: "contact" },
 ];
 
@@ -249,22 +244,8 @@ function Spotlight() {
   return on ? <div className="spotlight" ref={ref} aria-hidden="true" /> : null;
 }
 
-const FOOT_NAV = [
-  ["/", "Home"],
-  ["/work", "The Work"],
-  ["/work#impact", "Impact"],
-  ["/work#stack", "Tech Stack"],
-  ["/#contact", "Contact"],
-];
-
-/* The ledger close: statement and mark over a double rule, two ruled
-   columns (where to go, how to reach us), and the imprint line with a
-   way back up. The mark shows at every width. */
+/* The close: the sign-off and the mark. */
 function Footer() {
-  const toTop = () => {
-    scrollTo(0); // glides with Lenis; a plain jump under reduced motion
-    focusPageStart();
-  };
   return (
     <footer className="footer band dark">
       <div className="wrap">
@@ -273,38 +254,6 @@ function Footer() {
             Driven by Purpose. <em className="foil">Powered by Precision.</em>
           </p>
           <span className="brand-logo foot-mark" role="img" aria-label="DataQuin" />
-        </div>
-        <div className="foot-grid">
-          <nav className="foot-col" aria-labelledby="foot-explore">
-            <span className="mlabel" id="foot-explore">Explore</span>
-            {FOOT_NAV.map(([to, label], i) => (
-              <Link key={to} to={to} className="foot-row">
-                <span className="n" aria-hidden="true">{pad2(i + 1)}</span>
-                <span className="v">{label}</span>
-                <span className="arr" aria-hidden="true">→</span>
-              </Link>
-            ))}
-          </nav>
-          <div className="foot-col">
-            <span className="mlabel">Contact</span>
-            <a className="foot-row kv" href={`mailto:${CONTACT.email}`}>
-              <span className="n">Mail</span>
-              <span className="v"><Email address={CONTACT.email} /></span>
-              <span className="arr" aria-hidden="true">→</span>
-            </a>
-            <a className="foot-row kv" href={CONTACT.phoneHref}>
-              <span className="n">Tel</span>
-              <span className="v">{CONTACT.phone}</span>
-              <span className="arr" aria-hidden="true">→</span>
-            </a>
-          </div>
-        </div>
-        <div className="foot-rule">
-          <span>© {new Date().getFullYear()} DataQuin</span>
-          <span>Data · Automation · AI Engineering</span>
-          <button type="button" className="foot-up" onClick={toTop}>
-            Back to top <span className="arr" aria-hidden="true">↑</span>
-          </button>
         </div>
       </div>
     </footer>

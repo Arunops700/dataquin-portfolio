@@ -8,7 +8,7 @@
   metrics: { to, suffix, k } animates a CountUp; { v, k } renders plain text.
   metrics[0] is the chapter's headline figure on the Work page.
 
-  Arrow rule: in `metrics` (and site.js IMPACTS) an arrow always means
+  Arrow rule: in `metrics` an arrow always means
   before → after ("2 → 1", "hrs → min"); the Work page prints the old
   figure small and struck through, like a corrected ledger entry.
   `card.metric` is exempt — "detection → inbox" is a path, not a change.
@@ -187,7 +187,8 @@ export const STUDIES = [
       metric: "<3h weekly",
     },
     intro: [
-      "Client-facing teams were burning days reconstructing “what did we do this week?” from inboxes, call logs and calendars. EngageAI ingests Outlook sent mail, Teams call logs and calendar meetings through Power Automate; AI generates “work performed” summaries; every item is classified by date, recipient, task type and billable status; and a polished weekly report ships automatically.",
+      "Client-facing teams were burning days reconstructing “what did we do this week?” from inboxes, call logs and calendars.",
+      "EngageAI ingests Outlook sent mail, Teams call logs and calendar meetings through Power Automate; AI generates “work performed” summaries; every item is classified by date, recipient, task type and billable status; and a polished weekly report ships automatically.",
     ],
     points: [
       ["<3 hours", " — reporting down from days of manual gathering"],
@@ -333,6 +334,3 @@ export const STUDIES = [
   },
 ];
 
-export function getStudy(id) {
-  return STUDIES.find((s) => s.id === id);
-}

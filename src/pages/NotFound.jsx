@@ -5,7 +5,6 @@ import { PAGE_META, usePageMeta } from "../seo.js";
 /* The rest of the site, beside the case-study index: the sections a
    visitor most often came looking for. */
 const ELSEWHERE = [
-  ["/work#impact", "Impact"],
   ["/work#stack", "Tech Stack"],
   ["/#contact", "Contact"],
 ];

@@ -1,6 +1,4 @@
 import { useEffect } from "react";
-import { STUDIES } from "./data/caseStudies.js";
-import { countWord } from "./data/format.js";
 import { WORK_DESCRIPTION } from "./data/work.js";
 
 /*
@@ -46,14 +44,14 @@ export const fullTitle = (title) => (title.startsWith(BRAND) ? title : `${title}
 export const PAGE_META = {
   home: {
     title: "DataQuin — Data · Automation · AI Engineering",
-    description: `DataQuin turns manual days into automated hours — dashboards and reporting, system-to-system integration and AI pipelines for professional services firms, proven with ${countWord(STUDIES.length)} production builds.`,
+    description: `DataQuin turns manual days into automated hours — dashboards and reporting, system-to-system integration and AI pipelines for professional services firms, shown through selected case studies.`,
     path: "/",
   },
   work: { title: "The Work", description: WORK_DESCRIPTION, path: "/work" },
   // path is the address that failed; NotFound adds it
   notFound: {
     title: "Page not found",
-    description: "That page doesn't exist. Browse the DataQuin case studies, tech stack and measured impact instead.",
+    description: "That page doesn't exist. Browse the DataQuin case studies and tech stack instead.",
     noindex: true,
   },
 };

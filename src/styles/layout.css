@@ -87,8 +87,6 @@
 }
 .sec-intro { max-width: 780px; margin-bottom: 54px; }
 .sec-intro .lead { margin-top: 16px; }
-/* A section's closing action, under its rows */
-.sec-foot { margin-top: 36px; }
 
 @media (max-width: 860px) {
   .wrap { width: calc(100% - 44px); }

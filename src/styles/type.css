@@ -108,8 +108,8 @@ em.foil { font-style: italic; }
    system text colour. (Every rule with a transparent text fill.) The
    partials that style these load later, hence !important. */
 @media (forced-colors: active) {
-  .foil, .cred-v, .num-ink, .exh-v, .tot-v, .ci-fig, .ch-num-ink,
-  .ch-lead-v, .met-v, .imp-fig {
+  .foil, .cred-v, .num-ink, .ci-fig, .ch-num-ink,
+  .ch-lead-v, .met-v {
     background: none !important;
     -webkit-text-fill-color: currentColor !important;
   }

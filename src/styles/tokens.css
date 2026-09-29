@@ -85,12 +85,9 @@
   --sheet: rgb(255 252 244 / 0.5);
   --shadow-node: 0 8px 24px rgb(10 7 3 / 0.4);
   --shadow-panel: 0 26px 60px rgb(50 38 26 / 0.28);
-  --shadow-ico: 0 6px 18px rgb(120 95 65 / 0.25);
   --shadow-bar: 0 18px 50px rgb(12 8 4 / 0.35);
   /* one-off tints, named (values unchanged) */
-  --sheet-strong: rgb(255 250 238 / 0.85);
   --sheen: rgb(255 250 240 / 0.55);
-  --esp-glass: rgb(21 15 8 / 0.88);
   --aura: rgb(211 183 137 / 0.13);
   --bloom: rgb(226 203 161 / 0.15);
   --spot: rgb(200 165 115 / 0.04);   /* over espresso only: keeps ivory-faint ≥ 4.5:1 */

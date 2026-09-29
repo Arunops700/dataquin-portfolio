@@ -31,31 +31,12 @@
   text-wrap: balance;
 }
 .cta-s { margin: 20px auto 0; max-width: 560px; font-size: 16.5px; line-height: 1.65; color: var(--fg-soft); }
-/* Split CTA variant (stack / impact closers) */
-.cta-split {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 28px;
-  flex-wrap: wrap;
-  text-align: left;
-}
-.cta-split .mono-note {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  color: var(--fg-faint);
-  margin-top: 12px;
-}
 
 @media (max-width: 560px) {
   /* Full-width CTA on phones (the landing's closing band): the magnetic
      wrapper must stretch with its button */
   .cta-band .btn { width: 100%; justify-content: center; }
   .cta-band .magnet { width: 100%; }
-  /* the Work closer too: both pages end the same way on a phone */
-  .cta-split .magnet, .cta-split .btn { width: 100%; justify-content: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {

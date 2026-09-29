@@ -3,9 +3,9 @@
    ============================================================ */
 /* The landing hero: a tall section the sticky stage scrolls through.
    (Named hero-story, not story: the Work chapters use .story for their
-   article, and the shared name gave every chapter a 360vh-tall body.)
+   article, and the shared name gave every chapter a 300vh-tall body.)
    --stage-over (Landing.jsx) adds the lead-in a tall stage needs. */
-.hero-story { height: calc(360vh + var(--stage-over, 0px)); }
+.hero-story { height: calc(300vh + var(--stage-over, 0px)); }
 /* min-height, not height: on a short viewport (or at 200% zoom) the
    copy is taller than the screen. Such a stage first scrolls its
    overflow into view, then sticks with its foot on the viewport's foot
@@ -194,10 +194,11 @@
 /* ============================================================
    Services strip — sideways travel driven by vertical scroll
    ============================================================ */
-/* Pace from the pillar count (inline --n): ~1.6px sideways per 1px
-   scrolled at 1440, slow enough to read each pillar as it passes. Pure
-   CSS — no measured height, no layout shift, exact hash links. */
-.strip-sec { height: calc(100vh + var(--n, 7) * 24vh); height: calc(100svh + var(--n, 7) * 24vh); }
+/* Pace from the pillar count (inline --n): ~1.9px sideways per 1px
+   scrolled at 1440 — each pillar still reads as it passes, without a
+   long pinned stretch. Pure CSS — no measured height, no layout shift,
+   exact hash links. */
+.strip-sec { height: calc(100vh + var(--n, 7) * 20vh); height: calc(100svh + var(--n, 7) * 20vh); }
 .strip-stage {
   position: sticky;
   top: 0;
@@ -288,193 +289,6 @@
   transform: scaleX(0);
 }
 .sm-nav { display: none; }
-
-/* ============================================================
-   Proof — builds as exhibits
-   ============================================================ */
-.exhibits { border-top: 1px solid var(--rule-strong); }
-/* An exhibit is also a Reveal: the reveal properties keep the stagger,
-   the hover properties answer at once. Hover and focus look the same:
-   the entry is ticked in foil, washed, and steps in (a transform on its
-   columns, so the grid never reflows); the figure catches the light and
-   data runs along the flow. Everything is visible without hover. */
-.exh {
-  --row-shift: 14px;
-  position: relative;
-  display: grid;
-  grid-template-columns: 124px minmax(210px, 280px) minmax(0, 1fr) auto;
-  grid-template-areas: "ser fig main go";
-  column-gap: clamp(24px, 3vw, 44px);
-  align-items: start;
-  padding: 44px 16px 46px 0;
-  border-bottom: 1px solid var(--rule-strong);
-  transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease),
-              filter var(--dur-slow) var(--ease), background-color var(--dur-fast) ease;
-  transition-delay: var(--reveal-delay, 0s), var(--reveal-delay, 0s), var(--reveal-delay, 0s), 0s;
-}
-.exh::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: -1px;
-  width: 124px;
-  height: 2px;
-  background: var(--foil-ink);
-  transform-origin: 0 50%;
-  transform: scaleX(0);
-  transition: transform 0.5s var(--ease);
-}
-.exh > span { transition: transform var(--dur) var(--ease), color var(--dur-fast) ease; }
-.exh-ser { grid-area: ser; display: flex; flex-direction: column; gap: 6px; padding-top: 6px; }
-.exh-no {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  color: var(--gold-deep);
-}
-.exh-type {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  line-height: 1.45;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.exh-fig { grid-area: fig; display: flex; flex-direction: column; }
-.exh-v {
-  font-family: var(--font-head);
-  font-weight: 600;
-  font-size: clamp(3.4rem, 6vw, 5.4rem);
-  line-height: 0.88;
-  letter-spacing: -0.035em;
-  font-variant-numeric: tabular-nums lining-nums;
-  white-space: nowrap;
-  background: var(--foil-ink);
-  background-size: 220% auto;
-  background-position: 0% 50%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  transition: background-position 0.9s var(--ease);
-}
-.exh-k {
-  margin-top: 14px;
-  max-width: 24ch;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  line-height: 1.5;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-/* the before → after shift, ruled off under the figure */
-.exh-shift {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--rule);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold-deep);
-}
-.exh-main { grid-area: main; min-width: 0; }
-.exh-t {
-  display: block;
-  font-family: var(--font-head);
-  font-weight: 600;
-  font-size: clamp(1.35rem, 2vw, 1.75rem);
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-}
-.exh-line { display: block; margin-top: 10px; max-width: 540px; font-size: 16px; line-height: 1.6; color: var(--ink-soft); }
-/* the ledger's dot leader, then the route the data takes */
-.exh-flow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 20px;
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px dotted rgb(var(--ink-rgb) / 0.3);
-}
-.exh-route {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  line-height: 1.5;
-  color: var(--ink-soft);
-}
-.exh-route b { font-weight: 600; color: var(--gold-deep); }
-.exh-go {
-  grid-area: go;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding-top: 8px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--ink-faint);
-}
-
-/* Flow glyph (FlowGlyph.jsx): edges draw in column by column when the
-   exhibit is revealed; the run is a short bright dash that travels the
-   flow while the exhibit is hovered or focused. */
-.glyph { display: block; flex: 0 0 auto; width: 208px; height: 60px; overflow: visible; }
-.g-edge {
-  fill: none;
-  stroke: rgb(var(--gold-deep-rgb) / 0.55);
-  stroke-width: 1.25;
-  stroke-linecap: round;
-  stroke-dasharray: 1 1;
-  stroke-dashoffset: 1;
-  transition: stroke-dashoffset 0.7s var(--ease) calc(0.35s + var(--c, 0) * 0.12s), stroke var(--dur) ease;
-}
-.g-node {
-  fill: var(--paper-2);
-  stroke: var(--gold-deep);
-  stroke-width: 1.2;
-  opacity: 0;
-  transition: opacity 0.4s ease calc(0.3s + var(--c, 0) * 0.12s), fill var(--dur) ease;
-}
-.g-node.end { fill: var(--gold); }
-.g-run {
-  fill: none;
-  stroke: var(--gold);
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  stroke-dasharray: 0.07 0.93;
-  stroke-dashoffset: 1.07;
-  opacity: 0;
-}
-.exh[data-in] .g-edge { stroke-dashoffset: 0; }
-.exh[data-in] .g-node { opacity: 1; }
-@keyframes gRun { from { stroke-dashoffset: 1.07; } to { stroke-dashoffset: 0; } }
-
-/* Keyboard focus here; the same look on hover sits in the (hover: hover)
-   block at the end, so a tapped row doesn't stay lit on a phone. */
-.exh:focus-visible { background-color: var(--wash); outline-offset: -2px; }
-.exh:focus-visible::before { transform: scaleX(1); }
-.exh:focus-visible > span { transform: translateX(var(--row-shift)); }
-.exh:focus-visible .exh-v { background-position: 100% 50%; }
-.exh:focus-visible .exh-go { color: var(--accent); }
-.exh:focus-visible .arr { transform: translateX(4px); }
-.exh:focus-visible .g-edge { stroke: var(--gold); }
-.exh:focus-visible .g-node.end { fill: var(--gold-hi); }
-.exh:focus-visible .g-run {
-  opacity: 1;
-  animation: gRun 1.4s linear infinite;
-  animation-delay: calc(var(--c, 0) * 0.14s);
-}
 
 /* ============================================================
    Process — ledger step rows that stack as the reader scrolls
@@ -646,76 +460,15 @@
 }
 
 /* ============================================================
-   Closing — the closing balance
+   Closing — the way on to the Work page
    ============================================================ */
-/* The invitation on the left, the page's totals on the right under an
-   accountant's double rule (overrides the centred .cta-band) */
-.cta-ledger { text-align: left; }
-.cta-ledger .cta-glow { left: 30%; }
-.cta-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
-  gap: clamp(40px, 6vw, 96px);
-  align-items: end;
-}
-.cta-ledger .cta-s { margin: 20px 0 0; }
-.cta-ledger .btn { margin-top: 0; }
+.cta-next .cta-copy { max-width: 760px; margin: 0 auto; }
+.cta-next .cta-s { margin: 20px auto 0; }
+.cta-next .btn { margin-top: 0; }
 /* the spacing lives on the frame, not on the button or its wrapper */
-.cta-act { margin-top: 36px; }
-/* One figure column for the whole ledger: the rows share the list's
-   tracks (subgrid), so every label starts on the same line whatever
-   each figure's width ("90%+" is wider than "21"). Browsers without
-   subgrid keep per-row columns. */
-.cta-totals {
-  display: grid;
-  grid-template-columns: minmax(96px, auto) 1fr;
-  column-gap: 22px;
-  border-top: 1px solid rgb(var(--gold-hi-rgb) / 0.24);
-}
-.tot {
-  display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: minmax(96px, auto) 1fr;
-  grid-template-columns: subgrid;
-  align-items: baseline;
-  column-gap: 22px;
-  padding: 18px 0 16px;
-  border-bottom: 1px solid var(--rule-gold-soft);
-}
-.tot:last-child { padding-bottom: 20px; border-bottom: 3px double rgb(var(--gold-hi-rgb) / 0.55); }
-.tot-v {
-  order: -1;
-  font-family: var(--font-head);
-  font-weight: 600;
-  font-size: clamp(2.2rem, 3.6vw, 3.2rem);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums lining-nums;
-  background: var(--foil-lux);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-/* the figure's final width is reserved (an invisible copy), so the
-   count-up never pushes the label column along */
-.tot-v::after {
-  content: attr(data-final);
-  display: block;
-  height: 0;
-  overflow: hidden;
-  visibility: hidden;
-}
-.tot-k {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ivory-soft);
-}
+.cta-act { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-top: 36px; }
 
-/* Landing-only section helper (the strip's intro sits on the track;
-   .sec-foot is the shell's, in layout.css) */
+/* Landing-only section helper (the strip's intro sits on the track) */
 .sec-intro.flush { margin-bottom: 0; }
 
 /* ============================================================
@@ -724,24 +477,11 @@
 /* Touch: the same wash on press (the strip arrows too — the browser's
    tap highlight is off site-wide) */
 @media (hover: none) {
-  .exh:active, .reach a:active { background-color: var(--wash); }
+   .reach a:active { background-color: var(--wash); }
   .sm-btn:not([aria-disabled="true"]):active { border-color: var(--accent-mark); background-color: var(--wash); }
 }
 /* Hover where a pointer can really hover: the keyboard-focus looks above */
 @media (hover: hover) {
-  .exh:hover { background-color: var(--wash); }
-  .exh:hover::before { transform: scaleX(1); }
-  .exh:hover > span { transform: translateX(var(--row-shift)); }
-  .exh:hover .exh-v { background-position: 100% 50%; }
-  .exh:hover .exh-go { color: var(--accent); }
-  .exh:hover .arr { transform: translateX(4px); }
-  .exh:hover .g-edge { stroke: var(--gold); }
-  .exh:hover .g-node.end { fill: var(--gold-hi); }
-  .exh:hover .g-run {
-    opacity: 1;
-    animation: gRun 1.4s linear infinite;
-    animation-delay: calc(var(--c, 0) * 0.14s);
-  }
   .reach a:hover { color: var(--accent); padding-left: var(--row-shift); background-color: var(--wash); }
 }
 
@@ -764,14 +504,6 @@
 
 @media (max-width: 1080px) {
   .contact-grid { grid-template-columns: 1fr; gap: 48px; }
-  .exh {
-    grid-template-columns: minmax(190px, 240px) minmax(0, 1fr) auto;
-    grid-template-areas: "ser ser go" "fig main main";
-    row-gap: 18px;
-  }
-  .exh-ser { flex-direction: row; align-items: baseline; gap: 14px; padding-top: 0; }
-  .cta-grid { grid-template-columns: 1fr; align-items: start; }
-  .cta-totals { max-width: 520px; }
 }
 
 @media (max-width: 860px) {
@@ -831,12 +563,6 @@
   .sm-btn[aria-disabled="true"] { cursor: default; border-color: var(--rule-soft); }
   .sm-btn[aria-disabled="true"] > span { opacity: 0.35; }
 
-  .exh { grid-template-columns: 1fr; grid-template-areas: "ser" "fig" "main" "go"; row-gap: 16px; padding: 32px 0 34px; }
-  .exh::before { width: 96px; }
-  .exh-v { font-size: clamp(3.2rem, 15vw, 4.2rem); }
-  .exh-k { max-width: none; }
-  .glyph { width: 100%; max-width: 320px; height: auto; }
-
   .step-row { grid-template-columns: 64px 1fr; row-gap: 8px; padding: 26px 8px 26px 0; }
   .step-s { grid-column: 2; }
   .stack-rows { --spine-x: calc(64px + 13px); }
@@ -869,14 +595,11 @@
 }
 
 /* Reduced motion: every resting state is finished — rules drawn, the
-   cue a still hairline, the flow glyphs drawn, no running data. The
+   cue a still hairline. The
    scroll-linked beats, strip, index and stack stay: they move only
    while the reader scrolls. */
 @media (prefers-reduced-motion: reduce) {
   .stage .hero-meta::after,
   .stage .cred::before { animation: none; }
   .scroll-cue::after { animation: none !important; transform: none; }
-  .g-edge { stroke-dashoffset: 0; transition: stroke var(--dur) ease; }
-  .g-node { opacity: 1; transition: fill var(--dur) ease; }
-  .g-run { display: none; }
 }

@@ -1,10 +1,9 @@
 import { memo, useLayoutEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import { m } from "framer-motion";
 import { Reveal } from "../fx.jsx";
-import { STUDIES, getStudy } from "../../data/caseStudies.js";
-import { EVOLUTION, CATS, TECH, csHash } from "../../data/site.js";
-import { countWord } from "../../data/format.js";
+import { EVOLUTION, CATS, TECH } from "../../data/site.js";
+import { cap, countWord, pad2 } from "../../data/format.js";
+import { TechSphere } from "./TechSphere.jsx";
 import { useProgress } from "../../motion/scroll.js";
 import { useMedia } from "../../motion/prefs.js";
 import { MQ } from "../../motion/tokens.js";
@@ -57,78 +56,40 @@ function Evolution() {
   );
 }
 
-/* Every tool is always rendered; a filter closes the others up (grid
-   rows 1fr → 0fr) instead of remounting the list, and makes them inert
-   so they leave the tab order and the accessibility tree. A live region
-   says how many remain. */
-function TechIndex() {
-  const [cat, setCat] = useState("all");
-  const barRef = useRef(null);
-
-  // the ink bar slides to the active filter (rows may wrap, so x and y)
-  useLayoutEffect(() => {
-    const w = barRef.current;
-    if (!w) return;
-    const place = () => {
-      const b = w.querySelector(".filter-btn.active");
-      if (!b) return;
-      w.style.setProperty("--ink-x", `${b.offsetLeft}px`);
-      w.style.setProperty("--ink-y", `${b.offsetTop + b.offsetHeight - 1}px`);
-      w.style.setProperty("--ink-s", String(b.offsetWidth / 100));
-    };
-    place();
-    const ro = new ResizeObserver(place);
-    ro.observe(w);
-    w.querySelectorAll(".filter-btn").forEach((b) => ro.observe(b));
-    return () => ro.disconnect();
-  }, [cat]);
-
-  const filters = [["all", "All", TECH.length], ...Object.entries(CATS).map(([k, label]) => [k, label, COUNTS[k]])];
-  const count = cat === "all" ? TECH.length : COUNTS[cat];
-
+/* The stack, shown two ways: the sphere of tool tiles (turn it, or point
+   at a tool in the ledger to bring its tile to the front), and the
+   ledger itself — every tool by discipline, with what we use it for.
+   The ledger is the readable version; the sphere is decoration. */
+function StackShowcase() {
+  const [hot, setHot] = useState(-1);
+  const fine = useMedia(MQ.fine);
   return (
-    <>
-      <div className="filters" ref={barRef} role="group" aria-label="Filter tools by category">
-        {filters.map(([key, label, n]) => (
-          <button key={key} type="button" className={`filter-btn${cat === key ? " active" : ""}`}
-            aria-pressed={cat === key} onClick={() => setCat(key)}>
-            {label}{" "}<span className="count">{n}</span>
-          </button>
+    <div className="stk">
+      <div className="stk-stage">
+        <TechSphere hot={hot} />
+        <p className="stk-hint" aria-hidden="true">Drag to turn</p>
+      </div>
+      <div className="stk-ledger" onMouseLeave={fine ? () => setHot(-1) : undefined}>
+        {Object.entries(CATS).map(([k, label], ci) => (
+          <Reveal className="stk-cat" key={k} delay={Math.min(ci, 4)}>
+            <div className="stk-cat-h">
+              <h3 className="stk-cat-t">{label}</h3>
+              <span className="stk-n" aria-hidden="true">{pad2(COUNTS[k])}</span>
+            </div>
+            <ul>
+              {TECH.map((t, i) => (t.cat !== k ? null : (
+                <li key={t.name} className={`stk-row${hot === i ? " hot" : ""}`}
+                  onMouseEnter={fine ? () => setHot(i) : undefined}>
+                  <span className="stk-ico"><img src={`/icons/${t.ico}`} alt="" loading="lazy" /></span>
+                  <span className="stk-name">{t.name}</span>
+                  <span className="stk-role">{t.role}</span>
+                </li>
+              )))}
+            </ul>
+          </Reveal>
         ))}
       </div>
-
-      <div className="ti-rows">
-        {TECH.map((t) => {
-          const out = cat !== "all" && t.cat !== cat;
-          const inner = (
-            <>
-              <span className="ti-ico">
-                <img src={`/icons/${t.ico}`} alt="" loading="lazy" />
-              </span>
-              <span className="ti-name">{t.name}</span>
-              <span className="ti-role">{t.role}</span>
-              <span className="ti-go">
-                {t.proj
-                  ? <>Case Study {getStudy(t.proj).num} <span className="arr" aria-hidden="true">→</span></>
-                  : <span className="ti-go-plain">In our stack</span>}
-              </span>
-            </>
-          );
-          return (
-            <div className={`ti-item${out ? " is-out" : ""}`} key={t.name} inert={out}>
-              <div className="ti-clip">
-                {t.proj
-                  ? <Link className="ti-row" to={`/work${csHash(t.proj)}`}>{inner}</Link>
-                  : <div className="ti-row ti-row-static">{inner}</div>}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <p className="sr-only" aria-live="polite">
-        {count} tools{cat === "all" ? "" : ` in ${CATS[cat]}`}
-      </p>
-    </>
+    </div>
   );
 }
 
@@ -137,8 +98,21 @@ export const Stack = memo(function Stack() {
     <section className="band deep pad" id="stack" data-rail data-tone="paper">
       <div className="wrap">
         <Reveal className="shead">
-          <span className="mlabel">Who we are</span>
-          <span className="ser">§ 03</span>
+          <span className="mlabel">Tech stack</span>
+          <span className="ser">§ 01 · {countWord(TECH.length)} tools</span>
+        </Reveal>
+        <Reveal className="sec-intro">
+          <h2 className="h1">The tools <em className="foil">we build with.</em></h2>
+          <p className="lead">
+            {cap(countWord(TECH.length))} tools across {countWord(Object.keys(CATS).length)} disciplines — the
+            stack behind every solution we deliver, from reporting to AI engineering.
+          </p>
+        </Reveal>
+        <StackShowcase />
+
+        <Reveal className="shead follow">
+          <span className="mlabel">How we've grown</span>
+          <span className="ser">§ 02</span>
         </Reveal>
         <Reveal className="sec-intro">
           <h2 className="h1">Technology keeps evolving. <em className="foil">So do we.</em></h2>
@@ -149,19 +123,6 @@ export const Stack = memo(function Stack() {
           </p>
         </Reveal>
         <Evolution />
-
-        <Reveal className="shead follow">
-          <span className="mlabel">Tech stack</span>
-          <span className="ser">§ 04 · {countWord(TECH.length)} tools</span>
-        </Reveal>
-        <Reveal className="sec-intro">
-          <h2 className="h1">The tools <em className="foil">we build with.</em></h2>
-          <p className="lead">
-            The stack behind the {countWord(STUDIES.length)} chapters. Where a tool carried one
-            of them, the row links straight to that case study.
-          </p>
-        </Reveal>
-        <TechIndex />
       </div>
     </section>
   );

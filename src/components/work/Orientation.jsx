@@ -10,10 +10,9 @@ import { useProgress } from "../../motion/scroll.js";
    at ≤1080px. Between the two, each chapter's sticky numeral and its
    progress track do the job. */
 
-export const RAIL = [
-  ...STUDIES.map((s) => ({ id: `cs-${s.num}`, num: s.num, t: s.title })),
-  { id: "impact", num: "§", t: "Impact" },
+const RAIL = [
   { id: "stack", num: "§", t: "Tech stack" },
+  ...STUDIES.map((s) => ({ id: `cs-${s.num}`, num: s.num, t: s.title })),
 ];
 /* Over the hero, the closing band and the footer, neither shows. */
 export const onRail = (id) => RAIL.some((r) => r.id === id);

@@ -2,18 +2,18 @@ import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Reveal, Magnetic, Arrowed } from "../components/fx.jsx";
 import { Chapter } from "../components/work/Chapter.jsx";
-import { Impact } from "../components/work/Impact.jsx";
 import { Stack } from "../components/work/Stack.jsx";
 import { Rail, ChapterBar, onRail } from "../components/work/Orientation.jsx";
 import { Field } from "../three/Field.jsx";
 import { STUDIES } from "../data/caseStudies.js";
-import { countWord, cap } from "../data/format.js";
+import { CATS, TECH } from "../data/site.js";
+import { cap, countWord } from "../data/format.js";
 import { useMedia } from "../motion/prefs.js";
 import { MQ } from "../motion/tokens.js";
 import { usePageMeta, PAGE_META } from "../seo.js";
 
 /* The detail page: the case-study chapters, alternating paper and
-   espresso, then the impact ledger, then the stack. One long scroll;
+   espresso, then the stack. One long scroll;
    orientation comes from a contents rail on wide screens, the chapters'
    own sticky numerals on desktops, and a chapter bar under the topbar
    at 1080px and below. */
@@ -40,7 +40,6 @@ function useOnScreen(ref, rootMargin) {
    Exactly one 3D mark per page: beside the copy above 860px, in a ruled
    band above the headline below it. */
 const WorkHero = memo(function WorkHero({ heroRef, heroIn, aboveTablet }) {
-  const n = STUDIES.length;
   return (
     <section className="band dark hero-band hero-sub hero-work pad-b" ref={heroRef} data-tone="dark"
       data-live={heroIn || undefined}>
@@ -50,21 +49,56 @@ const WorkHero = memo(function WorkHero({ heroRef, heroIn, aboveTablet }) {
       <div className="stage-scrim" aria-hidden="true" />
       <div className="wrap">
         <div className="hero-meta fade-in">
-          <span><b>The work</b> — {countWord(n)} systems, still running</span>
+          <span><b>The work</b> — our stack, and the problems it solved</span>
           <span>DQ / 02</span>
         </div>
         {!aboveTablet && <Field place="band" active={heroIn} />}
         <h1 className="h-xl sm hero-title">
-          <span className="row"><span>Systems we&rsquo;ve shipped.</span></span>
-          <span className="row"><span><em className="foil">Bottlenecks we&rsquo;ve deleted.</em></span></span>
+          <span className="row"><span>Our stack.</span></span>
+          <span className="row"><span><em className="foil">The problems we&rsquo;ve solved.</em></span></span>
         </h1>
         <p className="lead hero-lead fade-in">
-          {cap(countWord(n))} production systems built for professional services firms — anonymized,
-          measured, and still running today. Each chapter holds the story, the tools
-          behind it and the system flow, drawn as you scroll.
+          First, the technology we work with every day. Then a selection of problems we&rsquo;ve
+          solved with it — using AI, automation and modern data tools, not the traditional way.
         </p>
-        {/* A contents page of ruled cells (a gilt spine index on phones).
-            No aria-label on the links: their visible text is their name. */}
+        {/* The page in two parts, as a contents page of ruled cells */}
+        <nav className="ch-index toc" aria-label="On this page">
+          <Link to="/work#stack" className="ci-cell" style={{ "--i": 0 }}>
+            <span className="ci-num">§ 01</span>
+            <span className="ci-arr" aria-hidden="true">→</span>
+            <span className="ci-type">Tech stack</span>
+            <span className="ci-fig">{cap(countWord(TECH.length))} tools · {countWord(Object.keys(CATS).length)} disciplines</span>
+          </Link>
+          <Link to="/work#problems" className="ci-cell" style={{ "--i": 1 }}>
+            <span className="ci-num">§ 03</span>
+            <span className="ci-arr" aria-hidden="true">→</span>
+            <span className="ci-type">Problems we&rsquo;ve solved</span>
+            <span className="ci-fig">{cap(countWord(STUDIES.length))} case studies</span>
+          </Link>
+        </nav>
+      </div>
+    </section>
+  );
+});
+
+/* The second part opens here: what the chapters below are, and an index
+   of them (a gilt spine on phones). No aria-label on the links: their
+   visible text is their name. */
+function Problems() {
+  return (
+    <section className="band dark pad probs" id="problems" data-tone="dark">
+      <div className="wrap">
+        <Reveal className="shead">
+          <span className="mlabel">Problems we&rsquo;ve solved</span>
+          <span className="ser">§ 03 · {countWord(STUDIES.length)} case studies</span>
+        </Reveal>
+        <Reveal className="sec-intro">
+          <h2 className="h1">Real problems. <em className="foil">Solved the modern way.</em></h2>
+          <p className="lead">
+            A selection from our work. Each chapter sets out the problem, the solution we built
+            with AI, automation and modern data tools, and the system behind it.
+          </p>
+        </Reveal>
         <nav className="ch-index" aria-label="Case studies">
           {STUDIES.map((s, i) => (
             <Link key={s.id} to={`/work#cs-${s.num}`} className="ci-cell" style={{ "--i": i }}>
@@ -79,7 +113,7 @@ const WorkHero = memo(function WorkHero({ heroRef, heroIn, aboveTablet }) {
       </div>
     </section>
   );
-});
+}
 
 export default function Work() {
   // the description lives in data/work.js, shared with the static /work head
@@ -95,10 +129,10 @@ export default function Work() {
   // appears once most of it has gone.
   const heroIn = useOnScreen(heroRef, "0px");
   const heroMostly = useOnScreen(heroRef, "0px 0px -40% 0px");
-  const [active, setActive] = useState("cs-01");
+  const [active, setActive] = useState("stack");
   // the last section that is on the rail: the rail and the chapter bar
   // keep showing it while they fade out over the closing band
-  const [mark, setMark] = useState("cs-01");
+  const [mark, setMark] = useState("stack");
 
   /* With the chapter bar under the topbar, anchors need that much more
      clearance. A layout effect, so it is in place before the shell aims
@@ -143,21 +177,30 @@ export default function Work() {
       {compact && <ChapterBar active={mark} show={show} bodyRef={bodyRef} />}
 
       <div ref={bodyRef}>
-        {STUDIES.map((s, i) => <Chapter key={s.id} s={s} i={i} />)}
-        <Impact />
         <Stack />
+        <Problems />
+        {STUDIES.map((s, i) => <Chapter key={s.id} s={s} i={i} />)}
       </div>
 
-      <section className="band dark pad-s" id="work-close" data-rail data-tone="dark">
+      {/* The close speaks to what the reader has just read: a problem
+          like these, and one way to start */}
+      <section className="band dark cta-band cta-next pad" id="work-close" data-rail data-tone="dark">
+        <span className="cta-glow" aria-hidden="true" />
         <div className="wrap">
-          <Reveal className="cta-split">
-            <div>
-              <h2 className="h1">Built once. <em className="foil">Running every day.</em></h2>
-              <div className="mono-note">
-                {cap(countWord(STUDIES.length))} production systems · secured · validated · self-service
-              </div>
+          <Reveal className="cta-copy">
+            <span className="mlabel">Your turn</span>
+            <h2 className="cta-h">
+              Have a problem like these? <em className="foil">Let&rsquo;s solve it together.</em>
+            </h2>
+            <p className="cta-s">
+              Tell us what&rsquo;s slowing your team down, and we&rsquo;ll show you how we would
+              solve it — the modern way.
+            </p>
+            <div className="cta-act">
+              <Magnetic>
+                <Link to="/#contact" className="btn btn-gold btn-shine">Start a conversation</Link>
+              </Magnetic>
             </div>
-            <Magnetic><Link to="/#contact" className="btn btn-gold">Start a conversation</Link></Magnetic>
           </Reveal>
         </div>
       </section>

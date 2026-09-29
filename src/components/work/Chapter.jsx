@@ -11,7 +11,7 @@ import { MQ } from "../../motion/tokens.js";
 
 /*
   One case study as a ledger spread. Chapters alternate:
-  - recto (CS·01, 03, 05): a paper band, numeral aside on the left, the
+  - recto (CS·01, 03, 05, no class): a paper band, numeral aside on the left, the
     dark machine-room flow panel;
   - verso (CS·02, 04, 06): an espresso band, numeral aside and the
     metrics exhibit mirrored to the right, a paper blueprint panel.
@@ -72,7 +72,7 @@ export const Chapter = memo(function Chapter({ s, i }) {
   const track = useProgress(gridRef, ["start 128px", "end 60%"]);
 
   return (
-    <section className={`chapter band pad ${verso ? "dark verso" : "recto"}`} id={`cs-${s.num}`}
+    <section className={`chapter band pad${verso ? " dark verso" : ""}`} id={`cs-${s.num}`}
       data-rail data-tone={verso ? "dark" : "paper"}>
       <div className="wrap">
         <Reveal className="shead">
@@ -114,7 +114,15 @@ export const Chapter = memo(function Chapter({ s, i }) {
 
             <div className="story-grid">
               <Reveal as="article" className="story">
-                {s.intro.map((p, k) => <p key={k}>{p}</p>)}
+                {/* every intro is [the problem, the solution…] */}
+                <div className="story-part">
+                  <span className="story-k">The problem</span>
+                  <p>{s.intro[0]}</p>
+                </div>
+                <div className="story-part">
+                  <span className="story-k">Our solution</span>
+                  {s.intro.slice(1).map((p, k) => <p key={k}>{p}</p>)}
+                </div>
                 <ul className="story-points">
                   {s.points.map(([strong, more]) => (
                     <li key={strong}><span><strong>{strong}</strong>{more}</span></li>
