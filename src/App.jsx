@@ -1,13 +1,36 @@
-import { Component, createRef, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Routes, Route, NavLink, Link, useLocation } from "react-router-dom";
+import { Component, Suspense, createRef, lazy, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Routes, Route, NavLink, Link, useLocation, useNavigationType } from "react-router-dom";
 import { LazyMotion, MotionConfig, domAnimation, m, useScroll, useMotionValueEvent, frame, cancelFrame } from "framer-motion";
 import Landing from "./pages/Landing.jsx";
-import Work from "./pages/Work.jsx";
-import NotFound from "./pages/NotFound.jsx";
 import { SmoothScroll, scrollTo } from "./motion/SmoothScroll.jsx";
 import { usePageProgress } from "./motion/scroll.js";
 import { useMedia, useReducedMotion, prefersReducedMotion } from "./motion/prefs.js";
 import { MQ } from "./motion/tokens.js";
+
+/* The landing ships in the main bundle; the other pages load on demand.
+   A failed load is not remembered: the promise and the lazy component
+   are both dropped, so the next visit to the page (the error screen's
+   Home link, Back, the menu) fetches it again instead of rethrowing the
+   cached failure. `load` also warms the chunk ahead of a visit. */
+function lazyPage(importer) {
+  let p = null;
+  const load = () => (p ??= importer().catch((e) => {
+    p = null;
+    Lazy = lazy(load);
+    throw e;
+  }));
+  let Lazy = lazy(load);
+  const Page = (props) => <Lazy {...props} />;
+  return { Page, load };
+}
+const WorkPage = lazyPage(() => import("./pages/Work.jsx"));
+const NotFoundPage = lazyPage(() => import("./pages/NotFound.jsx"));
+
+/* While a page's chunk is on its way the shell stays: an empty, screen-
+   tall placeholder keeps the footer down, and marks the page as pending
+   so the scroll code keeps waiting for its sections. */
+const PAGE_PENDING = "page-pending";
+const pagePending = () => !!document.querySelector(`.${PAGE_PENDING}`);
 
 /* Moves keyboard focus to the start of the page — its h1, else <main> —
    without scrolling, so the next Tab continues from the top of the new
@@ -25,8 +48,9 @@ function focusPageStart() {
   main.focus({ preventScroll: true });
 }
 
-/* If any component throws at runtime, React unmounts the whole tree,
-   leaving a blank page. This boundary catches the error, keeps the shell
+/* If any component throws at runtime (or a page's chunk fails to
+   load), React unmounts the whole tree, leaving a blank page. This
+   boundary catches the error, keeps the shell
    (topbar, footer) alive and shows a designed status screen built from
    nothing that could fail for the same reason — no Reveal, Magnetic or
    3D. It remounts with every path (.page is keyed), and resetKey (the
@@ -161,7 +185,7 @@ function Topbar() {
 /* Gold hairline that fills as the reader moves through the page. It is
    scroll-linked only, so it stays under reduced motion. framer measures
    on scroll and window resize; a page that grows or shrinks in place
-   (the stack filter, late web fonts) is caught by the ResizeObserver. */
+   (a lazy page arriving, late web fonts) is caught by the ResizeObserver. */
 function Progress() {
   const p = usePageProgress();
   useEffect(() => {
@@ -283,21 +307,82 @@ function markLanding(el, glide) {
   head.addEventListener("animationend", done);
 }
 
+/* Where each history entry was read to, so Back and Forward return to
+   it. The browser's own restoration is switched off: it would aim
+   before the new page has laid out, and against the smooth scroller.
+   Kept in sessionStorage, so a reload or a return from another site
+   finds it too. An entry with no router state (the first page of a
+   visit) has the key "default"; it is filed by its address instead. */
+if (typeof history !== "undefined" && "scrollRestoration" in history) history.scrollRestoration = "manual";
+const SCROLLS = "dq:scroll";
+const entryKey = (loc) => (loc.key && loc.key !== "default" ? loc.key : `@${loc.pathname}${loc.search}${loc.hash}`);
+function readScrolls() {
+  try { return JSON.parse(sessionStorage.getItem(SCROLLS)) || {}; } catch { return {}; }
+}
+function saveScroll(key, y) {
+  try {
+    const all = readScrolls();
+    delete all[key]; // re-filed last, so the oldest entries drop first
+    all[key] = Math.round(y);
+    const keys = Object.keys(all);
+    for (let i = 0; i < keys.length - 50; i++) delete all[keys[i]];
+    sessionStorage.setItem(SCROLLS, JSON.stringify(all));
+  } catch { /* storage blocked or full: Back opens at the top instead */ }
+}
+/* The first load returns to an offset only when the browser came back
+   to the entry (a reload, Back from another site), never on a fresh visit */
+function returningLoad() {
+  const t = performance.getEntriesByType?.("navigation")?.[0]?.type;
+  return t === "reload" || t === "back_forward";
+}
+
+/* Focus on a landed section's heading: a focused section can be read
+   out whole by a screen reader (the cue still marks the section) */
+function focusSection(el) {
+  const head = el.matches("section, article") ? el.querySelector("h1, h2, h3") : null;
+  const target = head || el;
+  if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+  target.focus({ preventScroll: true });
+  if (head && document.activeElement !== head) { // an inert heading refuses focus
+    if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+    el.focus({ preventScroll: true });
+  }
+}
+
 /* Route + hash navigation.
    - A new path starts at the top; the path already open glides back up
      instead. Either way focus moves to the page's h1 (never on the
      first load), so a link at the foot of the page doesn't keep focus
      far below the reader.
    - A hash scrolls to its section once it exists in the DOM (the page
-     may still be mounting when the effect first runs) and moves focus
-     there, so the next Tab continues from the section. A hash that
-     never resolves (a stale link, a typo) still opens a new page at its
-     top, not at the old page's offset.
+     may still be mounting, or its chunk loading, when the effect first
+     runs) and moves focus there, so the next Tab continues from the
+     section. A hash that never resolves (a stale link, a typo) still
+     opens a new page at its top, not at the old page's offset.
+   - Back and Forward return to the offset the entry was left at, once
+     the page is tall enough to hold it; focus goes where an arrival
+     would put it, without scrolling.
    - A cold deep link re-aims once web fonts arrive (the target moves as
      they swap) — unless the reader has started scrolling meanwhile. */
 function useScrollNavigation() {
   const location = useLocation();
+  const navType = useNavigationType();
   const lastPath = useRef(null);
+  // the open entry and the reader's last offset in it
+  const here = useRef({ key: null, y: 0 });
+
+  useEffect(() => {
+    const onScroll = () => { here.current.y = window.scrollY; };
+    // leaving the site or reloading files the open entry too
+    const onHide = () => { if (here.current.key) saveScroll(here.current.key, window.scrollY); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("pagehide", onHide);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pagehide", onHide);
+    };
+  }, []);
+
   useLayoutEffect(() => {
     const id = location.hash.slice(1);
     const first = lastPath.current === null;
@@ -305,49 +390,78 @@ function useScrollNavigation() {
     // from); a move on the page already open glides
     const newPage = lastPath.current !== location.pathname;
     lastPath.current = location.pathname;
-    if (!id) {
-      scrollTo(0, { immediate: newPage });
-      if (!first) focusPageStart();
-      return;
-    }
-    if (newPage) scrollTo(0, { immediate: true });
-    let tries = 0;
+    // file the entry being left at its last offset (read from the scroll
+    // events: the swapped page may already have clamped window.scrollY)
+    const at = here.current;
+    if (at.key) saveScroll(at.key, at.y);
+    at.key = entryKey(location);
+    const back = navType === "POP" && (!first || returningLoad()) ? readScrolls()[at.key] : undefined;
+
     let raf = 0;
     let alive = true;
-    const go = () => {
+    // Runs `done` once `ready()` holds, checking each frame. Frames spent
+    // while a lazy page is still loading don't count against the budget
+    // (capped at ~10s in all); `fail` runs when it is spent.
+    const when = (ready, done, fail) => {
+      let tries = 0;
+      let frames = 0;
+      const step = () => {
+        if (!alive) return;
+        if (ready()) done();
+        else if ((pagePending() || tries++ < 30) && frames++ < 600) raf = requestAnimationFrame(step);
+        else fail?.();
+      };
+      step();
+    };
+    const cleanup = () => { alive = false; cancelAnimationFrame(raf); };
+
+    if (typeof back === "number") {
+      // Back / Forward: the entry's own offset, once the page can hold it
+      // (the tall landing, a lazy page still loading)
+      const root = document.documentElement;
+      const go = () => {
+        scrollTo(back, { immediate: newPage });
+        at.y = window.scrollY;
+        if (first || !newPage) return;
+        // the link that had focus left with the old page
+        const el = id && document.getElementById(id);
+        if (el) focusSection(el);
+        else focusPageStart();
+      };
+      when(() => !pagePending() && root.scrollHeight - root.clientHeight >= back - 1, go, go);
+      return cleanup;
+    }
+
+    if (!id) {
+      scrollTo(0, { immediate: newPage });
+      at.y = window.scrollY;
+      // a lazy page's h1 arrives with its chunk
+      if (!first) when(() => !pagePending(), focusPageStart, focusPageStart);
+      return cleanup;
+    }
+    if (newPage) scrollTo(0, { immediate: true });
+    at.y = window.scrollY;
+    const land = () => {
       const el = document.getElementById(id);
-      if (el) {
-        scrollTo(el, { immediate: newPage });
-        // focus lands on the section's heading: a focused section can be
-        // read out whole by a screen reader (the cue still marks the section)
-        const head = el.matches("section, article") ? el.querySelector("h1, h2, h3") : null;
-        const target = head || el;
-        if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
-        target.focus({ preventScroll: true });
-        if (head && document.activeElement !== head) { // an inert heading refuses focus
-          if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
-          el.focus({ preventScroll: true });
-        }
-        markLanding(el, !newPage);
-        if (newPage && document.fonts && document.fonts.status !== "loaded") {
-          const landed = window.scrollY;
-          document.fonts.ready.then(() => {
-            // two frames: the swapped layout (and the hero's lead-in,
-            // re-measured by its ResizeObserver) settles before the aim
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-              if (alive && Math.abs(window.scrollY - landed) < 4) scrollTo(el, { immediate: true });
-            }));
-          });
-        }
-      } else if (tries++ < 30) {
-        raf = requestAnimationFrame(go);
-      } else if (newPage && !first) {
-        focusPageStart(); // a stale hash: the link that had focus is gone
+      scrollTo(el, { immediate: newPage });
+      focusSection(el);
+      markLanding(el, !newPage);
+      if (newPage && document.fonts && document.fonts.status !== "loaded") {
+        const landed = window.scrollY;
+        document.fonts.ready.then(() => {
+          // two frames: the swapped layout (and the hero's lead-in,
+          // re-measured by its ResizeObserver) settles before the aim
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (alive && Math.abs(window.scrollY - landed) < 4) scrollTo(el, { immediate: true });
+          }));
+        });
       }
     };
-    go();
-    return () => { alive = false; cancelAnimationFrame(raf); };
-  }, [location.pathname, location.hash, location.key]);
+    when(() => document.getElementById(id), land, () => {
+      if (newPage && !first) focusPageStart(); // a stale hash: the link that had focus is gone
+    });
+    return cleanup;
+  }, [location.pathname, location.hash, location.key, navType]);
 }
 
 /* True once the reader has moved to a second path. The page turn never
@@ -363,25 +477,38 @@ function usePathChanged(pathname) {
 function Shell() {
   const location = useLocation();
   const turned = usePathChanged(location.pathname);
+  // film grain is a full-screen layer: kept off touch screens
+  const coarse = useMedia(MQ.coarse);
   useScrollNavigation();
+
+  // warm the Work page's chunk once the landing is idle (not on Save-Data)
+  useEffect(() => {
+    if (navigator.connection?.saveData) return;
+    const idle = window.requestIdleCallback ?? ((cb) => setTimeout(cb, 2000));
+    const cancel = window.cancelIdleCallback ?? clearTimeout;
+    const t = idle(() => WorkPage.load().catch(() => {})); // a failure retries on the visit
+    return () => cancel(t);
+  }, []);
 
   return (
     <>
       <Progress />
       {turned && <div className="page-turn" key={location.pathname} aria-hidden="true" />}
       <Spotlight />
-      <div className="grain" aria-hidden="true"></div>
+      {!coarse && <div className="grain" aria-hidden="true"></div>}
       <a className="skip-link" href="#main">Skip to content</a>
       <Topbar />
       <div className="page" key={location.pathname}>
-        {/* focusable by script only: route changes and "Back to top" land here */}
+        {/* focusable by script only: route changes land here */}
         <main id="main" tabIndex={-1}>
           <ErrorBoundary resetKey={location.key}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/work" element={<Work />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Suspense fallback={<div className={PAGE_PENDING} aria-hidden="true" />}>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/work" element={<WorkPage.Page />} />
+                <Route path="*" element={<NotFoundPage.Page />} />
+              </Routes>
+            </Suspense>
           </ErrorBoundary>
         </main>
         {/* outside <main>, so assistive tech gets it as the site footer

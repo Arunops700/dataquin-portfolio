@@ -8,5 +8,5 @@ dist-*
 # client, so the deck must not travel with the repo.
 *.pdf
 
-# Machine-local Claude Code permission allowlist
-.claude/settings.local.json
+# Claude Code: machine-local settings and skills, not part of the site
+.claude/

@@ -48,7 +48,7 @@ function makeLayout(count, seed = 7) {
     sizes[i] = 0.32 + rand() * 0.5;
   }
 
-  return { count, chaos, seeds, ts, sizes };
+  return { chaos, seeds, ts, sizes };
 }
 
 /* Narrow viewports squeeze the scattered rows horizontally so they
@@ -94,13 +94,12 @@ export function buildAttributes(count, logo) {
     meta[i * 4 + 3] = hasLogo ? logo.dens[i] : 1;
   }
 
-  // orbit: the halo's loose drift along the lanes — z: y spread,
-  // w: depth (x, y unused)
+  // orbit: the halo's loose drift along the lanes — y spread, depth
   const rand = rng(41);
-  const orbit = new Float32Array(count * 4);
+  const orbit = new Float32Array(count * 2);
   for (let i = 0; i < count; i++) {
-    orbit[i * 4 + 2] = 0.7 + rand() * 0.6;
-    orbit[i * 4 + 3] = (rand() - 0.5) * 2.4;
+    orbit[i * 2] = 0.7 + rand() * 0.6;
+    orbit[i * 2 + 1] = (rand() - 0.5) * 2.4;
   }
 
   return { rows, target, orbit, meta };

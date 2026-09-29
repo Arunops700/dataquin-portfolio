@@ -116,11 +116,11 @@ export const Chapter = memo(function Chapter({ s, i }) {
               <Reveal as="article" className="story">
                 {/* every intro is [the problem, the solution…] */}
                 <div className="story-part">
-                  <span className="story-k">The problem</span>
+                  <h3 className="story-k">The problem</h3>
                   <p>{s.intro[0]}</p>
                 </div>
                 <div className="story-part">
-                  <span className="story-k">Our solution</span>
+                  <h3 className="story-k">Our solution</h3>
                   {s.intro.slice(1).map((p, k) => <p key={k}>{p}</p>)}
                 </div>
                 <ul className="story-points">
@@ -130,7 +130,7 @@ export const Chapter = memo(function Chapter({ s, i }) {
                 </ul>
               </Reveal>
               <Reveal delay={1} className="tools-ledger">
-                <span className="mlabel">Tools used</span>
+                <h3 className="mlabel">Tools used</h3>
                 {s.tools.map(([name, desc]) => (
                   <div className="tool-row" key={name}>
                     <span className="tool-name">{name}</span>

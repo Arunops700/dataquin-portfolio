@@ -18,7 +18,8 @@ import { PAL } from "./palette.js";
 */
 export default function GoldMark({ outers, rig, lite }) {
   const group = useRef(null);
-  const { gl, invalidate } = useThree();
+  const gl = useThree((s) => s.gl);
+  const invalidate = useThree((s) => s.invalidate);
 
   const geometry = useMemo(() => {
     const shapes = outers.map((o) => {

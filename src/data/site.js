@@ -1,9 +1,9 @@
 /*
-  Site-wide content that is not a case study: the service pillars, hero
-  credentials, the delivery steps and the tech index. Case studies live in caseStudies.js;
-  every number here that points at one does so by id, and every count
-  in the copy is derived from the data (format.js), so neither can go
-  stale.
+  Site-wide content that is not a case study: the hero's story beats,
+  the service pillars, hero credentials, the delivery steps, the values
+  and the tech index. Case studies live in caseStudies.js. The counts
+  the copy states (areas, steps, tools) are derived from these lists
+  (format.js), so they can't go stale.
 */
 
 /* The one place the contact details live. index.html (noscript copy

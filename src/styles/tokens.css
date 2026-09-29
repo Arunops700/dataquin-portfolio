@@ -45,7 +45,7 @@
   --ivory: #f3ead9;
   --ivory-soft: #c7b69c;
   --ivory-faint: #9a8870;
-  /* Golds (measured from the Mercadian deck) */
+  /* Golds (measured from the client deck) */
   --gold: #a5824f;
   --gold-hi: #d8bc8a;
   --gold-deep: #6e5741;
@@ -83,7 +83,7 @@
   --wash-dark: rgb(var(--gold-hi-rgb) / 0.07);
   /* A lighter sheet laid on paper (forms, tool ledgers, journeys) */
   --sheet: rgb(255 252 244 / 0.5);
-  --shadow-node: 0 8px 24px rgb(10 7 3 / 0.4);
+  --shadow-node: 0 3px 8px rgb(10 7 3 / 0.4);
   --shadow-panel: 0 26px 60px rgb(50 38 26 / 0.28);
   --shadow-bar: 0 18px 50px rgb(12 8 4 / 0.35);
   /* one-off tints, named (values unchanged) */

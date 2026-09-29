@@ -56,10 +56,19 @@ function Evolution() {
   );
 }
 
+/* Focus from the keyboard, not from a tap or a click (an engine without
+   :focus-visible just skips the highlight) */
+const byKeyboard = (el) => {
+  try { return el.matches(":focus-visible"); } catch { return false; }
+};
+
 /* The stack, shown two ways: the sphere of tool tiles (turn it, or point
    at a tool in the ledger to bring its tile to the front), and the
    ledger itself — every tool by discipline, with what we use it for.
-   The ledger is the readable version; the sphere is decoration. */
+   The ledger is the readable version; the sphere is decoration.
+   A row points at its tile on hover (fine pointers), on a tap (which
+   toggles it) and on keyboard focus; focus or a tap leaving the ledger
+   lets go. */
 function StackShowcase() {
   const [hot, setHot] = useState(-1);
   const fine = useMedia(MQ.fine);
@@ -69,7 +78,8 @@ function StackShowcase() {
         <TechSphere hot={hot} />
         <p className="stk-hint" aria-hidden="true">Drag to turn</p>
       </div>
-      <div className="stk-ledger" onMouseLeave={fine ? () => setHot(-1) : undefined}>
+      <div className="stk-ledger" onMouseLeave={fine ? () => setHot(-1) : undefined}
+        onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setHot(-1); }}>
         {Object.entries(CATS).map(([k, label], ci) => (
           <Reveal className="stk-cat" key={k} delay={Math.min(ci, 4)}>
             <div className="stk-cat-h">
@@ -78,8 +88,12 @@ function StackShowcase() {
             </div>
             <ul>
               {TECH.map((t, i) => (t.cat !== k ? null : (
-                <li key={t.name} className={`stk-row${hot === i ? " hot" : ""}`}
-                  onMouseEnter={fine ? () => setHot(i) : undefined}>
+                <li key={t.name} className={`stk-row${hot === i ? " hot" : ""}`} tabIndex={0}
+                  onMouseEnter={fine ? () => setHot(i) : undefined}
+                  // a mouse has already pointed on hover; a tap toggles
+                  onClick={() => setHot((h) => (h === i && !fine ? -1 : i))}
+                  // keyboard focus only: a tap's own focus is left to the click
+                  onFocus={(e) => { if (byKeyboard(e.currentTarget)) setHot(i); }}>
                   <span className="stk-ico"><img src={`/icons/${t.ico}`} alt="" loading="lazy" /></span>
                   <span className="stk-name">{t.name}</span>
                   <span className="stk-role">{t.role}</span>

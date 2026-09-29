@@ -1,5 +1,9 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "redirects": [
+    { "source": "/projects/:slug", "destination": "/work", "permanent": true },
+    { "source": "/(stack|projects|impact)", "destination": "/work", "permanent": true }
+  ],
+  "rewrites": [{ "source": "/((?!assets/|icons/)[^.]*)", "destination": "/index.html" }],
   "headers": [
     {
       "source": "/(.*)",

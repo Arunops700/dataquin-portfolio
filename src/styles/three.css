@@ -43,7 +43,7 @@
 
 /* Keeps the copy legible over the brightest grains. The foot layer
    eases off (--foot, 0–1, driven by the landing hero) while the beats
-   play, so the ledger sheet and the bridge stay visible below the copy. */
+   play, so the grains and the streams stay visible below the copy. */
 .stage-scrim {
   position: absolute;
   inset: 0;
@@ -65,7 +65,7 @@
   inset: auto;
   z-index: 0;
   height: clamp(140px, 22vh, 200px);
-  margin: 0 -22px clamp(24px, 4vh, 36px);
+  margin: 0 calc(-1 * var(--gutter)) clamp(24px, 4vh, 36px);   /* the .wrap gutter, safe areas included */
   border-block: 1px solid var(--rule);
   background: radial-gradient(55% 75% at 50% 50%, rgb(var(--gold-hi-rgb) / 0.08), transparent 70%);
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);

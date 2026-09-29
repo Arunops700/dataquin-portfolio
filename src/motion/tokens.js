@@ -14,17 +14,15 @@ export const BP = {
 
 export const MQ = {
   aboveTablet: `not all and (max-width: ${BP.tablet}px)`,
-  aboveDesktop: `not all and (max-width: ${BP.desktop}px)`,
   wide: `(min-width: ${BP.wide}px)`,
   // "at or below" — identical to the CSS queries
-  phone: `(max-width: ${BP.phone}px)`,
-  tabletDown: `(max-width: ${BP.tablet}px)`,
   desktopDown: `(max-width: ${BP.desktop}px)`,
   // the process stack pins only when a row fits under its pin line
   tall: "(min-height: 561px)",
+  // landscape phones: too short for the pinned services strip
+  short: "(max-height: 500px)",
   fine: "(hover: hover) and (pointer: fine)",
   coarse: "(pointer: coarse)",
-  reduced: "(prefers-reduced-motion: reduce)",
 };
 
 /* --ease and --ease-in-out as cubic-bezier arrays for framer-motion */

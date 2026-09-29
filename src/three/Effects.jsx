@@ -19,7 +19,10 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
   - Every pass is disposed: composer.dispose() alone leaks bloom + output.
 */
 export default function Effects({ tier, rig }) {
-  const { gl, scene, camera, size } = useThree();
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  const camera = useThree((s) => s.camera);
+  const size = useThree((s) => s.size);
   const dpr = useThree((s) => s.viewport.dpr);
 
   const composer = useMemo(() => {

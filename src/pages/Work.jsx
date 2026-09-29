@@ -1,24 +1,26 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Reveal, Magnetic, Arrowed } from "../components/fx.jsx";
+import { Reveal, Magnetic, Arrowed, Email } from "../components/fx.jsx";
 import { Chapter } from "../components/work/Chapter.jsx";
 import { Stack } from "../components/work/Stack.jsx";
 import { Rail, ChapterBar, onRail } from "../components/work/Orientation.jsx";
 import { Field } from "../three/Field.jsx";
 import { STUDIES } from "../data/caseStudies.js";
-import { CATS, TECH } from "../data/site.js";
+import { CATS, TECH, CONTACT } from "../data/site.js";
 import { cap, countWord } from "../data/format.js";
 import { useMedia } from "../motion/prefs.js";
 import { MQ } from "../motion/tokens.js";
 import { usePageMeta, PAGE_META } from "../seo.js";
 
-/* The detail page: the case-study chapters, alternating paper and
-   espresso, then the stack. One long scroll;
+/* The detail page: the stack first, then the problems it solved — the
+   case-study chapters, alternating paper and espresso. One long scroll;
    orientation comes from a contents rail on wide screens, the chapters'
    own sticky numerals on desktops, and a chapter bar under the topbar
    at 1080px and below. */
 
 const BAR_H = { tablet: 32, desktop: 34 }; // .ch-bar heights in work.css
+// landscape phones: no room for the bar (hidden by the same query in work.css)
+const SHORT = "(max-height: 500px)";
 
 /* On screen or not, from EVERY observer entry. framer's useInView with
    initial: true drops a first "not intersecting" entry, so a page
@@ -86,7 +88,7 @@ const WorkHero = memo(function WorkHero({ heroRef, heroIn, aboveTablet }) {
    visible text is their name. */
 function Problems() {
   return (
-    <section className="band dark pad probs" id="problems" data-tone="dark">
+    <section className="band dark pad probs" id="problems" data-rail data-tone="dark">
       <div className="wrap">
         <Reveal className="shead">
           <span className="mlabel">Problems we&rsquo;ve solved</span>
@@ -124,6 +126,8 @@ export default function Work() {
   const aboveTablet = useMedia(MQ.aboveTablet);
   const compact = useMedia(MQ.desktopDown);
   const wide = useMedia(MQ.wide);
+  const short = useMedia(SHORT);
+  const bar = compact && !short; // the chapter bar is up
   // The hero starts on screen, so nothing flashes before the first
   // observation. Field renders while any of the hero shows; orientation
   // appears once most of it has gone.
@@ -138,14 +142,14 @@ export default function Work() {
      clearance. A layout effect, so it is in place before the shell aims
      at a cold deep link (/work#cs-04); restored on the way out. */
   useLayoutEffect(() => {
-    if (!compact) return;
+    if (!bar) return;
     const html = document.documentElement;
     const prev = html.style.scrollPaddingTop;
     html.style.scrollPaddingTop = "";
     const base = parseFloat(getComputedStyle(html).scrollPaddingTop) || 0;
     html.style.scrollPaddingTop = `${base + (aboveTablet ? BAR_H.desktop : BAR_H.tablet)}px`;
     return () => { html.style.scrollPaddingTop = prev; };
-  }, [compact, aboveTablet]);
+  }, [bar, aboveTablet]);
 
   // Which section the reader is in (a band 35–45% down the viewport).
   useEffect(() => {
@@ -174,7 +178,7 @@ export default function Work() {
       <WorkHero heroRef={heroRef} heroIn={heroIn} aboveTablet={aboveTablet} />
 
       {wide && <Rail active={mark} show={show} />}
-      {compact && <ChapterBar active={mark} show={show} bodyRef={bodyRef} />}
+      {bar && <ChapterBar active={mark} show={show} bodyRef={bodyRef} />}
 
       <div ref={bodyRef}>
         <Stack />
@@ -183,7 +187,8 @@ export default function Work() {
       </div>
 
       {/* The close speaks to what the reader has just read: a problem
-          like these, and one way to start */}
+          like these, and one way to start. Its glow stays still here
+          (no data-live; work.css). */}
       <section className="band dark cta-band cta-next pad" id="work-close" data-rail data-tone="dark">
         <span className="cta-glow" aria-hidden="true" />
         <div className="wrap">
@@ -200,6 +205,11 @@ export default function Work() {
               <Magnetic>
                 <Link to="/#contact" className="btn btn-gold btn-shine">Start a conversation</Link>
               </Magnetic>
+            </div>
+            {/* or straight to us, one tap: the contact section's Mail / Tel pair */}
+            <div className="cta-reach">
+              <a href={`mailto:${CONTACT.email}`}><span className="k">Mail</span><Email address={CONTACT.email} /></a>
+              <a href={CONTACT.phoneHref}><span className="k">Tel</span>{CONTACT.phone}</a>
             </div>
           </Reveal>
         </div>

@@ -12,11 +12,11 @@
   margin-left: -23rem;
   pointer-events: none;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--bloom), transparent 65%);
-  filter: blur(50px);
-  animation: ctaBloom 12s ease-in-out infinite alternate;
+  background: radial-gradient(circle, var(--bloom), rgb(0 0 0 / 0) 72%);   /* soft by itself: no blur filter to re-run each frame */
+  /* one bloom into place, then it holds (under 5s, WCAG 2.2.2) */
+  animation: ctaBloom 4.5s ease-in-out 1 forwards;
 }
-.cta-band:not([data-live]) .cta-glow { animation-play-state: paused; }   /* off-screen: holds still */
+.cta-band:not([data-live]) .cta-glow { animation-play-state: paused; }   /* off-screen: waits to be seen */
 @keyframes ctaBloom {
   from { transform: translate(-3rem, -1rem) scale(1); }
   to { transform: translate(3rem, 1.5rem) scale(1.14); }
@@ -40,5 +40,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cta-glow { animation: none !important; }
+  /* at rest where the bloom would have left it */
+  .cta-glow { animation: none !important; transform: translate(3rem, 1.5rem) scale(1.14); }
 }

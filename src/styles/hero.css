@@ -15,7 +15,8 @@
   -webkit-mask-image: radial-gradient(100rem 64rem at 28% 18%, #000 25%, transparent 78%);
   mask-image: radial-gradient(100rem 64rem at 28% 18%, #000 25%, transparent 78%);
 }
-/* Slow warm aura */
+/* Warm aura: drifts once into place as the hero opens and holds there
+   (one pass under 5s, WCAG 2.2.2) */
 .hero-aura {
   position: absolute;
   z-index: 0;
@@ -25,12 +26,13 @@
   height: 64rem;
   border-radius: 50%;
   pointer-events: none;
-  background: radial-gradient(circle, var(--aura), transparent 62%);
-  filter: blur(70px);
-  animation: auraDrift 22s ease-in-out infinite alternate;
+  /* a soft gradient, no blur filter: a 64rem blurred layer drifting
+     under the 3D canvas cost a GPU re-blur on every frame */
+  background: radial-gradient(circle, var(--aura), rgb(0 0 0 / 0) 70%);
+  animation: auraDrift 4.5s ease-in-out 1 forwards;
 }
-/* the drift holds still while its hero is off-screen (data-live is set
-   by the page while the hero is in view) */
+/* the drift waits while its hero is off-screen (data-live is set by the
+   page while the hero is in view), so it plays when it can be seen */
 .hero-story:not([data-live]) .hero-aura,
 .hero-work:not([data-live]) .hero-aura { animation-play-state: paused; }
 @keyframes auraDrift { to { transform: translate(-8rem, 7rem) scale(1.12); } }
@@ -87,7 +89,7 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ivory-faint);
-  text-wrap: balance;   /* no one-word orphan ("LIVE") in a narrow column */
+  text-wrap: balance;   /* no one-word orphan in a narrow column */
 }
 
 @media (max-width: 860px) {
@@ -104,6 +106,11 @@
   .hero-sub { padding-top: 96px; }
 }
 
+/* Touch screens (no layer animating under the 3D) and reduced motion:
+   the aura simply rests where the drift would have left it */
+@media (pointer: coarse) {
+  .hero-aura { animation: none; transform: translate(-8rem, 7rem) scale(1.12); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .hero-aura { animation: none !important; }
+  .hero-aura { animation: none !important; transform: translate(-8rem, 7rem) scale(1.12); }
 }

@@ -3,9 +3,12 @@
    would fight it. Reduced-motion readers get no Lenis at all, so plain
    native scrolling. */
 /* The one header clearance for every anchor landing — Lenis and the
-   native fallback both read it (SmoothScroll.jsx). */
+   native fallback both read it (SmoothScroll.jsx). --bar-clear carries
+   the same number to layers that must start below the fixed topbar
+   (the hero's beats). */
 html {
-  scroll-padding-top: 84px;
+  --bar-clear: 84px;
+  scroll-padding-top: var(--bar-clear);
   /* inherited by every link and button: rows give their own press wash
      on touch (see the ruled-row partials), never the browser's grey box */
   -webkit-tap-highlight-color: transparent;
@@ -40,7 +43,7 @@ img, svg { max-width: 100%; }
   border-radius: 2px;
 }
 /* Sections, headings and <main> that script focuses (hash landings,
-   route changes, "Back to top") are places, not controls: no ring
+   route changes) are places, not controls: no ring
    around a whole chapter. The section header marks a landing instead.
    Controls parked at tabindex -1 (a fading hero layer's link) keep
    their ring; :where() keeps this rule as weak as a lone attribute. */
@@ -62,7 +65,9 @@ img, svg { max-width: 100%; }
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: var(--esp); }
 ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 6px; }
-::-webkit-scrollbar-thumb:hover { background: var(--gold-deep); }
+@media (hover: hover) {
+  ::-webkit-scrollbar-thumb:hover { background: var(--gold-deep); }
+}
 
 /* First tab stop — hidden until focused */
 .skip-link {
@@ -86,8 +91,9 @@ img, svg { max-width: 100%; }
 }
 .skip-link:focus { top: 0; }
 
-@media (max-width: 860px) {
-  html { scroll-padding-top: 72px; }
+/* the compact topbar (shell.css): phones, and landscape phones */
+@media (max-width: 860px), (max-height: 500px) {
+  html { --bar-clear: 72px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

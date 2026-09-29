@@ -12,6 +12,7 @@ import { useProgress } from "../../motion/scroll.js";
 
 const RAIL = [
   { id: "stack", num: "§", t: "Tech stack" },
+  { id: "problems", num: "§", t: "Problems we’ve solved" },
   ...STUDIES.map((s) => ({ id: `cs-${s.num}`, num: s.num, t: s.title })),
 ];
 /* Over the hero, the closing band and the footer, neither shows. */
@@ -122,6 +123,7 @@ export function ChapterBar({ active, show, bodyRef }) {
   return (
     <div ref={barRef} className={`ch-bar${show ? " show" : ""}`} aria-hidden="true">
       <div className="wrap ch-bar-in">
+        {/* a § section is not a numbered study: no "/ 06" count */}
         <span className="ch-bar-n">
           {r.num === "§" ? "§" : <>CS·{r.num}<em> / {pad2(STUDIES.length)}</em></>}
         </span>

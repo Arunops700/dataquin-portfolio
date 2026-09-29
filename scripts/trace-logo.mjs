@@ -23,8 +23,9 @@ const SRC = root("public/logo.png");
 const OUT = process.argv[2] ? resolve(process.argv[2]) : root("src/three/logo-outline.json");
 
 /* 8-bit, non-interlaced PNG → alpha channel as 0..1 floats. Handles the
-   colour types a logo export uses (palette + tRNS, grey/RGB with or
-   without alpha); anything else fails loudly rather than tracing junk. */
+   colour types a logo export uses (palette + tRNS, grey/RGB with alpha);
+   anything else fails loudly rather than tracing junk — an opaque PNG
+   would trace its own rectangle. */
 function decodeAlpha(buf) {
   const SIG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
   if (!SIG.every((b, i) => buf[i] === b)) throw new Error("not a PNG");
@@ -44,7 +45,10 @@ function decodeAlpha(buf) {
   }
   if (!ihdr) throw new Error("PNG without IHDR");
   const { w, h, depth, ctype, interlace } = ihdr;
-  const ch = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 }[ctype];
+  const ch = { 3: 1, 4: 2, 6: 4 }[ctype];
+  if (ctype === 0 || ctype === 2 || (ctype === 3 && !trns)) {
+    throw new Error(`PNG has no alpha channel (colour type ${ctype}): export the logo on a transparent background (RGBA)`);
+  }
   if (depth !== 8 || interlace || !ch) throw new Error(`unsupported PNG (depth ${depth}, colour type ${ctype}, interlace ${interlace})`);
 
   const raw = inflateSync(Buffer.concat(idat));
@@ -76,8 +80,7 @@ function decodeAlpha(buf) {
   for (let i = 0; i < w * h; i++) {
     if (ctype === 6) alpha[i] = px[i * 4 + 3] / 255;
     else if (ctype === 4) alpha[i] = px[i * 2 + 1] / 255;
-    else if (ctype === 3) alpha[i] = (trns && px[i] < trns.length ? trns[px[i]] : 255) / 255;
-    else alpha[i] = 1;
+    else alpha[i] = (trns && px[i] < trns.length ? trns[px[i]] : 255) / 255;   // 3: palette + tRNS
   }
   return { w, h, alpha };
 }

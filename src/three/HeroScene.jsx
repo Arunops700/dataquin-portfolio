@@ -21,9 +21,14 @@ import { PAL } from "./palette.js";
   - lite (touch devices, the Work band): a transparent canvas over the
     CSS ground, native antialiasing, no post-processing.
 
-  Frameloop: "always" while on screen, "never" off it. Reduced motion
+  Frameloop: "always" while on screen, "never" off it, "demand" once the
+  idle motion has settled (the rig eases it to a stop ~5s after the last
+  scroll or pointer move, and wakes it on the next). Reduced motion
   (`still`): "demand" — a few frames to settle the lighting, then one
   frame per scroll step (the rig asks), nothing at rest.
+
+  A lost context reports `onLost("lost", canvas)` (Field retries with a
+  fresh scene); a shader that fails to compile, `onLost("shader")`.
 */
 
 const EXPOSURE = 0.95;   // ACES, as approved for the gold
@@ -53,6 +58,7 @@ export default function HeroScene({ place, settled, progress, yaw, count, target
   const rig = useRef(null);
   if (!rig.current) rig.current = createRig();
   const stepDown = useCallback(() => setTierIdx(nextTier), []);
+  const [resting, setResting] = useState(false);
 
   // R3F forces a context loss when it tears the canvas down on unmount;
   // only a loss while mounted is a failure
@@ -67,7 +73,7 @@ export default function HeroScene({ place, settled, progress, yaw, count, target
   return (
     <Canvas
       dpr={dprRange(tier, place, box)}
-      frameloop={!active ? "never" : still ? "demand" : "always"}
+      frameloop={!active ? "never" : still || resting ? "demand" : "always"}
       camera={CAMERA}
       gl={lite ? LITE_GL : COMPOSER_GL}
       resize={RESIZE}
@@ -83,9 +89,10 @@ export default function HeroScene({ place, settled, progress, yaw, count, target
           gl.setClearColor(ground, 1);
           scene.background = ground;
         }
-        gl.domElement.addEventListener(
+        const canvas = gl.domElement;
+        canvas.addEventListener(
           "webglcontextlost",
-          () => { if (alive.current) lost.current?.(); },
+          () => { if (alive.current) lost.current?.("lost", canvas); },
           { once: true }
         );
         // a program that fails to compile draws nothing, silently: the
@@ -97,7 +104,7 @@ export default function HeroScene({ place, settled, progress, yaw, count, target
             ctx.getShaderInfoLog(vs),
             ctx.getShaderInfoLog(fs)
           );
-          if (alive.current) lost.current?.();
+          if (alive.current) lost.current?.("shader");
         };
       }}
     >
@@ -111,8 +118,9 @@ export default function HeroScene({ place, settled, progress, yaw, count, target
         active={active}
         skipEntrance={place === "band"}
         win={win}
+        onRest={setResting}
       />
-      <Governor enabled={!still && active} onStepDown={stepDown} />
+      <Governor enabled={!still && active && !resting} onStepDown={stepDown} />
       <directionalLight position={[-4, 6, 8]} intensity={0.6} color={PAL.champagneHi} />
       {outers && <GoldMark outers={outers} rig={rig} lite={lite} />}
       <ParticleField count={count} targets={targets} rig={rig} tier={tier} onFirstFrame={onReady} />

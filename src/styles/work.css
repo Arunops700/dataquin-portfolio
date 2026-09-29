@@ -1,6 +1,6 @@
 /* ============================================================
-   Work page — hero index, recto/verso chapters,
-   journeys, stack, orientation. Colours come from the surface tokens
+   Work page — hero index, stack, recto/verso chapters,
+   orientation, the close. Colours come from the surface tokens
    (--fg, --accent, --rule, --foil…), so one rule reads right on a
    paper chapter and on an espresso one.
    ============================================================ */
@@ -12,7 +12,6 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   column-gap: 28px;
   margin-top: 44px;
-  max-width: min(940px, 72%); /* clear of the aside mark */
 }
 .ci-cell {
   position: relative;
@@ -443,6 +442,9 @@
   transition: opacity var(--dur) ease, transform var(--dur) var(--ease);
 }
 .ch-bar.show { opacity: 1; transform: none; }
+/* Landscape phones: no height to spare. Work.jsx (SHORT) drops the bar
+   and its anchor clearance with the same query. */
+@media (max-height: 500px) { .ch-bar { display: none; } }
 .ch-bar-in {
   height: 100%;
   display: flex;
@@ -622,9 +624,9 @@
   border-radius: 4px;
   background: var(--esp-0);
   border: 1px solid rgb(var(--gold-hi-rgb) / 0.35);
-  box-shadow: var(--shadow-node);
+  box-shadow: var(--shadow-node);   /* tight: 21 layers, each rastered with its shadow */
   will-change: transform, opacity;
-  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+  transition: border-color var(--dur-fast) ease;
 }
 .tsp-tile img { width: 24px; height: 24px; object-fit: contain; pointer-events: none; }
 .tsp-name {
@@ -642,7 +644,8 @@
   opacity: 0;
   transition: opacity var(--dur-fast) ease;
 }
-.tsp-tile.hot { border-color: var(--gold-hi); box-shadow: 0 0 0 1px var(--gold-hi), 0 0 28px rgb(var(--gold-hi-rgb) / 0.35); }
+/* lit by a ring, not a wide glow: lands at once, nothing big to raster */
+.tsp-tile.hot { border-color: var(--gold-hi); box-shadow: 0 0 0 1px var(--gold-hi), 0 0 0 4px rgb(var(--gold-hi-rgb) / 0.22), var(--shadow-node); }
 .tsp-tile.hot .tsp-name { opacity: 1; }
 
 /* The ledger: four disciplines, every tool with what we use it for */
@@ -672,9 +675,12 @@
   align-items: start;
   padding: 12px 8px 12px 0;
   border-top: 1px solid var(--rule-soft);
-  transition: background-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease, padding var(--dur) var(--ease);
+  transition: background-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
 }
-.stk-row.hot { background-color: var(--wash); box-shadow: inset 2px 0 0 var(--accent-mark); padding-left: 10px; }
+/* pointed at (hover, tap or keyboard focus — Stack.jsx): a wash and a
+   gold edge; nothing moves, so nothing lays out */
+.stk-row.hot { background-color: var(--wash); box-shadow: inset 2px 0 0 var(--accent-mark); }
+.stk-row:focus-visible { outline-offset: -2px; }
 .stk-ico {
   grid-area: ico;
   width: 36px;
@@ -694,7 +700,8 @@
 /* the two-part contents in the Work hero */
 .ch-index.toc { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: min(640px, 60%); }
 
-/* A chapter's story in two labelled parts */
+/* A chapter's story in two labelled parts. The labels (and "Tools
+   used") are h3s under the chapter's h2, set as mono labels. */
 .story-part + .story-part { margin-top: 22px; }
 .story-k {
   display: block;
@@ -707,6 +714,36 @@
   color: var(--accent);
 }
 
+/* ---------- The close: Mail / Tel beneath the button, one tap each ---------- */
+.cta-reach {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 28px;
+  margin-top: 22px;
+}
+.cta-reach a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 12px 4px;   /* 44px rows for touch */
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--fg-soft);
+  transition: color var(--dur-fast) ease;
+}
+.cta-reach a:focus-visible { color: var(--accent); }
+.cta-reach .k {
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+/* The closing band never goes live here: its glow is a still bloom */
+#work-close .cta-glow { animation: none; }
+
 /* Hover where a pointer can really hover: the keyboard-focus looks
    above. On a touch screen a tapped cell answers with the press wash
    instead of staying lit. The selected rail entry keeps its gold
@@ -715,6 +752,10 @@
   .ci-cell:hover::before { transform: scaleX(1); }
   .ci-cell:hover .ci-arr { transform: translateX(4px); }
   .rail a:not(.on):hover { color: var(--fg); }
+  .cta-reach a:hover { color: var(--accent); }
+}
+@media (hover: none) {
+  .cta-reach a:active { color: var(--accent); }
 }
 
 /* ============================================================
@@ -723,8 +764,9 @@
 @media (max-width: 1080px) {
   /* the sphere above, the ledger below it */
   .stk { grid-template-columns: 1fr; }
-  .stk-stage { position: relative; top: auto; width: min(100%, 460px); margin: 0 auto; }
-  .ch-index { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 100%; }
+  /* never taller than a landscape phone's screen */
+  .stk-stage { position: relative; top: auto; width: min(100%, 460px); width: min(100%, 460px, 80svh); margin: 0 auto; }
+  .ch-index { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   /* one column; the numeral becomes an inline row above the title and
      the chapter bar shows position instead of the track */
   .ch-grid, .chapter.verso .ch-grid { grid-template-columns: 1fr; }
@@ -750,7 +792,7 @@
   .ch-index.toc { grid-template-columns: 1fr; max-width: none; }
   .hero-work { min-height: 0; }
   /* Phones and tablets: the gilt spine index is the hero's visual */
-  .ch-index { position: relative; grid-template-columns: 1fr; max-width: none; margin-top: 36px; padding-left: 28px; }
+  .ch-index { position: relative; grid-template-columns: 1fr; margin-top: 36px; padding-left: 28px; }
   .ch-index::before {
     content: "";
     position: absolute;
@@ -820,7 +862,7 @@
 
 @media (max-width: 560px) {
   .stk-ledger { grid-template-columns: 1fr; gap: 32px; }
-  .stk-stage { width: 100%; }
+  .stk-stage { width: 100%; width: min(100%, 80svh); }
   .chapter .shead .ser { display: none; } /* the numeral carries it; no 2-line wrap */
   .met-k { letter-spacing: 0.06em; }      /* 2–3 lines at 390px, not 4–5 */
   .tool-row { grid-template-columns: 1fr; row-gap: 2px; }

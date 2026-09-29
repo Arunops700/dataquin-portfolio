@@ -26,7 +26,7 @@ import { PAL } from "./palette.js";
 
 const VERT = /* glsl */ `
   attribute vec3 aTarget;  // stroke point, mark-local (position = the entrance rows)
-  attribute vec4 aOrbit;   // the halo's drift: z = y spread, w = depth (x, y unused)
+  attribute vec2 aOrbit;   // the halo's drift: x = y spread, y = depth
   attribute vec4 aMeta;    // seed, t (0..1 across the mark), size, stroke density comp
 
   uniform float uTime, uGather, uHalo, uLeave, uCross, uSettle, uSweep, uSpeed, uMotion;
@@ -74,7 +74,7 @@ const VERT = /* glsl */ `
     float wav = 0.42 * sin(sx * 0.45 + k * 1.1 + uTime * 0.25);
     float edge = smoothstep(0.0, 0.14, u) * (1.0 - smoothstep(0.86, 1.0, u));
     // opening: loose dust drifting along the lanes
-    vec3 h = vec3(sx * 1.05, lane * 1.25 + wav * 0.8 + (aOrbit.z - 1.0) * 0.9, aOrbit.w - 0.6);
+    vec3 h = vec3(sx * 1.05, lane * 1.25 + wav * 0.8 + (aOrbit.x - 1.0) * 0.9, aOrbit.y - 0.6);
     // beat 1, precision: dead-straight, evenly ruled lines
     vec3 pr = vec3(sx, lane, z0);
     // beat 2, data through the mark: the lanes pinch together behind the DQ
@@ -121,11 +121,11 @@ const VERT = /* glsl */ `
     float onMark  = g * (1.0 - ph) * (1.0 - lv);
     float onRule  = g * lv * (1.0 - cr) * (1.0 - st);
     float onPinch = g * cr * (1.0 - st);
-    float onRing  = g * st;
+    float onWave  = g * st;
     float haloW   = ph * (1.0 - lv) * (1.0 - cr) * (1.0 - st);
 
     float px = aMeta.z * uPixelRatio * (46.0 / -mv.z)
-             * (0.8 + 0.45 * onMark - 0.2 * onRing - 0.15 * onRule - 0.1 * onPinch) * (1.0 - 0.35 * haloW);
+             * (0.8 + 0.45 * onMark - 0.2 * onWave - 0.15 * onRule - 0.1 * onPinch) * (1.0 - 0.35 * haloW);
     float comp = clamp(px / 1.4, 0.3, 1.0);                  // sub-pixel grains fade instead of shimmering
     px = max(px, 1.4);
     gl_PointSize = px * vStretch;
@@ -136,7 +136,7 @@ const VERT = /* glsl */ `
     vGlow = onMark * fall(0.0, 0.22, wave)
           + onRule * scan * 0.8
           + onPinch * pin * (0.3 + 0.5 * uSpeed)
-          + onRing * sweep;
+          + onWave * sweep;
     vMark = onMark;
 
     vec2 ndc = gl_Position.xy / gl_Position.w;
@@ -146,8 +146,8 @@ const VERT = /* glsl */ `
     vAlpha = (0.22 + 0.08 * onMark + 0.16 * vGlow)
            * mix(1.0, aMeta.w, onMark)                       // dense strokes do not burn to white
            * (1.0 - 0.6 * haloW)                             // the halo is dust, not a cloud
-           * mix(1.0, 0.8, onRing)
-           * mix(1.0, edge, max(max(onRing, haloW), max(onRule, onPinch)))   // no pop where a lane loops
+           * mix(1.0, 0.8, onWave)
+           * mix(1.0, edge, max(max(onWave, haloW), max(onRule, onPinch)))   // no pop where a lane loops
            * (1.0 - inLane)
            * uDensity * comp / mix(1.0, vStretch, 0.5);      // a streak spreads the same light
   }
@@ -186,7 +186,7 @@ export default function ParticleField({ count, targets, rig, tier, onFirstFrame 
     const g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.BufferAttribute(attrs.rows, 3));
     g.setAttribute("aTarget", new THREE.BufferAttribute(attrs.target, 3));
-    g.setAttribute("aOrbit", new THREE.BufferAttribute(attrs.orbit, 4));
+    g.setAttribute("aOrbit", new THREE.BufferAttribute(attrs.orbit, 2));
     g.setAttribute("aMeta", new THREE.BufferAttribute(attrs.meta, 4));
     return g;
   }, [attrs]);

@@ -114,8 +114,8 @@ function sample(s, count, seed) {
 }
 
 /* The mark's pose as the rig plays it: at rest it is turned `yaw` (a 3/4
-   view); idle sway and the pointer turn it by up to `lean` either way. */
-export const POSE = { yaw: 0.2, lean: 0.255 };
+   view); idle sway and the pointer turn it from there. */
+export const POSE = { yaw: 0.2 };
 
 /* Where the formed mark sits, by the shape of the window it is seen in
    (the drawn mark is about 4.4 × 4.6 world units at scale 1). `win` is
@@ -153,7 +153,7 @@ export function logoPlacement(aspect, place = "hero", win = 0) {
   }
   if (aspect >= 0.8 && width > 860) return { ...besideCopy(width, win, reach(), 1.0), y: 0.3 };
   if (aspect >= 0.8 && !win) return { scale: 1.0, x: 1.8, y: 0.8, alpha: 0.9 };
-  return phonePlacement(win);
+  return phonePlacement(width, win);
 }
 
 const wrapOf = (width) => (width > 860 ? Math.min(1200, width - 88) : width - 44);   // .wrap
@@ -173,14 +173,18 @@ function besideCopy(width, win, reach, max) {
    titles starting about 108px above the middle. The mark's lowest point
    stays 10px above them (idle bob and the result's 3% swell included). It
    shrinks only where that would leave less than 65% of it below the
-   topbar (~62px); without a window height, the tall-phone values. */
-function phonePlacement(win) {
+   topbar (~62px), and moves in from the right only as far as it must to
+   keep its right edge 12px inside the window (its right half is 2.21
+   units; 2.3 covers the 3% swell and its depth in perspective). Without a
+   window height, the tall-phone values. */
+function phonePlacement(width, win) {
   const H0 = halfHeightAt(0);
   const k = win / (2 * H0);   // CSS px per world unit at the mark's depth
   const base = { scale: 0.62, x: 1.9, y: 2.6, alpha: 0.6 };
   if (!(k > 0)) return base;
   const scale = Math.max(0.4, Math.min(0.62, (H0 - 180 / k - 0.05) / 3.09));
-  return { ...base, scale, y: 118 / k + 2.37 * scale + 0.05 };
+  const x = Math.min(base.x, (width / 2 - 12) / k - 2.3 * scale);
+  return { ...base, scale, x, y: 118 / k + 2.37 * scale + 0.05 };
 }
 
 /* The copy lane, for a window of `width` × `win` CSS px (its `aspect`)

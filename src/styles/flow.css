@@ -10,7 +10,7 @@
    parent, so the panel's own transform can settle to `none`: crisp
    text and no lingering compositor layer once it lies flat. */
 .flow-lift.reveal,
-.flow-lift.reveal[data-in] { transform: none; filter: none; perspective: 1600px; perspective-origin: 50% 100%; }
+.flow-lift.reveal[data-in] { transform: none; perspective: 1600px; perspective-origin: 50% 100%; }
 
 .flow-panel {
   --fp-ground: var(--esp-3);
@@ -19,10 +19,13 @@
   --fp-border: rgb(var(--gold-hi-rgb) / 0.32);
   --fp-node: var(--node);
   --fp-node-border: rgb(var(--gold-hi-rgb) / 0.28);
+  /* tight shadows: a panel holds up to a dozen nodes, and wide blurs
+     made each one costly to raster while the diagram scrolls in (the
+     token is the same tight shadow as the stack sphere's tiles) */
   --fp-node-shadow: var(--shadow-node);
   --fp-lit: var(--gold-hi);
   --fp-ring: rgb(var(--gold-hi-rgb) / 0.22);
-  --fp-glow: 0 0 30px rgb(var(--gold-hi-rgb) / 0.16);
+  --fp-glow: 0 0 12px rgb(var(--gold-hi-rgb) / 0.2);
   --fp-t: var(--ivory);
   --fp-s: var(--ivory-soft);
   --fp-end: var(--foil-lux);
@@ -75,10 +78,10 @@
   --fp-border: rgb(var(--gold-hi-rgb) / 0.5);
   --fp-node: var(--paper-2);
   --fp-node-border: rgb(var(--ink-rgb) / 0.25);
-  --fp-node-shadow: 0 6px 16px rgb(var(--shadow-rgb) / 0.12);
+  --fp-node-shadow: 0 3px 8px rgb(var(--shadow-rgb) / 0.12);
   --fp-lit: var(--gold);
   --fp-ring: rgb(var(--gold-rgb) / 0.2);
-  --fp-glow: 0 8px 20px rgb(var(--shadow-rgb) / 0.14);
+  --fp-glow: 0 4px 10px rgb(var(--shadow-rgb) / 0.14);
   --fp-t: var(--ink);
   --fp-s: var(--ink-soft);
   --fp-end: var(--foil-ink);
@@ -202,6 +205,9 @@
   /* Above the node faces: connectors only travel the gutters, and a
      loop's label must never be clipped behind a node. */
   z-index: 2;
+  /* its own layer: the scroll-drawn lines repaint only themselves, not
+     the whole panel (grid, gradient, node shadows) on every frame */
+  will-change: transform;
 }
 
 .fnode {
@@ -217,7 +223,9 @@
   border-radius: 4px;
   background: var(--fp-node);
   box-shadow: var(--fp-node-shadow);
-  transition: border-color 0.4s ease, box-shadow 0.5s ease;
+  /* the border fades; the ring lands at once (a fading shadow re-rasters
+     the node on every frame of the fade) */
+  transition: border-color 0.4s ease;
 }
 /* Lit by the scroll-driven flow: the data has reached this node */
 .fnode[data-lit] {
@@ -230,7 +238,7 @@
   background:
     linear-gradient(var(--fp-node), var(--fp-node)) padding-box,
     var(--fp-end) border-box;
-  box-shadow: 0 0 34px var(--fp-halo), var(--fp-node-shadow);
+  box-shadow: 0 0 14px var(--fp-halo), var(--fp-node-shadow);
 }
 .fnode.end[data-lit] { box-shadow: 0 0 0 3px var(--fp-ring), var(--fp-glow), var(--fp-node-shadow); }
 .fnode.end .ft { color: var(--fp-end-t); }

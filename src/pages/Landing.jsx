@@ -25,8 +25,10 @@ import { PAGE_META, usePageMeta } from "../seo.js";
 
 /* A faded layer stays in the accessibility tree — the h1 and the beat
    headings are always readable — and only its links and buttons leave
-   the tab order while it is hidden. Written to the DOM directly, so
-   scrolling never re-renders React. */
+   the tab order while it is hidden. A link or button that still has
+   focus as its layer fades (the reader scrolled on with the keyboard)
+   lets it go, so focus never sits on an invisible control. Written to
+   the DOM directly, so scrolling never re-renders React. */
 function useHiddenLayer(opacity) {
   const ref = useRef(null);
   const apply = (v) => {
@@ -39,6 +41,8 @@ function useHiddenLayer(opacity) {
       if (hidden === "true") a.setAttribute("tabindex", "-1");
       else a.removeAttribute("tabindex");
     });
+    const f = document.activeElement;
+    if (hidden === "true" && el.contains(f) && f.matches("a, button")) f.blur();
   };
   useMotionValueEvent(opacity, "change", apply);
   useEffect(() => apply(opacity.get()), [opacity]);
@@ -253,7 +257,8 @@ function HeroStory() {
    SERVICES — the pillars on a track that travels sideways as the
    reader scrolls down. Focus sweeps across them: the current pillar
    carries a foil rule, each numeral inks once reached and stays inked,
-   and a counter rolls between whole steps. At 860px and below it is a
+   and a counter rolls between whole steps. At 860px and below, and on
+   short landscape screens (a pinned strip would overflow them), it is a
    native swipe track with snap points, a counter and arrows — the
    strip scrolls inside itself, never the page.
    ============================================================ */
@@ -329,18 +334,21 @@ function ServicesStrip() {
   const scrollerRef = useRef(null);
   const prevRef = useRef(null);
   const nextRef = useRef(null);
-  const wide = useMedia(MQ.aboveTablet);
+  // the pinned travel needs a desktop-sized screen both ways
+  const aboveTablet = useMedia(MQ.aboveTablet);
+  const short = useMedia(MQ.short);
+  const wide = aboveTablet && !short;
   const still = useReducedMotion();
   const [shift, setShift] = useState(0);
 
   useEffect(() => {
     // travel exactly far enough that the last pillar ends on the right
-    // gutter, mirroring the left one
+    // gutter, mirroring the left one (the track's own left padding)
     const measure = () => {
       const t = trackRef.current;
       const s = stageRef.current;
       if (!t || !s) return;
-      const gutter = Math.max(44, (s.clientWidth - 1200) / 2);
+      const gutter = parseFloat(getComputedStyle(t).paddingLeft) || 0;
       setShift(Math.max(0, t.scrollWidth - s.clientWidth + gutter));
     };
     measure();

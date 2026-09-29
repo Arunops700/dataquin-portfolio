@@ -15,13 +15,12 @@
 */
 export const STUDIES = [
   {
-    id: "teammate",
+    id: "integration",
     num: "01",
     type: "System Integration",
     title: "Cross-System Data Integration",
     tagline: "Project financials that sync themselves between two disconnected platforms",
     card: {
-      line: "Two disconnected platforms, one automated bridge — project financials sync themselves.",
       metric: "0 manual entry",
     },
     intro: [
@@ -78,7 +77,6 @@ export const STUDIES = [
     title: "AI-Accelerated BI Delivery",
     tagline: "A plain-English request in — a secure, ready-to-use dashboard out",
     card: {
-      line: "A plain-English request becomes a fully secured, ready-to-use dashboard — no developer queue.",
       metric: "days → <4 hrs",
     },
     intro: [
@@ -131,7 +129,6 @@ export const STUDIES = [
     title: "AI-Based Alerting Automation",
     tagline: "Rules find the fraud, AI writes the report — and the alert lands in your inbox",
     card: {
-      line: "Fraud conditions scan the full dataset; every detection becomes an AI-written report and an alert mail, automatically.",
       metric: "detection → inbox",
     },
     intro: [
@@ -183,7 +180,6 @@ export const STUDIES = [
     title: "EngageAI — Client Activity Reporting",
     tagline: "Sent mail, calls & meetings become an automated weekly client report",
     card: {
-      line: "Sent mail, calls and meetings become a polished, classified weekly client report.",
       metric: "<3h weekly",
     },
     intro: [
@@ -238,7 +234,6 @@ export const STUDIES = [
     title: "Centralized Power BI Reporting",
     tagline: "SQL Server and Excel data, combined into Power BI reports everyone can rely on",
     card: {
-      line: "Data from SQL Server and Excel, combined into one Power BI model — every report from one place.",
       metric: "2 sources → 1 model",
     },
     intro: [
@@ -287,7 +282,6 @@ export const STUDIES = [
     title: "AI Documentation Coworker",
     tagline: "A skill-based AI agent that writes and maintains report documentation, straight into Confluence",
     card: {
-      line: "Gathers requirements in plain language, picks the right skill, and documents reports in Confluence via MCP.",
       metric: "hours → minutes",
     },
     intro: [

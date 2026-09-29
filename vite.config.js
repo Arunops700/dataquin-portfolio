@@ -1,8 +1,16 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+/* index.html carries maintenance notes as HTML comments; they stay in the
+   source and are dropped from the built page, so View Source shows none. */
+const stripHtmlComments = {
+  name: "strip-html-comments",
+  apply: "build",
+  transformIndexHtml: { order: "post", handler: (html) => html.replace(/<!--[\s\S]*?-->\s*/g, "") },
+};
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), stripHtmlComments],
   build: {
     // The WebGL scene (three + React Three Fiber) is lazy-loaded from
     // Field.jsx and is expected to be a large chunk; the warning would

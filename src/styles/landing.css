@@ -69,7 +69,10 @@
 /* Beats: a static, viewport-tall frame anchored to the stage's foot —
    the visible window, even when a tall stage sticks with a negative
    top. Only the inner layer fades; the title rows rise through their
-   own masks on the same scroll progress. */
+   own masks on the same scroll progress. The frame keeps the topbar's
+   clearance at its head and as much again at its foot, so a beat stays
+   centred on the screen; `safe` lets a beat taller than the room left
+   (a landscape phone) run off the foot, never up under the bar. */
 .beat {
   position: absolute;
   left: 0;
@@ -77,8 +80,10 @@
   bottom: 0;
   height: 100vh;
   height: 100svh;
+  padding-block: var(--bar-clear);
   display: flex;
   align-items: center;
+  align-items: safe center;
   z-index: 2;
   pointer-events: none;
 }
@@ -93,9 +98,8 @@
   transform-origin: 0 50%;
 }
 /* Each row sets on one line on desktop, so the heading reads as two
-   rows like the headline. The longest row ("Every week, someone
-   re-types") measures 833px at the 64px top size, inside the 860px
-   measure; at the old 4.4rem it wrapped to a third line from 1366px. */
+   rows like the headline: every row is a short phrase, inside the
+   860px measure at the 64px top size. */
 .beat-t {
   font-family: var(--font-head);
   font-size: clamp(2rem, 5vw, 4rem);
@@ -219,7 +223,7 @@
 .strip-track {
   display: flex;
   width: max-content;
-  padding-left: max(44px, calc((100% - 1200px) / 2));
+  padding-left: max(var(--gutter), calc((100% - 1200px) / 2));   /* on the .wrap's left edge */
   will-change: transform;
 }
 .pillar {
@@ -493,10 +497,20 @@
   .strip-stage { gap: 22px; padding-top: 76px; }
 }
 @media (max-height: 640px) { .story-index { display: none; } }
+/* Landscape phones: the beat's copy tightens to fit under the bar */
+@media (max-height: 500px) {
+  .beat { padding-bottom: 16px; }
+  .beat-t { margin-top: 14px; }
+  .beat-s { margin-top: 14px; font-size: 0.95rem; line-height: 1.5; }
+  .beat-cta { margin-top: 20px; }
+}
 
-/* While the track travels, the travel paces the pillars: no stagger */
 @media not all and (max-width: 860px) {
-  .strip-clip .reveal { --reveal-delay: 0s; }
+  /* While the track travels (never on a short landscape screen, which
+     swipes), the travel paces the pillars: no stagger */
+  @media not all and (max-height: 500px) {
+    .strip-clip .reveal { --reveal-delay: 0s; }
+  }
   /* the meta rule and credentials keep to the h1's lane: full width,
      their right end sat on the mark's top arc (1920x1080, 1280x1024) */
   .stage .hero-meta, .stage .hero-creds { max-width: 800px; }
@@ -509,8 +523,18 @@
 @media (max-width: 860px) {
   .stage .cred + .cred::before { left: 0; }
 
-  /* Services: a native swipe track with snap points inside the strip —
-     the page itself is never hijacked */
+  .step-row { grid-template-columns: 64px 1fr; row-gap: 8px; padding: 26px 8px 26px 0; }
+  .step-s { grid-column: 2; }
+  .stack-rows { --spine-x: calc(64px + 13px); }
+  .stack-tab { grid-template-columns: 64px 1fr auto; padding-right: 8px; }
+}
+
+/* Services: a native swipe track with snap points inside the strip —
+   the page itself is never hijacked. Phones, and landscape phones too
+   wide for the width query but too short for the pinned strip (the JS
+   side is `wide` in Landing.jsx). The track's inset follows the .wrap
+   gutter. */
+@media (max-width: 860px), (max-height: 500px) {
   .strip-sec { height: auto; padding: 76px 0 64px; }
   .strip-stage { position: static; height: auto; overflow: visible; padding-top: 0; gap: 26px; }
   .strip-clip { -webkit-mask-image: none; mask-image: none; }
@@ -518,7 +542,7 @@
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
-    scroll-padding-inline: 22px;
+    scroll-padding-inline: var(--gutter);
     overscroll-behavior-x: contain;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
@@ -527,7 +551,7 @@
   .strip-scroller:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
   /* a stale desktop x must never survive a resize; the 2px top padding
      keeps the foil rule clear of the scroller's clip */
-  .strip-track { gap: 18px; width: max-content; padding: 2px 22px 0; transform: none !important; }
+  .strip-track { gap: 18px; width: max-content; padding: 2px var(--gutter) 0; transform: none !important; }
   /* pillars swiped into view fade in place: a rise would be clipped */
   .strip-scroller .reveal { transform: none; }
   .pillar,
@@ -562,13 +586,8 @@
      only its glyph and border dim, never its focus ring */
   .sm-btn[aria-disabled="true"] { cursor: default; border-color: var(--rule-soft); }
   .sm-btn[aria-disabled="true"] > span { opacity: 0.35; }
-
-  .step-row { grid-template-columns: 64px 1fr; row-gap: 8px; padding: 26px 8px 26px 0; }
-  .step-s { grid-column: 2; }
-  .stack-rows { --spine-x: calc(64px + 13px); }
-  .stack-tab { grid-template-columns: 64px 1fr auto; padding-right: 8px; }
 }
-@media (max-width: 860px) and (hover: hover) {
+@media (max-width: 860px) and (hover: hover), (max-height: 500px) and (hover: hover) {
   .sm-btn:not([aria-disabled="true"]):hover {
     border-color: var(--accent-mark);
     color: var(--accent);

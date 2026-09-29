@@ -1,5 +1,6 @@
 /* ---------- Global fixed layers ---------- */
-/* Film grain over everything */
+/* Film grain over everything (mouse screens only: App.jsx doesn't
+   mount a full-screen layer on touch screens) */
 .grain {
   position: fixed;
   inset: 0;
@@ -99,7 +100,7 @@
 }
 .topbar-in { display: flex; align-items: center; justify-content: space-between; gap: clamp(8px, 3vw, 20px); }
 /* The mark is present at every width. On the narrowest phones it is
-   also the one item allowed to give way (down to 36px), so the three
+   also the one item allowed to give way (down to 36px), so the nav
    labels always fit on one row. */
 .brand { display: block; flex: 0 1 auto; min-width: 36px; width: 84px; }
 .brand-logo {
@@ -160,6 +161,9 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+/* A lazy page on its way (App.jsx): nothing to see, but a screen tall,
+   so the footer doesn't flash up under the topbar */
+.page-pending { min-height: 100vh; min-height: 100svh; }
 
 /* ============================================================
    Footer — the sign-off
@@ -189,7 +193,10 @@
   html:has(.ch-bar.show) .topbar.scrolled { background-color: rgb(var(--esp-rgb) / 0.96); }
 }
 
-@media (max-width: 860px) {
+/* The compact bar: phones, and landscape phones, where the full bar
+   would take a sixth of the screen. html's --bar-clear (base.css)
+   follows the same query. */
+@media (max-width: 860px), (max-height: 500px) {
   .topbar { padding: 12px 0; }
   .topbar.scrolled { padding: 9px 0; }
   /* 66px from ~364px up, ~54px at 320, ~42px at 280; tracking eases off
@@ -197,10 +204,9 @@
   .brand { width: clamp(42px, calc(28vw - 36px), 66px); }
   .topbar nav { gap: clamp(10px, 3.6vw, 16px); }
   .topbar nav a { letter-spacing: clamp(0px, calc((100vw - 280px) * 0.011), 0.1em); }
-  .footer { padding: 52px 0 60px; }
 }
-
-@media (max-width: 560px) {
+@media (max-width: 860px) {
+  .footer { padding: 52px 0 60px; }
 }
 
 /* Hover only where a pointer really hovers. On a touch screen a tapped

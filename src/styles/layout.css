@@ -1,7 +1,13 @@
 /* ============================================================
    Bands & layout
    ============================================================ */
-.wrap { width: min(1200px, calc(100% - 88px)); margin: 0 auto; }
+/* Side gutters: 44px, 22px at 860px and below, and never less than a
+   notched screen's safe area in landscape (index.html asks for
+   viewport-fit=cover; the insets are 0 everywhere else). One value for
+   both sides keeps the column centred; the bands themselves still
+   paint edge to edge, under the notch. */
+:root { --gutter: max(44px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)); }
+.wrap { width: min(1200px, calc(100% - 2 * var(--gutter))); margin: 0 auto; }
 
 .band { background: var(--paper); color: var(--ink); position: relative; }
 .band.deep { background: var(--paper-2); }
@@ -89,7 +95,7 @@
 .sec-intro .lead { margin-top: 16px; }
 
 @media (max-width: 860px) {
-  .wrap { width: calc(100% - 44px); }
+  :root { --gutter: max(22px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)); }
   .pad { padding: 76px 0; }
   .pad-b { padding-bottom: 76px; }
   .pad-s { padding: 56px 0; }
