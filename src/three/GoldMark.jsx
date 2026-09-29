@@ -1,30 +1,24 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { logoPlacement } from "./logo.js";
+import { toCreasedNormals } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { bakeStudio } from "./studio.js";
+import { PAL } from "./palette.js";
 
 /*
-  The solid DQ mark: the traced logo outline extruded into a bevelled
-  gold object, lit by an environment map so it carries real
-  reflections. It materialises through the particles (opacity/scale
-  driven by the shared timeline) and then idles: a slow sway, a light
-  that travels round it (environment rotation), pointer parallax.
+  The solid DQ mark: the logo outline extruded into a bevelled gold
+  object, lit by the palette studio (studio.js) so it carries real
+  reflections.
 
-  `timeline.start` is stamped by the first frame of the scene; the
-  mark fades in between MATERIALISE_AT and MATERIALISE_AT + MATERIALISE.
+  It is opaque from the first frame. It forms by dissolving in left to
+  right behind the gathering grains — a grainy front with a hot cream
+  edge — rather than fading through transparency (which showed the walls
+  through the face). The pose, the light and the sweep all come from the
+  rig; this component only copies them.
 */
-
-export const GATHER = 2.2;       // seconds the particles take to gather
-export const MATERIALISE = 1.2;  // seconds the solid mark takes to appear
-
-const GOLD = new THREE.Color("#b08a48");
-
-export default function GoldMark({ outers, place = "hero", timeline, still = false, progress }) {
+export default function GoldMark({ outers, rig, lite }) {
   const group = useRef(null);
-  const inner = useRef(null);
-  const { scene, gl, viewport, invalidate } = useThree();
-  const mouse = useRef({ x: 0, y: 0 });
+  const { gl, invalidate } = useThree();
 
   const geometry = useMemo(() => {
     const shapes = outers.map((o) => {
@@ -41,93 +35,117 @@ export default function GoldMark({ outers, place = "hero", timeline, still = fal
       bevelSegments: 3,
       curveSegments: 6,
     });
-    // keep x/y as traced (centred on the image centre, like the
-    // particle targets); only centre the extrusion depth
+    // keep x/y as traced (centred like the grain targets); centre the depth
     g.translate(0, 0, -0.15);
-    return g;
+    // smooth across the bevel's joints (they turn up to ~33°), keep the
+    // letter corners (45°+) crisp
+    const creased = toCreasedNormals(g, 0.7);
+    creased.computeBoundingBox();
+    return creased;
   }, [outers]);
 
-  const material = useMemo(
-    () =>
-      new THREE.MeshPhysicalMaterial({
-        color: GOLD,
-        metalness: 1,
-        roughness: 0.38,
-        clearcoat: 0.35,
-        clearcoatRoughness: 0.3,
-        envMapIntensity: 0.75,
-        emissive: new THREE.Color("#3a2a12"),
-        emissiveIntensity: 0.16,
-        transparent: true,
-        opacity: still ? 1 : 0,
-      }),
-    [still]
+  // shared with the shader; updated in place every frame
+  const U = useMemo(
+    () => ({
+      uReveal: { value: 1 },
+      uSweep: { value: -1 },
+      uSweepAmt: { value: 0 },
+      uEdge: { value: new THREE.Color(PAL.champagneHi) },
+      uSpan: { value: new THREE.Vector2(-2.2, 4.4) },   // the mark's x extent: 0..1 across it
+    }),
+    []
   );
 
-  // Environment lighting: a neutral studio room, pre-filtered once.
-  useEffect(() => {
-    const pmrem = new THREE.PMREMGenerator(gl);
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    scene.environment = env;
-    scene.environmentRotation = new THREE.Euler(0, 0, 0);
-    invalidate(); // still mode renders on demand — draw again now that it is lit
+  const material = useMemo(() => {
+    const m = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color(PAL.gold),
+      metalness: 1,
+      roughness: 0.3,
+      clearcoat: 0.6,             // a crisp lacquer highlight over the metal
+      clearcoatRoughness: 0.1,
+      envMapIntensity: 1,
+      emissive: new THREE.Color(PAL.gold),
+      emissiveIntensity: 0.02,
+    });
+    m.onBeforeCompile = (sh) => {
+      Object.assign(sh.uniforms, U);
+      sh.vertexShader = sh.vertexShader
+        .replace("#include <common>", "#include <common>\nvarying vec3 vObj;")
+        .replace("#include <begin_vertex>", "#include <begin_vertex>\nvObj = position;");
+      sh.fragmentShader = sh.fragmentShader
+        .replace(
+          "#include <common>",
+          `#include <common>
+          varying vec3 vObj;
+          uniform float uReveal; uniform float uSweep; uniform float uSweepAmt;
+          uniform vec3 uEdge; uniform vec2 uSpan;
+          float dqHash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }`
+        )
+        .replace(
+          "#include <clipping_planes_fragment>",
+          `#include <clipping_planes_fragment>
+          float dqX = (vObj.x - uSpan.x) / uSpan.y + vObj.y * 0.02;            // 0..1 across, slightly diagonal
+          float dqK = dqX + (dqHash(floor(vObj.xy * 40.0)) - 0.5) * 0.05;      // a grainy front, like settling dust
+          float dqFront = uReveal * 1.2 - 0.1;
+          if (uReveal < 0.999 && dqK > dqFront) discard;`
+        )
+        .replace(
+          "#include <emissivemap_fragment>",
+          `#include <emissivemap_fragment>
+          float dqEdge = smoothstep(dqFront - 0.035, dqFront, dqK) * step(uReveal, 0.999);
+          float dqQ = (dqX - uSweep) / 0.055;
+          float dqBand = exp(-dqQ * dqQ);
+          float dqRim = 1.0 - abs(dot(normal, normalize(vViewPosition)));      // bevels catch more of the sweep
+          totalEmissiveRadiance += uEdge * (dqEdge * 2.2 + dqBand * uSweepAmt * (0.3 + 0.9 * dqRim));`
+        );
+    };
+    m.customProgramCacheKey = () => "dq-gold-1";
+    return m;
+  }, [U]);
+
+  useLayoutEffect(() => {
+    const bb = geometry.boundingBox;
+    U.uSpan.value.set(bb.min.x, Math.max(1e-3, bb.max.x - bb.min.x));
+  }, [geometry, U]);
+
+  // The studio light, baked once, on the material itself: with a scene
+  // environment three takes the intensity from the scene and ignores the
+  // material's, and the rig dims the light per beat. A layout effect, so
+  // no frame ever shows the metal unlit.
+  useLayoutEffect(() => {
+    const rt = bakeStudio(gl, lite ? 128 : 256);
+    material.envMap = rt.texture;
+    material.needsUpdate = true;
+    invalidate();   // reduced motion renders on demand — draw again, now lit
     return () => {
-      scene.environment = null;
-      env.dispose();
-      pmrem.dispose();
+      material.envMap = null;
+      rt.dispose();
     };
-  }, [gl, scene, invalidate]);
+  }, [gl, material, invalidate, lite]);
 
-  useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  useEffect(() => () => material.dispose(), [material]);
 
-  useEffect(() => {
-    if (still || window.matchMedia("(pointer: coarse)").matches) return;
-    const onMove = (e) => {
-      mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.current.y = (e.clientY / window.innerHeight) * 2 - 1;
-    };
-    window.addEventListener("mousemove", onMove, { passive: true });
-    return () => window.removeEventListener("mousemove", onMove);
-  }, [still]);
-
-  useFrame((state, dt) => {
+  useFrame(() => {
+    const r = rig.current;
     const g = group.current;
-    const m = inner.current;
-    if (!g || !m) return;
-    const pl = logoPlacement(viewport.aspect, place);
-    g.position.set(pl.x, pl.y, 0);
-    const now = state.clock.elapsedTime;
-    const t0 = timeline.current.start ?? now;
-    const age = now - t0;
-
-    // materialise through the particles
-    const f = still ? 1 : Math.min(1, Math.max(0, (age - GATHER) / MATERIALISE));
-    const ease = f * f * (3 - 2 * f);
-    material.opacity = ease * (pl.alpha ?? 1);
-    const pop = 0.94 + 0.06 * ease;
-    g.scale.setScalar(pl.scale * pop);
-
-    // scroll: the story turns the mark a little, eases it back, lifts it
-    const sc = progress ? progress.get() : 0;
-    const k = Math.min(1, dt * 2.5);
-    const sway = still ? 0 : Math.sin(now * 0.35) * 0.06;
-    const tx = -0.12 + (still ? 0 : -mouse.current.y * 0.08);
-    const ty = 0.2 + sway + (still ? 0 : mouse.current.x * 0.14) - sc * 0.35;
-    m.rotation.x += (tx - m.rotation.x) * k;
-    m.rotation.y += (ty - m.rotation.y) * k;
-    g.position.y += sc * 0.9;
-    const back = 1 - sc * 0.16;
-    g.scale.multiplyScalar(back);
-
-    // a light travelling round the mark: rotate the environment slowly
-    if (!still && scene.environmentRotation) scene.environmentRotation.y = now * 0.12;
+    if (!g) return;
+    g.matrix.copy(r.mark.matrix);
+    g.matrixWorldNeedsUpdate = true;
+    g.visible = r.reveal > 0;
+    material.roughness = r.mat.roughness;
+    material.envMapIntensity = r.mat.env;
+    material.envMapRotation.y = r.envRot;
+    material.clearcoat = r.mat.clearcoat;
+    material.emissiveIntensity = r.mat.emissive;
+    U.uReveal.value = r.reveal;
+    U.uSweep.value = r.sweep;
+    U.uSweepAmt.value = r.sweepAmt;
   });
 
   return (
-    <group ref={group}>
-      <group ref={inner}>
-        <mesh geometry={geometry} material={material} />
-      </group>
+    <group ref={group} matrixAutoUpdate={false}>
+      <mesh geometry={geometry} material={material} />
     </group>
   );
 }

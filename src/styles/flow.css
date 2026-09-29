@@ -1,0 +1,371 @@
+/* ============================================================
+   Flow panel — the case study's centrepiece. Always the opposite
+   tone of its band: the dark machine room on a paper chapter, a paper
+   blueprint on an espresso one. One set of rules, two tones: every
+   colour below is an --fp-* variable. Designed to look engineered
+   even with every animation off.
+   ============================================================ */
+.flow-frame { margin-top: 56px; }
+/* Opacity-only reveal. The perspective lives here, on the panel's
+   parent, so the panel's own transform can settle to `none`: crisp
+   text and no lingering compositor layer once it lies flat. */
+.flow-lift.reveal,
+.flow-lift.reveal[data-in] { transform: none; filter: none; perspective: 1600px; perspective-origin: 50% 100%; }
+
+.flow-panel {
+  --fp-ground: var(--esp-3);
+  --fp-grid: rgb(var(--gold-hi-rgb) / 0.045);
+  --fp-light: rgb(var(--gold-hi-rgb) / 0.1);
+  --fp-border: rgb(var(--gold-hi-rgb) / 0.32);
+  --fp-node: var(--node);
+  --fp-node-border: rgb(var(--gold-hi-rgb) / 0.28);
+  --fp-node-shadow: var(--shadow-node);
+  --fp-lit: var(--gold-hi);
+  --fp-ring: rgb(var(--gold-hi-rgb) / 0.22);
+  --fp-glow: 0 0 30px rgb(var(--gold-hi-rgb) / 0.16);
+  --fp-t: var(--ivory);
+  --fp-s: var(--ivory-soft);
+  --fp-end: var(--foil-lux);
+  --fp-end-t: var(--champagne);
+  --fp-label: var(--gold-hi);
+  --fp-stage: rgb(var(--gold-hi-rgb) / 0.82);
+  --fp-tick: rgb(var(--gold-hi-rgb) / 0.55);
+  --fp-rule: rgb(var(--gold-hi-rgb) / 0.16);
+  --fp-line: rgb(var(--gold-hi-rgb) / 0.75);
+  --fp-line-solid: var(--gold-hi);
+  --fp-halo: rgb(var(--gold-hi-rgb) / 0.16);
+  --fp-pulse: var(--champagne-hi);
+  --fp-pulse-halo: var(--glint-halo);
+  --fp-shadow: var(--shadow-panel);
+  --fp-inset: rgb(var(--gold-hi-rgb) / 0.18);
+
+  position: relative;
+  transform-origin: 50% 100%;
+  border: 1px solid var(--fp-border);
+  border-radius: 4px;
+  color: var(--fp-t);
+  background-color: var(--fp-ground);
+  background-image:
+    radial-gradient(56rem 26rem at 12% -10%, var(--fp-light), transparent 62%),
+    linear-gradient(var(--fp-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--fp-grid) 1px, transparent 1px);
+  background-size: auto, 26px 26px, 26px 26px;
+  box-shadow: inset 0 1px 0 var(--fp-inset), var(--fp-shadow);
+  padding: 24px clamp(20px, 1.8vw, 30px) 30px;
+}
+/* The blueprint: paper on espresso. tokens.css makes .flow-panel a dark
+   surface; this sheet re-scopes the surface tokens back to paper. */
+.flow-panel.is-paper {
+  --fg: var(--ink);
+  --fg-soft: var(--ink-soft);
+  --fg-faint: var(--ink-faint);
+  --accent: var(--gold-deep);
+  --accent-mark: var(--gold);
+  --line: rgb(var(--ink-rgb) / 0.35);
+  --rule-soft: rgb(var(--ink-rgb) / 0.14);
+  --rule: rgb(var(--ink-rgb) / 0.2);
+  --rule-strong: rgb(var(--ink-rgb) / 0.25);
+  --wash: rgb(var(--gold-rgb) / 0.07);
+  --foil: var(--foil-ink);
+  --focus: var(--gold-deep);
+
+  --fp-ground: var(--paper);
+  --fp-grid: rgb(var(--ink-rgb) / 0.05);
+  --fp-light: rgb(var(--gold-rgb) / 0.1);
+  --fp-border: rgb(var(--gold-hi-rgb) / 0.5);
+  --fp-node: var(--paper-2);
+  --fp-node-border: rgb(var(--ink-rgb) / 0.25);
+  --fp-node-shadow: 0 6px 16px rgb(var(--shadow-rgb) / 0.12);
+  --fp-lit: var(--gold);
+  --fp-ring: rgb(var(--gold-rgb) / 0.2);
+  --fp-glow: 0 8px 20px rgb(var(--shadow-rgb) / 0.14);
+  --fp-t: var(--ink);
+  --fp-s: var(--ink-soft);
+  --fp-end: var(--foil-ink);
+  --fp-end-t: var(--ink);
+  --fp-label: var(--gold-deep);
+  --fp-stage: var(--gold-deep);
+  --fp-tick: rgb(var(--gold-deep-rgb) / 0.6);
+  --fp-rule: rgb(var(--ink-rgb) / 0.2);
+  --fp-line: rgb(var(--gold-deep-rgb) / 0.85);
+  --fp-line-solid: var(--gold-deep);
+  --fp-halo: rgb(var(--gold-rgb) / 0.16);
+  --fp-pulse: var(--gold);
+  --fp-pulse-halo: rgb(var(--gold-rgb) / 0.25);
+  /* a shadow darker than the espresso desk it lies on (an espresso-tinted
+     one is the band's own colour and would render nothing) */
+  --fp-shadow: var(--shadow-bar);
+  --fp-inset: rgb(var(--gold-hi-rgb) / 0.35);
+}
+
+/* Panel head: the label and the stage/component count */
+.fp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.flow-panel .mlabel { margin: 0; color: var(--fp-label); }
+.fp-meta {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fp-stage);
+}
+
+/* Stage rail — mono ticks over the columns (across layout only) */
+.flow-stages {
+  padding: 0 0 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--fp-rule);
+}
+.flow-stages span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fp-stage);
+}
+.flow-stages span::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border: 1px solid var(--fp-tick);
+  transform: rotate(45deg);
+}
+
+/* ============================================================
+   Flow diagram (Flow.jsx)
+   ============================================================ */
+.flow-shell { position: relative; }
+.flow-scroll { overflow-x: auto; padding: 4px 2px; }
+/* nothing to scroll: let lit nodes' glow spill into the panel's padding */
+.flow-scroll:not(.is-scrollable) { overflow: visible; }
+/* Sideways scrolling is only a safety net now (zoomed text): the fit
+   test picks the stage ledger long before the columns would overflow. */
+.flow-scroll.is-scrollable {
+  -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 88%, transparent 100%);
+}
+.flow-scroll.is-scrollable.is-scrolled {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.flow-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--fp-rule);
+  color: var(--fp-label);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: opacity var(--dur) ease;
+}
+.flow-scroll.is-scrolled + .flow-hint { opacity: 0; }
+.flow-hint-arr { animation: hintNudge 1.6s ease-in-out 3; }   /* a few nudges, not a loop (WCAG 2.2.2) */
+@keyframes hintNudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+.flow-scroll:focus-visible { outline: 2px solid var(--fp-label); outline-offset: 4px; border-radius: 4px; }
+
+/* Across: one grid column per stage; the gutter only carries connectors */
+.flow,
+.flow-stages {
+  --gut: 32px;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(182px, 1fr));
+  min-width: calc(var(--cols) * 182px + (var(--cols) - 1) * var(--gut));
+  column-gap: var(--gut);
+}
+.flow { position: relative; row-gap: 26px; align-items: center; }
+.flow-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  /* Above the node faces: connectors only travel the gutters, and a
+     loop's label must never be clipped behind a node. */
+  z-index: 2;
+}
+
+.fnode {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 74px;
+  padding: 12px 14px;
+  border: 1px solid var(--fp-node-border);
+  border-radius: 4px;
+  background: var(--fp-node);
+  box-shadow: var(--fp-node-shadow);
+  transition: border-color 0.4s ease, box-shadow 0.5s ease;
+}
+/* Lit by the scroll-driven flow: the data has reached this node */
+.fnode[data-lit] {
+  border-color: var(--fp-lit);
+  box-shadow: 0 0 0 3px var(--fp-ring), var(--fp-glow), var(--fp-node-shadow);
+}
+/* The final stage — the payoff — wears the foil frame */
+.fnode.end {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(var(--fp-node), var(--fp-node)) padding-box,
+    var(--fp-end) border-box;
+  box-shadow: 0 0 34px var(--fp-halo), var(--fp-node-shadow);
+}
+.fnode.end[data-lit] { box-shadow: 0 0 0 3px var(--fp-ring), var(--fp-glow), var(--fp-node-shadow); }
+.fnode.end .ft { color: var(--fp-end-t); }
+/* Icon wells stay dark on both panels, like the tech index, so brand
+   marks read the same everywhere. */
+.fnode-ico {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  background: var(--esp-0);
+  border: 1px solid rgb(var(--gold-hi-rgb) / 0.45);
+}
+.fnode-ico img { width: 20px; height: 20px; object-fit: contain; display: block; }
+.fnode-ico.txt {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold-hi);
+  letter-spacing: 0.02em;
+}
+.fnode-body { min-width: 0; }
+.ft { display: block; font-weight: 700; font-size: 15px; line-height: 1.3; color: var(--fp-t); }
+.fs {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--fp-s);
+}
+/* "via" — the label of the edge that arrives here */
+.fvia {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  color: var(--fp-label);
+}
+.fvia::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 7px;
+  height: 6px;
+  border-left: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: translateY(-2px);
+}
+
+/* Circuitry: a soft glow under a bright line. Dash offsets are set from
+   Flow.jsx as the reader scrolls — the line draws in. */
+.fedge-halo { fill: none; stroke: var(--fp-halo); stroke-width: 5; stroke-linecap: round; }
+.fedge-line { fill: none; stroke: var(--fp-line); stroke-width: 1.6; stroke-linecap: round; }
+.fmarker { fill: var(--fp-line-solid); }
+.fpulse { fill: var(--fp-pulse); opacity: 0; transition: opacity var(--dur-fast) ease; }
+.fpulse-halo { fill: var(--fp-pulse-halo); opacity: 0; transition: opacity var(--dur-fast) ease; }
+/* A loop's label, haloed in the panel's ground so it reads over the grid */
+.flow-lbl {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--fp-label);
+  paint-order: stroke;
+  stroke: var(--fp-ground);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.flow-lbl[data-on] { opacity: 1; }
+
+/* Down: the stage ledger. One spine on the left, stages stacked in
+   scroll order, a tick into each node, loops up the right gutter. */
+.flow.is-v {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  min-width: 0;
+  padding: 4px 0 8px 34px;
+}
+.flow.is-v.has-back { padding-right: 26px; }
+.flow.is-v .fnode { align-self: stretch; max-width: 560px; }
+.fstage-v {
+  position: relative;
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fp-stage);
+}
+.fstage-v:first-of-type { margin-top: 0; }
+/* the stage diamond, centred on the spine (x = 11px) */
+.fstage-v::before {
+  content: "";
+  position: absolute;
+  left: -26.5px;
+  top: 3px;
+  width: 7px;
+  height: 7px;
+  transform: rotate(45deg);
+  border: 1px solid var(--fp-line-solid);
+  background: var(--fp-ground);
+  transition: background-color var(--dur) ease;
+}
+.fstage-v[data-lit]::before { background: var(--fp-line-solid); }
+.ftick {
+  fill: none;
+  stroke: var(--fp-line);
+  stroke-width: 1.2;
+  opacity: 0.22;
+  transition: opacity var(--dur) ease;
+}
+.ftick[data-on] { opacity: 1; }
+
+@media (max-width: 560px) {
+  .flow-panel { padding: 20px 14px 22px; }
+  .fp-meta { display: none; }
+}
+
+/* Reduced motion: the scroll-driven drawing stays (it only moves while
+   the reader does), and so do the colour fades as nodes light — they
+   are tone, not movement. The panel lies flat (Work.jsx skips the
+   tilt) and the swipe hint stops nudging. */
+@media (prefers-reduced-motion: reduce) {
+  .flow-hint-arr { animation: none; }
+}

@@ -1,0 +1,140 @@
+/* ============================================================
+   Tokens — the palette is fixed (espresso, paper, champagne golds);
+   everything below only NAMES those colours and their tints.
+   ============================================================ */
+
+/* Stand-in faces while the web fonts load: local system fonts scaled
+   to the web fonts' measured widths and line boxes, so the swap
+   doesn't re-wrap the hero (Georgia Bold sets Fraunces 600 rows up to
+   30% wider: four lines instead of two). "Display" is for the landing
+   hero, where Fraunces' optical size narrows it further. */
+@font-face { font-family: "Fraunces FB"; font-weight: 600; src: local("Georgia Bold"), local("Georgia-Bold");
+  size-adjust: 90%; ascent-override: 108.7%; descent-override: 28.3%; line-gap-override: 0%; }
+@font-face { font-family: "Fraunces FB"; font-weight: 600; font-style: italic; src: local("Georgia Bold Italic"), local("Georgia-BoldItalic");
+  size-adjust: 86%; ascent-override: 113.7%; descent-override: 29.7%; line-gap-override: 0%; }
+@font-face { font-family: "Fraunces Display FB"; font-weight: 600; src: local("Georgia Bold"), local("Georgia-Bold");
+  size-adjust: 78%; ascent-override: 125.4%; descent-override: 32.7%; line-gap-override: 0%; }
+@font-face { font-family: "Fraunces Display FB"; font-weight: 600; font-style: italic; src: local("Georgia Bold Italic"), local("Georgia-BoldItalic");
+  size-adjust: 75%; ascent-override: 130.4%; descent-override: 34%; line-gap-override: 0%; }
+@font-face { font-family: "Jakarta FB"; font-weight: 400 500; src: local("Arial"), local("ArialMT");
+  size-adjust: 106.2%; ascent-override: 97.7%; descent-override: 20.9%; line-gap-override: 0%; }
+@font-face { font-family: "Jakarta FB"; font-weight: 600 800; src: local("Arial Bold"), local("Arial-BoldMT");
+  ascent-override: 103.8%; descent-override: 22.2%; line-gap-override: 0%; }
+/* ← and → are outside the web fonts' served subsets, so a local face
+   always draws them. Pin them to the faces that drew them before the
+   stand-ins above joined the stacks (Consolas, Segoe UI); elsewhere
+   these fail to load and the stack falls through. */
+@font-face { font-family: "DQ Arrows"; src: local("Consolas"); unicode-range: U+2190, U+2192; }
+@font-face { font-family: "DQ Arrows"; font-weight: 600 700; src: local("Consolas Bold"), local("Consolas-Bold"); unicode-range: U+2190, U+2192; }
+@font-face { font-family: "DQ Arrows Sans"; src: local("Segoe UI"), local("SegoeUI"); unicode-range: U+2190, U+2192; }
+@font-face { font-family: "DQ Arrows Sans"; font-weight: 600 700; src: local("Segoe UI Semibold"), local("SegoeUI-Semibold"); unicode-range: U+2190, U+2192; }
+
+:root {
+  /* Paper & ink */
+  --paper: #f6f0e3;
+  --paper-2: #ede4d1;
+  --ink: #241c13;
+  --ink-soft: #57493a;
+  --ink-faint: #6b5b47; /* 5.4:1 on paper — small labels stay AA */
+  /* The dark band — espresso, not black */
+  --esp: #191209;
+  --esp-2: #251c11;
+  --esp-3: #1d150b;    /* the machine-room panel inset on paper */
+  --esp-0: #140e07;    /* icon wells inside dark nodes */
+  --node: #2a2013;     /* a node face on the machine-room grid */
+  --ivory: #f3ead9;
+  --ivory-soft: #c7b69c;
+  --ivory-faint: #9a8870;
+  /* Golds (measured from the Mercadian deck) */
+  --gold: #a5824f;
+  --gold-hi: #d8bc8a;
+  --gold-deep: #6e5741;
+  --champagne: #f0e0c2;
+  --champagne-hi: #f6ead0;
+  --gold-soft: #b39877;   /* foil-lux 0% */
+  --gold-mid: #d3b789;
+  --bronze: #8a6c49;
+  /* Ink printed on foil (buttons, badges) */
+  --btn-ink: #241b11;
+  --placeholder: #7a6953;  /* 4.6:1 on paper, 4.9:1 on the form sheet */
+  --scroll-thumb: #4a3c2a;
+  /* Foil gradients: dark-on-light and light-on-dark */
+  --foil-ink: linear-gradient(105deg, #6a5138 0%, #a08258 40%, #c29d62 72%, #8a6c49 100%);
+  --foil-lux: linear-gradient(105deg, #b39877 0%, #f0e0c2 45%, #d3b789 70%, #a5824f 100%);
+  --foil-shine: linear-gradient(100deg, var(--gold-soft) 0%, var(--gold-mid) 30%, var(--champagne-hi) 46%,
+                var(--gold-hi) 58%, var(--gold) 82%, var(--gold-soft) 100%);
+
+  /* Channel triplets, for tints: rgb(var(--ink-rgb) / 0.2) */
+  --ink-rgb: 36 28 19;
+  --esp-rgb: 25 18 9;
+  --gold-rgb: 165 130 79;
+  --gold-hi-rgb: 216 188 138;
+  --gold-deep-rgb: 110 87 65;
+  --shadow-rgb: 70 52 32;
+
+  /* Hairline rules — ink on paper, gold on espresso */
+  --rule-soft: rgb(var(--ink-rgb) / 0.14);
+  --rule: rgb(var(--ink-rgb) / 0.2);
+  --rule-strong: rgb(var(--ink-rgb) / 0.25);
+  --rule-gold-soft: rgb(var(--gold-hi-rgb) / 0.14);
+  --rule-gold: rgb(var(--gold-hi-rgb) / 0.18);
+  /* The hover wash every ledger row shares */
+  --wash: rgb(var(--gold-rgb) / 0.07);
+  --wash-dark: rgb(var(--gold-hi-rgb) / 0.07);
+  /* A lighter sheet laid on paper (forms, tool ledgers, journeys) */
+  --sheet: rgb(255 252 244 / 0.5);
+  --shadow-node: 0 8px 24px rgb(10 7 3 / 0.4);
+  --shadow-panel: 0 26px 60px rgb(50 38 26 / 0.28);
+  --shadow-ico: 0 6px 18px rgb(120 95 65 / 0.25);
+  --shadow-bar: 0 18px 50px rgb(12 8 4 / 0.35);
+  /* one-off tints, named (values unchanged) */
+  --sheet-strong: rgb(255 250 238 / 0.85);
+  --sheen: rgb(255 250 240 / 0.55);
+  --esp-glass: rgb(21 15 8 / 0.88);
+  --aura: rgb(211 183 137 / 0.13);
+  --bloom: rgb(226 203 161 / 0.15);
+  --spot: rgb(200 165 115 / 0.04);   /* over espresso only: keeps ivory-faint ≥ 4.5:1 */
+  --glint-halo: rgb(240 224 194 / 0.3);
+
+  /* Surface tokens: what a component should use when it must read on
+     paper AND on espresso. Paper values here; dark surfaces re-scope
+     them below, so one rule serves both bands. */
+  --fg: var(--ink);
+  --fg-soft: var(--ink-soft);
+  --fg-faint: var(--ink-faint);
+  --accent: var(--gold-deep);      /* small text: 5.4–6:1 on paper */
+  --accent-mark: var(--gold);      /* ticks, dots, hover borders, rule tabs */
+  --line: rgb(var(--ink-rgb) / 0.35);
+  --foil: var(--foil-ink);
+  --focus: var(--gold-deep);
+
+  --font-head: "Fraunces", "Fraunces FB", Georgia, serif;
+  --font-body: "Plus Jakarta Sans", "DQ Arrows Sans", "Jakarta FB", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "DQ Arrows", "Courier New", "Consolas", monospace;   /* Courier New: Plex's exact 0.6em advance */
+
+  /* Motion — one out-curve for entrances and hovers, one in-out for
+     travelling highlights. JS mirrors these in src/motion/tokens.js. */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 0.25s;
+  --dur: 0.35s;
+  --dur-slow: 0.8s;
+  --dur-instant: 0.1s;
+  --dur-page: 0.6s;
+}
+
+/* Dark surfaces: the same names, espresso values. */
+.band.dark, .flow-panel, .topbar {
+  --fg: var(--ivory);
+  --fg-soft: var(--ivory-soft);
+  --fg-faint: var(--ivory-faint);
+  --accent: var(--gold-hi);
+  --accent-mark: var(--gold-hi);
+  --line: rgb(var(--gold-hi-rgb) / 0.4);
+  --rule: var(--rule-gold);
+  --rule-soft: var(--rule-gold-soft);
+  --rule-strong: rgb(var(--gold-hi-rgb) / 0.32);
+  --wash: var(--wash-dark);
+  --foil: var(--foil-lux);
+  --focus: var(--gold-hi);
+}

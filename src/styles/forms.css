@@ -1,0 +1,177 @@
+/* The form — a ruled document, not a boxed card. The foil top rule
+   marks it as the page's primary action. */
+.cform {
+  position: relative;
+  border: 1px solid var(--rule-strong);
+  padding: 40px 36px 32px;
+  background: var(--sheet);
+}
+.cform::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: -1px;
+  height: 3px;
+  background: var(--foil-ink);
+}
+.cform-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 8px; }
+/* the form's serial — full-strength faint ink, never a dimmed label */
+.cform-ser {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.cform-t {
+  font-family: var(--font-head);
+  font-size: clamp(21px, 2vw, 26px);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 10px 0 26px;
+}
+
+/* Numbered ledger fields */
+.cfield { margin-bottom: 22px; }
+.cfield label {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.cf-n { color: var(--gold-deep); letter-spacing: 0.06em; }
+.cfield label .opt { font-weight: 500; text-transform: none; letter-spacing: 0.06em; }
+.cfield input,
+.cfield textarea {
+  width: 100%;
+  padding: 10px 2px 12px;
+  border: none;
+  border-bottom: 1px solid rgb(var(--ink-rgb) / 0.5);   /* 3.2:1 on the sheet: a visible field edge */
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 16.5px;
+  font-weight: 500;
+  color: var(--ink);
+  transition: border-color var(--dur-fast) ease;
+}
+.cfield textarea { resize: vertical; min-height: 96px; line-height: 1.55; }
+.cfield input::placeholder,
+.cfield textarea::placeholder { color: var(--placeholder); }
+/* focus: a 2px gold-deep rule (6:1), unmistakable against the resting
+   ink line; hover (end of file) sits between the two */
+.cfield input:focus,
+.cfield textarea:focus {
+  outline: none;
+  border-bottom-color: var(--gold-deep);
+  box-shadow: 0 1px 0 0 var(--gold-deep);
+}
+/* Errors are marked by text, a heavier ink rule and a diamond — never
+   by colour alone. The rule swaps 1px of padding for 1px of border, so
+   nothing shifts. */
+.cfield.invalid input,
+.cfield.invalid textarea { border-bottom: 2px solid var(--ink); padding-bottom: 11px; }
+.cfield-err {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.cfield-err::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  background: var(--gold-deep);
+  transform: translateY(-1px) rotate(45deg);
+}
+.cfield-hint {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  text-align: right;
+}
+
+.cform .btn { width: 100%; justify-content: center; margin-top: 6px; }
+/* the compact secondary actions (.btn-sm) inside the status entry */
+.cform .btn-sm { width: auto; margin-top: 0; }
+.cform-note {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  text-align: center;
+}
+.cform-privacy {
+  margin-top: 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+}
+
+/* Hand-off status: a ruled entry carrying the foil "current" tick, not
+   a box inside the sheet. It never says the message was sent. */
+.cform-status {
+  position: relative;
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+  animation: statusIn 0.5s var(--ease) both;
+}
+.cform-status::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  width: 64px;
+  height: 2px;
+  background: var(--foil-ink);
+  transform-origin: 0 50%;
+  animation: ruleDraw var(--dur-slow) var(--ease) 0.15s both;
+}
+.cform-status .mlabel { display: block; }
+.cform-status-t {
+  margin-top: 8px;
+  font-family: var(--font-head);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.cform-status-t:focus { outline: none; }
+.cform-status-t:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.cform-status-s { margin-top: 8px; font-size: 15px; line-height: 1.6; color: var(--ink-soft); }
+.cform-status-s strong { color: var(--ink); font-weight: 700; overflow-wrap: anywhere; }
+.cform-status-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+@keyframes statusIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (hover: hover) {
+  .cfield:not(.invalid) input:hover:not(:focus),
+  .cfield:not(.invalid) textarea:hover:not(:focus) { border-bottom-color: rgb(var(--gold-deep-rgb) / 0.8); }
+}
+
+@media (max-width: 560px) {
+  .cform { padding: 30px 16px 24px; }   /* "Continue in email →" on one line at 320 */
+  .cform-status-acts .btn { flex: 1 1 100%; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cform-status, .cform-status::before { animation: none; }
+}

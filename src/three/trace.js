@@ -1,62 +1,32 @@
 /*
-  Vector outline of the DQ logo, traced from public/logo.png at runtime.
+  Vector outline of the DQ logo, traced from its alpha channel.
 
-  The PNG is upscaled 4x with bilinear filtering, lightly blurred and
-  thresholded, then contoured with marching squares. Contours are
-  simplified (Douglas-Peucker), rounded (Chaikin) and nested: even
-  depth = outer outline, odd depth = hole in its nearest outer. The
-  tagline band between the arcs is cleared first.
+  A pure pipeline — no DOM, no three.js — run once by
+  scripts/trace-logo.mjs to write logo-outline.json. The site imports
+  that JSON; nothing is traced in the browser (it was a 240–750ms
+  main-thread task on every first visit).
 
-  Returns plain arrays only (no three.js import here — this file is in
-  the main bundle; the lazy 3D chunk turns them into shapes):
-    outers: [{ points: [[x, y]...], holes: [[[x, y]...]] }] in world
-            units (LOGO_W wide, centred on the origin, y up)
-    polys:  the raw image-space polygons for the 2D poster
+  The 216x121 source is upscaled 6x (bilinear, as the canvas drawImage
+  it replaces did), blurred twice and thresholded, then contoured with
+  marching squares. Contours are simplified (Douglas-Peucker), rounded
+  (Chaikin) and nested: even depth = outer outline, odd depth = a hole in
+  its nearest outer. The tagline band between the arcs is cleared first.
 
-  Loaded once and cached; resolves to null if the image fails to load.
+  Returns { outers: [{ points: [[x, y]...], holes: [[[x, y]...]] }],
+  aspect } in world units: LOGO_W wide, centred on the origin, y up.
 */
+import { LOGO_W, TAGLINE } from "./shared.js";
 
-export const LOGO_W = 8.8;
-// The source PNG is only 216x121: a 6x bilinear upscale, two blur
-// passes and heavier smoothing keep the traced edges from showing the
-// pixel steps as lumps on the extruded mark.
 const UP = 6;
-const TAGLINE = [0.585, 0.69];
 const THRESHOLD = 0.5;
 
-let cache = null;
-export function loadLogoShapes() {
-  if (!cache) cache = build().catch(() => null);
-  return cache;
-}
-
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
-}
-
-async function build() {
-  const img = await loadImage("/logo.png");
-  const W = img.naturalWidth * UP;
-  const H = img.naturalHeight * UP;
-  const c = document.createElement("canvas");
-  c.width = W;
-  c.height = H;
-  const ctx = c.getContext("2d", { willReadFrequently: true });
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(img, 0, 0, W, H);
-  const { data } = ctx.getImageData(0, 0, W, H);
-
-  const field = new Float32Array(W * H);
+export function traceOutline(alpha, w, h) {
+  const W = w * UP;
+  const H = h * UP;
+  const field = upscale(alpha, w, h, UP);
   for (let y = 0; y < H; y++) {
     const fy = y / H;
-    const clear = fy > TAGLINE[0] && fy < TAGLINE[1];
-    for (let x = 0; x < W; x++) field[y * W + x] = clear ? 0 : data[(y * W + x) * 4 + 3] / 255;
+    if (fy > TAGLINE[0] && fy < TAGLINE[1]) field.fill(0, y * W, (y + 1) * W);
   }
 
   const smooth = blur3(blur3(field, W, H), W, H);
@@ -99,10 +69,33 @@ async function build() {
     }
   });
 
-  return { outers, polys, W, H, aspect: H / W };
+  return { outers, aspect: H / W };
 }
 
 /* ---------- raster helpers ---------- */
+
+/* Bilinear upscale with pixel-centre sampling and clamped edges. */
+function upscale(a, w, h, k) {
+  const W = w * k;
+  const H = h * k;
+  const out = new Float32Array(W * H);
+  for (let y = 0; y < H; y++) {
+    const sy = Math.min(h - 1, Math.max(0, (y + 0.5) / k - 0.5));
+    const y0 = Math.floor(sy);
+    const y1 = Math.min(h - 1, y0 + 1);
+    const fy = sy - y0;
+    for (let x = 0; x < W; x++) {
+      const sx = Math.min(w - 1, Math.max(0, (x + 0.5) / k - 0.5));
+      const x0 = Math.floor(sx);
+      const x1 = Math.min(w - 1, x0 + 1);
+      const fx = sx - x0;
+      const top = a[y0 * w + x0] * (1 - fx) + a[y0 * w + x1] * fx;
+      const bot = a[y1 * w + x0] * (1 - fx) + a[y1 * w + x1] * fx;
+      out[y * W + x] = top * (1 - fy) + bot * fy;
+    }
+  }
+  return out;
+}
 
 function blur3(a, W, H) {
   const out = new Float32Array(W * H);

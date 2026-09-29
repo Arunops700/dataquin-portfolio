@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DataQuin — Data · Automation · AI Engineering</title>
+  <!-- This description must equal PAGE_META.home in src/seo.js, and the
+       case-study count written in words here, in the og/twitter previews
+       and in the noscript copy must match the data: the build runs
+       scripts/route-heads.mjs, which fails if either drifts. -->
   <meta name="description" content="DataQuin turns manual days into automated hours — dashboards and reporting, system-to-system integration and AI pipelines for professional services firms, proven with six production builds." />
   <link rel="icon" type="image/png" href="/favicon.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -28,6 +32,9 @@
   <meta name="twitter:title" content="DataQuin — Data · Automation · AI Engineering" />
   <meta name="twitter:description" content="We turn manual days into automated hours. Six production systems — shipped, secured and measured." />
   <meta name="twitter:image" content="https://dataquin.vercel.app/og.png" />
+  <!-- Keep the email and phone here and in the noscript copy in step
+       with CONTACT in src/data/site.js — the build checks them
+       (scripts/route-heads.mjs) and fails if they drift. -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -62,6 +69,7 @@
 </head>
 <body>
   <div id="root"></div>
+  <!-- Contact details: keep in step with CONTACT in src/data/site.js -->
   <noscript>
     <div style="max-width:720px;margin:0 auto;padding:64px 24px;font-family:Georgia,'Times New Roman',serif;color:#f3ead9;line-height:1.6">
       <p style="font-family:Consolas,monospace;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:#d8bc8a">DataQuin — Data · Automation · AI Engineering</p>

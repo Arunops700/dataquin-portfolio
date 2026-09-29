@@ -7,23 +7,26 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 
 /*
-  Post-processing: a restrained bloom so the brightest gold highlights
-  and the particle glints actually glow, then tone mapping + sRGB
-  output. Runs at half resolution for the bloom and takes over
-  rendering from R3F (useFrame priority 1).
+  Post-processing on the composer path: a tight, jewellery-like bloom on
+  the brightest gold highlights and glints, then tone mapping and sRGB
+  output. Takes over rendering from R3F (useFrame priority 1). The lite
+  path (touch devices, the Work band) does not mount it.
+
+  - The pixel ratio is synced (the composer caches its own) and the MSAA
+    target is capped by pixel count, so big screens stay affordable.
+  - A soft knee on the threshold: glints fade in instead of popping.
+  - Bloom strength comes from the rig (a lift during the result's sweep).
+  - Every pass is disposed: composer.dispose() alone leaks bloom + output.
 */
-export default function Effects({ strength = 0.24, radius = 0.45, threshold = 0.96 }) {
+export default function Effects({ tier, rig }) {
   const { gl, scene, camera, size } = useThree();
+  const dpr = useThree((s) => s.viewport.dpr);
 
   const composer = useMemo(() => {
     const c = new EffectComposer(gl);
-    // multisampled targets: the mark's bevelled edges must not alias;
-    // phones get 2x to keep the fill rate down
-    const samples = window.matchMedia("(pointer: coarse)").matches ? 2 : 4;
-    c.renderTarget1.samples = samples;
-    c.renderTarget2.samples = samples;
     c.addPass(new RenderPass(scene, camera));
-    const bloom = new UnrealBloomPass(new THREE.Vector2(size.width / 2, size.height / 2), strength, radius, threshold);
+    const bloom = new UnrealBloomPass(new THREE.Vector2(size.width / 2, size.height / 2), 0.28, 0.32, 0.9);
+    bloom.highPassUniforms.smoothWidth.value = 0.12;
     c.addPass(bloom);
     c.addPass(new OutputPass());
     c.bloom = bloom;
@@ -32,12 +35,30 @@ export default function Effects({ strength = 0.24, radius = 0.45, threshold = 0.
   }, [gl, scene, camera]);
 
   useEffect(() => {
+    composer.setPixelRatio(dpr);
     composer.setSize(size.width, size.height);
-    composer.bloom.setSize(size.width / 2, size.height / 2);
-  }, [composer, size]);
+    composer.bloom.setSize(size.width / 2, size.height / 2);   // after setSize; the pass halves again → ¼ CSS res
+    const n = size.width * size.height * dpr * dpr > 2.3e6 ? Math.min(2, tier.msaa) : tier.msaa;
+    for (const rt of [composer.renderTarget1, composer.renderTarget2]) {
+      if (rt.samples !== n) {
+        rt.samples = n;
+        rt.dispose();   // re-allocated with the new sample count on next use
+      }
+    }
+    composer.bloom.enabled = tier.bloom;
+  }, [composer, size, dpr, tier]);
 
-  useEffect(() => () => composer.dispose(), [composer]);
+  useEffect(
+    () => () => {
+      composer.passes.forEach((p) => p.dispose?.());
+      composer.dispose();
+    },
+    [composer]
+  );
 
-  useFrame(() => composer.render(), 1);
+  useFrame(() => {
+    composer.bloom.strength = rig.current.bloom;
+    composer.render();
+  }, 1);
   return null;
 }

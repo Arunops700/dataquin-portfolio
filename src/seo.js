@@ -1,4 +1,7 @@
 import { useEffect } from "react";
+import { STUDIES } from "./data/caseStudies.js";
+import { countWord } from "./data/format.js";
+import { WORK_DESCRIPTION } from "./data/work.js";
 
 /*
   Per-route document metadata.
@@ -25,9 +28,35 @@ import { useEffect } from "react";
   redirecting to the new one so existing links and search results survive.
   ─────────────────────────────────────────────────────────────────────
 */
-const SITE_URL = "https://dataquin.vercel.app";
+export const SITE_URL = "https://dataquin.vercel.app";
 
 const BRAND = "DataQuin";
+
+/* The home page passes the full brand line; other pages get " — DataQuin". */
+export const fullTitle = (title) => (title.startsWith(BRAND) ? title : `${title} — ${BRAND}`);
+
+/*
+  Each page's title and description, derived from the data so no count
+  can drift. Pages can pass these straight to usePageMeta
+  (`usePageMeta(PAGE_META.home)`), and scripts/route-heads.mjs writes the
+  /work head into the build from the same object — the /work description
+  itself lives in data/work.js, which Work.jsx reads too. This module
+  only touches the DOM inside the hook, so Node can import it.
+*/
+export const PAGE_META = {
+  home: {
+    title: "DataQuin — Data · Automation · AI Engineering",
+    description: `DataQuin turns manual days into automated hours — dashboards and reporting, system-to-system integration and AI pipelines for professional services firms, proven with ${countWord(STUDIES.length)} production builds.`,
+    path: "/",
+  },
+  work: { title: "The Work", description: WORK_DESCRIPTION, path: "/work" },
+  // path is the address that failed; NotFound adds it
+  notFound: {
+    title: "Page not found",
+    description: "That page doesn't exist. Browse the DataQuin case studies, tech stack and measured impact instead.",
+    noindex: true,
+  },
+};
 
 /* Create the tag on first use, then just update it on later navigations. */
 function upsert(selector, create) {
@@ -50,8 +79,7 @@ function setMeta(attr, key, content) {
 
 export function usePageMeta({ title, description, path, noindex = false }) {
   useEffect(() => {
-    // The home page passes the full brand line; other pages get " — DataQuin".
-    const full = title.startsWith(BRAND) ? title : `${title} — ${BRAND}`;
+    const full = fullTitle(title);
     const url = SITE_URL + path;
 
     document.title = full;

@@ -1,0 +1,50 @@
+/* ============================================================
+   Reveal & hero line rises (fx.jsx)
+   ============================================================ */
+/* State lives in the data-in attribute (set by fx.jsx), not a class, so a
+   React re-render that rewrites className can never hide revealed
+   content again. Rows that also carry hover transitions must list the
+   reveal properties with var(--reveal-delay) and their hover
+   properties with no delay (see components.css). */
+.reveal {
+  --reveal-delay: 0s;
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease),
+              filter var(--dur-slow) var(--ease);
+  transition-delay: var(--reveal-delay);
+}
+/* the blur-rise only where it is cheap: fine pointers (desktop) */
+@media (hover: hover) and (pointer: fine) {
+  .reveal:not([data-in]) { filter: blur(7px); }
+}
+.reveal[data-in] { opacity: 1; transform: translateY(0); filter: none; }
+.d1 { --reveal-delay: 0.07s; }
+.d2 { --reveal-delay: 0.14s; }
+.d3 { --reveal-delay: 0.21s; }
+.d4 { --reveal-delay: 0.28s; }
+
+/* A hairline drawing itself in from the left (scaleX on a pseudo). */
+@keyframes ruleDraw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* descenders and italic overhang must not be clipped by the line mask */
+.hero-title .row { display: block; overflow: hidden; padding: 0 0.08em 0.1em 0; margin-bottom: -0.1em; }
+.hero-title .row span {
+  display: block;
+  transform: translateY(112%) rotate(2deg);
+  transform-origin: 0 100%;
+  animation: rise 0.9s var(--ease) forwards;
+}
+.hero-title .row:nth-child(2) span { animation-delay: 0.12s; }
+.hero-title .row:nth-child(3) span { animation-delay: 0.24s; }
+@keyframes rise { to { transform: translateY(0) rotate(0deg); } }
+.fade-in { opacity: 0; animation: fadeIn 0.9s ease 0.5s forwards; }
+@keyframes fadeIn { to { opacity: 1; } }
+
+/* Reduced motion — entrances become instant: no blur-rise, no line
+   rise, no fades. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1 !important; transform: none !important; filter: none !important; }
+  .hero-title .row span { animation: none !important; transform: none !important; }
+  .fade-in { opacity: 1 !important; animation: none !important; }
+}

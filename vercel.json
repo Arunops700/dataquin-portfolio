@@ -23,7 +23,7 @@
       ]
     },
     {
-      "source": "/(logo|favicon|og|apple-touch-icon).png",
+      "source": "/(logo|logo-mark|favicon|og|apple-touch-icon).png",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
       ]

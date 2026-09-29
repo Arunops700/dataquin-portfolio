@@ -1,0 +1,94 @@
+/* ============================================================
+   404 and the error screen
+   ============================================================ */
+.nf-title { max-width: 820px; }
+.nf-lead { max-width: 620px; }
+
+/* The entry slip: the address that was asked for, and its status, filed
+   as two ruled ledger lines. */
+.entry {
+  max-width: 620px;
+  margin-top: 36px;
+  border-top: 1px solid var(--rule-strong);
+}
+.entry-row {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  column-gap: 20px;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.entry dt {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+.entry dd { font-size: 16px; font-weight: 600; color: var(--fg); overflow-wrap: anywhere; }
+.entry dd.path { font-family: var(--font-mono); font-size: 15px; font-weight: 500; }
+.entry dd.st { display: inline-flex; align-items: center; gap: 10px; color: var(--accent); }
+.entry dd.st::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  background: var(--accent-mark);
+  transform: rotate(45deg);
+}
+
+/* The index under the hero: every case study, then the rest of the
+   site, as two ruled lists side by side. */
+.nf-index {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: clamp(28px, 5vw, 72px);
+  align-items: start;
+}
+.nf-list { border-top: 1px solid var(--rule-strong); }
+.nf-list .mlabel { display: block; padding: 16px 0 10px; }
+.nf-link {
+  --row-shift: 16px;
+  display: grid;
+  grid-template-columns: 52px 1fr 28px;
+  align-items: baseline;
+  gap: 14px;
+  padding: 16px 6px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-weight: 600;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, padding var(--dur) var(--ease);
+}
+/* keyboard focus here; the same on hover in the (hover: hover) block */
+.nf-link:focus-visible { background-color: var(--wash); color: var(--accent); padding-left: var(--row-shift); outline-offset: -2px; }
+.nf-link:focus-visible .arr { transform: translateX(4px); }
+.nf-num {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--accent);   /* 19px: solid gold-deep (6:1), not the foil */
+}
+.nf-arr { justify-self: end; color: var(--accent-mark); }
+
+/* Error screen (App.jsx ErrorBoundary) */
+.status-screen { min-height: 70vh; }
+
+@media (max-width: 860px) {
+  .nf-index { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .entry-row { grid-template-columns: 104px minmax(0, 1fr); column-gap: 14px; }
+  /* hero.css hides the hero meta on phones; the error screen keeps its
+     status line */
+  .status-screen .hero-meta { display: flex; }
+}
+
+@media (hover: none) {
+  .nf-link:active { background-color: var(--wash); }
+}
+@media (hover: hover) {
+  .nf-link:hover { background-color: var(--wash); color: var(--accent); padding-left: var(--row-shift); }
+  .nf-link:hover .arr { transform: translateX(4px); }
+}

@@ -1,0 +1,109 @@
+/* ============================================================
+   Hero band (all pages open dark)
+   ============================================================ */
+.hero-band { overflow: hidden; }
+.hero-band .wrap { position: relative; z-index: 2; }
+/* Faint ledger grid behind the dark hero */
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(90deg, rgb(var(--gold-hi-rgb) / 0.05) 0 1px, transparent 1px 150px),
+    repeating-linear-gradient(0deg, rgb(var(--gold-hi-rgb) / 0.035) 0 1px, transparent 1px 120px);
+  -webkit-mask-image: radial-gradient(100rem 64rem at 28% 18%, #000 25%, transparent 78%);
+  mask-image: radial-gradient(100rem 64rem at 28% 18%, #000 25%, transparent 78%);
+}
+/* Slow warm aura */
+.hero-aura {
+  position: absolute;
+  z-index: 0;
+  top: -26rem;
+  right: -18rem;
+  width: 64rem;
+  height: 64rem;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, var(--aura), transparent 62%);
+  filter: blur(70px);
+  animation: auraDrift 22s ease-in-out infinite alternate;
+}
+/* the drift holds still while its hero is off-screen (data-live is set
+   by the page while the hero is in view) */
+.hero-story:not([data-live]) .hero-aura,
+.hero-work:not([data-live]) .hero-aura { animation-play-state: paused; }
+@keyframes auraDrift { to { transform: translate(-8rem, 7rem) scale(1.12); } }
+/* Top meta row inside the hero */
+.hero-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ivory-soft);   /* its right end sits on the aura's glow: faint would dip to 4.4:1 */
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 18px;
+  margin-bottom: clamp(44px, 7vh, 84px);
+}
+.hero-meta b { color: var(--gold-hi); font-weight: 600; }
+
+/* padding-top only: a shorthand here would cancel .pad-b beneath it */
+.hero-sub { padding-top: 128px; }
+.hero-lead { margin-top: 30px; }
+.hero-actions { display: flex; gap: 14px; margin-top: 42px; flex-wrap: wrap; }
+
+/* Credential ledger at the hero's foot */
+.hero-creds {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--rule-gold);
+  margin-top: clamp(48px, 8vh, 96px);
+}
+.cred {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 26px 26px 30px 0;
+}
+.cred + .cred { border-left: 1px solid var(--rule-gold-soft); padding-left: 26px; }
+.cred-v {
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 3.4vw, 3rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  /* foil fill: the shared group in type.css (lux on espresso) */
+}
+.cred-k {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
+  text-wrap: balance;   /* no one-word orphan ("LIVE") in a narrow column */
+}
+
+@media (max-width: 860px) {
+  .hero-sub { padding-top: 104px; }
+  .hero-creds { grid-template-columns: 1fr; }
+  /* one figure column, so every label starts on the same line (the
+     widest figure, "100%", is ~79px at this size) */
+  .cred { display: grid; grid-template-columns: 5.25rem minmax(0, 1fr); align-items: baseline; column-gap: 16px; padding: 16px 0; }
+  .cred + .cred { border-left: none; border-top: 1px solid var(--rule-gold-soft); padding-left: 0; }
+}
+
+@media (max-width: 560px) {
+  .hero-meta { display: none; }
+  .hero-sub { padding-top: 96px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-aura { animation: none !important; }
+}

@@ -1,0 +1,119 @@
+/* ============================================================
+   Type system
+   ============================================================ */
+/* Ledger label — the mono utility voice. --accent is gold-deep on
+   paper (the lighter gold is 2.8:1 there) and gold-hi on espresso. */
+.mlabel {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.h-xl {
+  font-family: var(--font-head);
+  font-size: clamp(2.7rem, 7vw, 6.4rem);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+/* Step-down for pages whose headline lines run long */
+.h-xl.sm { font-size: clamp(2.4rem, 5.4vw, 4.7rem); }
+/* the landing hero's display size gets the narrower stand-in face
+   (tokens.css) until Fraunces arrives */
+@media not all and (max-width: 860px) {
+  .h-xl:not(.sm) { font-family: "Fraunces", "Fraunces Display FB", Georgia, serif; }
+}
+.h1 {
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 4vw, 3.3rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+.lead {
+  color: var(--fg-soft);
+  font-size: clamp(1.1rem, 1.4vw, 1.22rem);
+  font-weight: 500;
+  line-height: 1.62;
+  max-width: 660px;
+  text-wrap: pretty;
+}
+
+/* Foil lettering — one fill for every gold-lettered phrase and figure.
+   --foil is the ink foil on paper and the lux foil on espresso
+   (tokens.css), so no dark-band twin is needed. The shorthand comes
+   first: it resets the clip the next two lines set. */
+.foil, .cred-v {
+  background: var(--foil);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+/* As <em class="foil"> it is spoken emphasis — true italics. */
+em.foil { font-style: italic; }
+/* A metallic highlight across one phrase. It rests here; landing's
+   FoilSheen moves it with the reader's scroll (inline
+   background-position), so nothing sweeps on its own. */
+.foil.shine {
+  background: var(--foil-shine);
+  background-size: 250% auto;
+  background-position: 30% center;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Tabular figures where the face has them. Fraunces has none, so a
+   count-up's width still changes as it ticks: its layouts hold steady
+   by other means (fixed figure tracks, or a reserved final width). */
+.met-v, .cred-v { font-variant-numeric: tabular-nums; }
+
+/* ---------- Shared numeral primitives ---------- */
+/* Mono odometer: a one-line window over a column of lines, rolled by a
+   useTransform built with stepRoll() (motion/scroll.js). em-sized from
+   the element's own font-size, so text zoom never clips it. */
+.roll { display: block; height: 1.5em; line-height: 1.5em; overflow: hidden; }
+.roll-list { display: flex; flex-direction: column; will-change: transform; }
+.roll-list > span { display: block; height: 1.5em; white-space: nowrap; }
+
+/* Ink-in numerals: a pale-foil ghost while still ahead of the reader,
+   full foil once reached. --fill (0–1) is set by the owner. The ::after
+   repeats the digits from data-n, so every .num-ink is aria-hidden. */
+.num-ink {
+  position: relative;
+  display: inline-block;
+  font-variant-numeric: tabular-nums lining-nums;
+  background: linear-gradient(105deg, rgb(var(--gold-deep-rgb) / 0.26), rgb(var(--gold-rgb) / 0.3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.num-ink::after {
+  content: attr(data-n);
+  position: absolute;
+  inset: 0;
+  background: var(--foil-ink);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: var(--fill, 1);
+}
+
+/* Windows high-contrast themes drop gradient backgrounds, and text
+   clipped to one would vanish: every foil face falls back to the
+   system text colour. (Every rule with a transparent text fill.) The
+   partials that style these load later, hence !important. */
+@media (forced-colors: active) {
+  .foil, .cred-v, .num-ink, .exh-v, .tot-v, .ci-fig, .ch-num-ink,
+  .ch-lead-v, .met-v, .imp-fig {
+    background: none !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+  .ch-num-ink { clip-path: none !important; }
+  .num-ink::after { display: none !important; }
+  .ch-num-line { visibility: hidden !important; }   /* keeps the box; the ink layer shows the digits */
+}

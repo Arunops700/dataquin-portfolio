@@ -1,0 +1,123 @@
+/* ============================================================
+   Buttons
+   ============================================================ */
+/* One transform for every state: the magnetic lean (--magx/--magy,
+   inherited from the .magnet wrapper in fx.jsx), the hover lift and the
+   press. When each state wrote `transform` itself they cancelled one
+   another — the press lost to hover, and without the wrapper the foil
+   jumped instead of sliding. */
+.btn {
+  --lift: 0px;
+  --press: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 28px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  transform: translate(var(--magx, 0px), calc(var(--magy, 0px) + var(--lift))) scale(var(--press));
+  transition: transform var(--dur) var(--ease), background-position var(--dur) var(--ease),
+              box-shadow var(--dur) ease, background-color var(--dur-fast) ease,
+              border-color var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+/* Keyboard focus lifts here; the matching hover is in the (hover: hover)
+   block at the end, so a tapped button on a touch screen doesn't stay
+   lifted (a tap leaves :hover stuck until the next tap elsewhere). */
+.btn:focus-visible { --lift: -2px; }
+.btn:active { --press: 0.97; transition-duration: var(--dur-instant); }
+
+/* Primary: champagne foil, espresso ink — pops on both paper and dark.
+   Hover slides the foil (user-initiated, so it stays under reduced
+   motion too). */
+.btn-gold {
+  background: var(--foil-lux);
+  background-size: 170% auto;
+  color: var(--btn-ink);
+  box-shadow: 0 12px 30px rgb(var(--shadow-rgb) / 0.28);
+}
+.btn-gold:focus-visible {
+  background-position: right center;
+  box-shadow: 0 16px 38px rgb(var(--shadow-rgb) / 0.38);
+}
+/* Secondary: hairline with the ledger wash on hover — surface tokens
+   make the same rule read on paper and on espresso. */
+.btn-line { border-color: var(--line); color: var(--fg); background-color: transparent; }
+.btn-line:focus-visible {
+  border-color: var(--accent-mark);
+  color: var(--accent);
+  background-color: var(--wash);
+}
+/* Compact: secondary actions inside a panel; still a 44px target */
+.btn-sm { padding: 12px 18px; min-height: 44px; gap: 8px; }
+
+/* Arrow that nudges toward where a control leads; ruled rows hook the
+   same nudge in their own partials. */
+.arr { display: inline-block; transition: transform var(--dur) var(--ease); }
+.btn:focus-visible .arr { transform: translateX(4px); }
+
+/* Travelling highlight on a primary button. The streak travels by
+   transform (compositor only): 190% of the button is 422% of the
+   45%-wide streak — the path it used to take by animating `left`,
+   without a layout on every frame. It passes once after load, then
+   rests off the button (nothing loops past 5s: WCAG 2.2.2); hover and
+   keyboard focus sweep it again. A transition, not a second animation,
+   so leaving the button never restarts the load pass. */
+.btn-shine { position: relative; overflow: hidden; isolation: isolate; }
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 45%;
+  height: 100%;
+  z-index: -1;
+  transform: translateX(0) skewX(-22deg);
+  background: linear-gradient(90deg, transparent, var(--sheen), transparent);
+  animation: btnShine 4.5s ease-in-out 1;
+}
+.btn-shine:focus-visible::after {
+  transform: translateX(422%) skewX(-22deg);
+  transition: transform 0.9s var(--ease);
+}
+@keyframes btnShine {
+  0%, 62% { transform: translateX(0) skewX(-22deg); }
+  100% { transform: translateX(422%) skewX(-22deg); }
+}
+
+/* Magnetic wrapper (fx.jsx). It only carries --magx/--magy; the lean
+   itself is part of .btn's transform above. */
+.magnet { display: inline-flex; max-width: 100%; }
+
+/* Hover where a pointer can really hover: the same states as keyboard
+   focus above. Touch screens get the press instead. */
+@media (hover: hover) {
+  .btn:hover { --lift: -2px; }
+  .btn-gold:hover {
+    background-position: right center;
+    box-shadow: 0 16px 38px rgb(var(--shadow-rgb) / 0.38);
+  }
+  .btn-line:hover {
+    border-color: var(--accent-mark);
+    color: var(--accent);
+    background-color: var(--wash);
+  }
+  .btn:hover .arr { transform: translateX(4px); }
+  .btn-shine:hover::after {
+    transform: translateX(422%) skewX(-22deg);
+    transition: transform 0.9s var(--ease);
+  }
+}
+
+/* 320px phones: "Start a conversation →" keeps to one line */
+@media (max-width: 560px) {
+  .btn:not(.btn-sm) { padding-inline: 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-shine::after { animation: none !important; transition: none !important; }
+}

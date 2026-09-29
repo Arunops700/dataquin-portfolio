@@ -1,11 +1,21 @@
 /*
-  Site-wide content that is not a case study: the seven service pillars,
-  hero credentials, the five delivery steps, the tech index, the impact
-  ledger and the two-journeys comparison. Case studies live in
-  caseStudies.js; every number here that points at one does so by id, so
-  renumbering can never leave a stale label behind.
+  Site-wide content that is not a case study: the service pillars, hero
+  credentials, the delivery steps, the tech index, the impact ledger and
+  the two-journeys comparison. Case studies live in caseStudies.js;
+  every number here that points at one does so by id, and every count
+  in the copy is derived from the data (format.js), so neither can go
+  stale.
 */
 import { STUDIES } from "./caseStudies.js";
+import { cap, countWord } from "./format.js";
+
+/* The one place the contact details live. index.html (noscript copy
+   and JSON-LD) is static and repeats them — keep the two in step. */
+export const CONTACT = {
+  email: "kavita@dataquin.com",
+  phone: "+1 908 672 0809",
+  phoneHref: "tel:+19086720809",
+};
 
 export const CREDS = [
   { v: "25+", k: "Years of experience" },
@@ -34,13 +44,13 @@ export const STORY_BEATS = [
     k: "The result",
     t: "Manual days become",
     em: "automated hours.",
-    s: "Six production systems, live with professional services firms today. Measured, secured, still running.",
+    s: `${cap(countWord(STUDIES.length))} production systems, live with professional services firms today. Measured, secured, still running.`,
     range: [0.74, 1],
     cta: true,
   },
 ];
 
-/* Seven pillars — Kavita's list, all seven stay. The one-line
+/* The pillars — Kavita's list, every one stays. The one-line
    descriptors are new copy and should be read by her before launch. */
 export const PILLARS = [
   { t: "Business Analytics", s: "Dashboards and reporting that leadership actually opens — one version of every number." },
@@ -52,7 +62,7 @@ export const PILLARS = [
   { t: "Staffing", s: "The right people placed where the work is — analysts, developers, support teams." },
 ];
 
-/* Five steps, Kavita's wording. Short form for the landing rows. */
+/* The delivery steps, Kavita's wording. Short form for the landing rows. */
 export const DELIVERY = [
   { k: "understand", t: "Understand", s: "We sit with your team and understand the real problem before touching a tool." },
   { k: "research", t: "Research", s: "We study the options — tools, integrations, AI approaches — and design the solution that fits your systems." },
@@ -61,8 +71,17 @@ export const DELIVERY = [
   { k: "deliver", t: "Deliver & Grow", s: "We go live, train your team to drive it themselves, and stay on as your estate grows." },
 ];
 
-/* Three studies shown as proof on the landing page, in chapter order. */
-export const PROOF = ["teammate", "bi-delivery", "alerting"];
+/* Studies shown as exhibits on the landing page, in chapter order.
+   `fig` picks which of the study's own metrics is the exhibit's big
+   figure — existing facts, only chosen for display. */
+export const PROOF = [
+  { id: "teammate", fig: 0 },    // "0" · manual data entry
+  { id: "bi-delivery", fig: 0 }, // "90%+" · faster turnaround
+  { id: "alerting", fig: 1 },    // "100%" · of the dataset scanned
+];
+
+/* The firm's values, ruled into one line beside the contact form. */
+export const VALUES = ["Precise", "Accurate", "Agile", "Reliable"];
 
 export const EVOLUTION = [
   { era: "Chapter 01", t: "Spreadsheets & VBA", s: "Advanced modeling and macros — erasing the first layer of manual work." },

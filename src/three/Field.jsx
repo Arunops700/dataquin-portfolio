@@ -1,136 +1,186 @@
-import { Component, Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
+import { Component, Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { canRun3D, isLitePath, particleBudget, useReducedMotion } from "../motion/prefs.js";
+import { useProgress } from "../motion/scroll.js";
+import { loadLogoShapes, loadLogoTargets } from "./logo.js";
+import Poster from "./Poster.jsx";
+
+const loadScene = () => import("./HeroScene.jsx");
+const HeroScene = lazy(loadScene);
 
 /* The scene is decoration. If the chunk fails to load or WebGL throws,
-   the hero keeps its copy and the espresso ground — the page-level
-   boundary must never see it. */
+   it reports up and the field switches to the poster — the page-level
+   boundary never sees it, and the hero never goes blank. */
 class SceneBoundary extends Component {
   constructor(props) { super(props); this.state = { failed: false }; }
   static getDerivedStateFromError() { return { failed: true }; }
-  componentDidCatch(error) { console.error("3D scene disabled:", error); }
+  componentDidCatch(error) {
+    console.error("3D scene disabled:", error);
+    this.props.onFail?.();
+  }
   render() { return this.state.failed ? null : this.props.children; }
 }
-import { canRun3D, particleBudget, useReducedMotion } from "../motion/prefs.js";
-import { CAMERA_Z, CAMERA_FOV } from "./layout.js";
-import { loadLogoTargets, logoPlacement } from "./logo.js";
-import { loadLogoShapes } from "./trace.js";
 
-const HeroScene = lazy(() => import("./HeroScene.jsx"));
+const grainsFor = (place) =>
+  place === "band" ? 1600 : place === "aside" ? Math.round(particleBudget() / 3) : particleBudget();
+
+/* The field's size in 64px steps: the scene's pixel budget depends on it,
+   and a resize should not re-render the canvas for every pixel. */
+function useBox() {
+  const [box, setBox] = useState(null);
+  const el = useRef(null);
+  const attach = useCallback((node) => {
+    el.current = node;
+    if (!node) return undefined;
+    const ro = new ResizeObserver(([e]) => {
+      const w = Math.max(64, Math.round(e.contentRect.width / 64) * 64);
+      const h = Math.max(64, Math.round(e.contentRect.height / 64) * 64);
+      setBox((b) => (b && b.w === w && b.h === h ? b : { w, h }));
+    });
+    ro.observe(node);
+    return () => {
+      ro.disconnect();
+      el.current = null;
+    };
+  }, []);
+  return [box, attach, el];
+}
+
+/* An element's height in CSS px: the hero's window probe (.field-win). */
+function useHeight() {
+  const [h, setH] = useState(0);
+  const attach = useCallback((node) => {
+    if (!node) return undefined;
+    const ro = new ResizeObserver(([e]) => setH(Math.round(e.contentRect.height)));
+    ro.observe(node);
+    return () => ro.disconnect();
+  }, []);
+  return [h, attach];
+}
 
 /*
-  The gate in front of the 3D scene.
+  The gate in front of the 3D scene, and its API:
 
-  - WebGL available: trace the logo and sample the grains, load the
-    WebGL chunk after the page has painted, fade the scene in. With
-    reduced motion the same gold mark is rendered still: no gather, no
-    sway, no parallax.
-  - No WebGL (or Save-Data): draw the mark's outline once, filled gold,
-    on a plain 2D canvas. Never a blank hero.
+    <Field place="hero" | "aside" | "band" progress={mv} active={bool} />
+
+  - "hero":  the landing stage. `progress` is the story progress, in the
+             units of STORY_BEATS[i].range; the grains and the mark play
+             the beats with it.
+  - "aside": the Work hero on desktop — the settled result (the mark in
+             its ruled orbit rings), far right, turning as the hero scrolls
+             away. (`ambient` is kept as an alias.)
+  - "band":  the Work hero at ≤ 860px — the same settled mark in a ruled
+             strip of reserved height above the headline; lite render
+             path, the poster shown until the scene is ready.
+
+  WebGL2 available: the outline and grain targets load, the WebGL chunk
+  loads when the page is idle, and the scene fades in. Reduced motion
+  renders the same scene as finished stills that follow the scroll. No
+  WebGL2, Save-Data, a scene error, a shader that fails to compile or a
+  lost context: the 2D poster.
+
+  The hero measures its visible window (.field-win, the bottom 100svh of
+  the stage): the scene and the poster compose for it.
 */
-export function Field({ progress, ambient = false, active = true }) {
-  const gl = useMemo(() => canRun3D(), []);
-  const still = useReducedMotion();
-  const place = ambient ? "aside" : "hero";
-  // the ambient mark on the Work page is smaller: a third of the grains
-  // keeps its dust halo airy rather than a snow globe
-  const count = useMemo(() => (ambient ? Math.round(particleBudget() / 3) : particleBudget()), [ambient]);
-  const [assets, setAssets] = useState(undefined);
-  const [load, setLoad] = useState(false);
-  const [ready, setReady] = useState(false);
-
+export function Field({ place: placeProp, ambient = false, story, progress, yaw: yawProp, active = true }) {
+  const place = placeProp ?? (ambient ? "aside" : "hero");
+  const settled = (story ?? (place === "hero" ? "scroll" : "settled")) === "settled";
+  // null until probed: the probe creates (and at once releases) a WebGL2
+  // context, a synchronous GPU round trip that must not hold up the first
+  // paint — so it runs when the page is idle. A yes starts the scene's
+  // chunk downloading straight away (React.lazy reuses the module).
+  const [gl, setGl] = useState(null);
   useEffect(() => {
-    let alive = true;
-    Promise.all([loadLogoShapes(), loadLogoTargets(count)]).then(([traced, targets]) => {
-      if (alive) setAssets({ traced, targets });
-    });
-    return () => { alive = false; };
-  }, [count]);
-
-  useEffect(() => {
-    if (!gl || assets === undefined) return;
     const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 180));
     const cancel = window.cancelIdleCallback || clearTimeout;
-    const id = idle(() => setLoad(true));
+    const id = idle(() => {
+      const ok = canRun3D();
+      if (ok) loadScene().catch(() => {}); // a failure resurfaces through lazy → SceneBoundary
+      setGl(ok);
+    }, { timeout: 800 });
     return () => cancel(id);
-  }, [gl, assets]);
+  }, []);
+  const still = useReducedMotion();
+  const lite = useMemo(() => isLitePath(place), [place]);
+  const count = useMemo(() => (gl ? grainsFor(place) : 0), [gl, place]);
+  const [traced, setTraced] = useState(undefined);   // the outline: poster and mark
+  const [targets, setTargets] = useState(undefined); // the grain targets: scene only
+  const [load, setLoad] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [box, attach, el] = useBox();
+  const [win, winRef] = useHeight();
+  const markReady = useCallback(() => setReady(true), []);
+  const fail = useCallback(() => setFailed(true), []);
 
-  if (!gl) {
-    return (
-      <div className="field poster-mode" aria-hidden="true">
-        {assets?.traced && <Poster traced={assets.traced} place={place} />}
-      </div>
-    );
-  }
+  // The settled mark turns as its hero section scrolls away (tracking the
+  // section, not the field: the phone band would turn only while hidden
+  // under the topbar). Resolved before useProgress's own layout effect reads it.
+  const section = useRef(null);
+  useLayoutEffect(() => {
+    section.current = el.current?.closest("section") ?? el.current;
+  }, [el]);
+  const away = useProgress(section, ["start start", "end start"]);
+  const yaw = yawProp ?? (settled ? away : undefined);
 
+  // Either may come back null (the scene then does without); neither
+  // rejects. The outline loads at once (the poster needs it whatever the
+  // probe says); the grain targets only once the scene can run.
+  useEffect(() => {
+    let alive = true;
+    loadLogoShapes().then((t) => { if (alive) setTraced(t); });
+    return () => { alive = false; };
+  }, []);
+  useEffect(() => {
+    if (!gl) return undefined;
+    let alive = true;
+    loadLogoTargets(count).catch(() => null).then((t) => { if (alive) setTargets(t); });
+    return () => { alive = false; };
+  }, [gl, count]);
+
+  useEffect(() => {
+    if (!gl || failed || traced === undefined || targets === undefined) return undefined;
+    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 180));
+    const cancel = window.cancelIdleCallback || clearTimeout;
+    const id = idle(() => setLoad(true), { timeout: 1500 });
+    return () => cancel(id);
+  }, [gl, failed, traced, targets]);
+
+  // still probing (gl null): styled for the scene, as capable devices were
+  const poster = gl === false || failed;
+  const outline = traced;
   return (
-    <div className={`field gl${ready ? " ready" : ""}`} aria-hidden="true">
-      {load && (
-        <SceneBoundary>
-        <Suspense fallback={null}>
-          <HeroScene
-            progress={progress}
-            count={count}
-            targets={assets.targets}
-            outers={assets.traced ? assets.traced.outers : null}
-            place={place}
-            still={still}
-            /* keep the loop running until the first frame has been drawn;
-               only then does visibility get to pause it */
-            active={active || !ready}
-            onReady={() => setReady(true)}
-          />
-        </Suspense>
+    <div
+      ref={attach}
+      className={poster ? "field poster-mode" : `field gl${ready ? " ready" : ""}`}
+      data-place={place}
+      data-lite={lite && !poster ? "" : undefined}
+      aria-hidden="true"
+    >
+      {place === "hero" && <div className="field-win" ref={winRef} />}
+      {outline && (poster || place === "band") && <Poster outline={outline} place={place} settled={settled} win={win} />}
+      {!poster && load && box && (
+        <SceneBoundary onFail={fail}>
+          <Suspense fallback={null}>
+            <HeroScene
+              place={place}
+              settled={settled}
+              progress={progress}
+              yaw={yaw}
+              count={count}
+              targets={targets}
+              outers={outline ? outline.outers : null}
+              still={still}
+              /* keep the loop running until the first frame has been drawn;
+                 only then does visibility get to pause it */
+              active={active || !ready}
+              box={box}
+              win={win}
+              onReady={markReady}
+              onLost={fail}
+            />
+          </Suspense>
         </SceneBoundary>
       )}
     </div>
   );
-}
-
-/* No-WebGL fallback: the traced outline filled with a gold gradient,
-   projected with the same camera maths as the scene. */
-function Poster({ traced, place }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const c = ref.current;
-    if (!c) return;
-    const draw = () => {
-      const w = c.clientWidth;
-      const h = c.clientHeight;
-      if (!w || !h) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      c.width = Math.round(w * dpr);
-      c.height = Math.round(h * dpr);
-      const ctx = c.getContext("2d");
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, w, h);
-      const f = (h / 2) / Math.tan((CAMERA_FOV / 2) * (Math.PI / 180));
-      const s = f / CAMERA_Z;
-      const pl = logoPlacement(w / h, place);
-      const { polys, W, H } = traced;
-      const toScreen = ([x, y]) => [
-        w / 2 + ((x / W - 0.5) * 8.8 * pl.scale + pl.x) * s,
-        h / 2 - (-(y / H - 0.5) * 8.8 * (H / W) * pl.scale + pl.y) * s,
-      ];
-      const path = new Path2D();
-      polys.forEach((p) => {
-        p.forEach((pt, i) => {
-          const [px, py] = toScreen(pt);
-          if (i === 0) path.moveTo(px, py); else path.lineTo(px, py);
-        });
-        path.closePath();
-      });
-      const grad = ctx.createLinearGradient(0, 0, w, h);
-      grad.addColorStop(0, "#8a6c49");
-      grad.addColorStop(0.45, "#d3b789");
-      grad.addColorStop(0.7, "#f0e0c2");
-      grad.addColorStop(1, "#a5824f");
-      ctx.fillStyle = grad;
-      ctx.fill(path, "evenodd");
-    };
-    draw();
-    let raf = 0;
-    const ro = new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); });
-    ro.observe(c);
-    return () => { ro.disconnect(); cancelAnimationFrame(raf); };
-  }, [traced, place]);
-  return <canvas className="poster" ref={ref} />;
 }

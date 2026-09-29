@@ -1,0 +1,105 @@
+/* ============================================================
+   Bands & layout
+   ============================================================ */
+.wrap { width: min(1200px, calc(100% - 88px)); margin: 0 auto; }
+
+.band { background: var(--paper); color: var(--ink); position: relative; }
+.band.deep { background: var(--paper-2); }
+.band.dark { background: var(--esp); color: var(--ivory); }
+/* Gilt edge — every dark band closes on a fine gold line, like the
+   gilded page-edge of a ledger. */
+.band.dark::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1.5px;
+  background: var(--foil-lux);
+  opacity: 0.5;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.pad { padding: 110px 0; }
+.pad-b { padding-bottom: 110px; }
+.pad-s { padding: 72px 0; }
+
+/* Ruled section header: hairline, mono label left, serial right.
+   The hairline is drawn, not bordered — ::before is the rule, ::after
+   a short foil tab leading it, like the gilt edge of a ledger page. As
+   a Reveal the tab snaps in and the rule sweeps across behind it, on
+   the header's own stagger; anywhere else (and under reduced motion)
+   both are simply there. */
+.shead {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;   /* too narrow for both: the serial drops whole to its own line */
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 20px;
+  padding-top: 18px;
+  margin-bottom: 20px;
+}
+.shead .ser { margin-left: auto; }
+.shead::before,
+.shead::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+.shead::before { right: 0; height: 1px; background: var(--rule); }
+.shead::after { top: -0.5px; width: 56px; height: 2px; background: var(--foil); }
+.shead.reveal::before {
+  transform: scaleX(0);
+  transition: transform 1.1s var(--ease) calc(var(--reveal-delay, 0s) + 0.18s);
+}
+.shead.reveal::after {
+  transform: scaleX(0);
+  transition: transform 0.5s var(--ease) calc(var(--reveal-delay, 0s) + 0.06s);
+}
+.shead.reveal[data-in]::before,
+.shead.reveal[data-in]::after { transform: scaleX(1); }
+/* Arrival cue after a hash jump: the tab runs out along the rule and
+   settles back — this, not a focus ring round the whole section, says
+   where the reader has landed (App.jsx sets data-landed once). */
+.shead[data-landed]::after { animation: tabLand 1.4s var(--ease-in-out) var(--land-delay, 0.3s); }
+@keyframes tabLand {
+  0%, 100% { transform: scaleX(1); }
+  45% { transform: scaleX(5); }
+}
+/* A second header further down the same section */
+.shead.follow { margin-top: clamp(64px, 8vw, 96px); }
+
+/* Mono serial — the right-hand side of a section header, or any ledger
+   reference on paper or espresso. Capitals, like every other mono label
+   (a monospace capital is no wider, so nothing reflows). */
+.ser {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+.sec-intro { max-width: 780px; margin-bottom: 54px; }
+.sec-intro .lead { margin-top: 16px; }
+/* A section's closing action, under its rows */
+.sec-foot { margin-top: 36px; }
+
+@media (max-width: 860px) {
+  .wrap { width: calc(100% - 44px); }
+  .pad { padding: 76px 0; }
+  .pad-b { padding-bottom: 76px; }
+  .pad-s { padding: 56px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* drawn and finished; no arrival sweep */
+  .shead.reveal::before,
+  .shead.reveal::after { transform: none; transition: none; }
+  .shead[data-landed]::after { animation: none; }
+}

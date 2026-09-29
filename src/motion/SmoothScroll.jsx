@@ -1,19 +1,25 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
-import { useReducedMotion } from "./prefs.js";
+import { useMedia, useReducedMotion, prefersReducedMotion } from "./prefs.js";
+import { MQ } from "./tokens.js";
 
 /* One Lenis instance for the whole app, driven by its own frame loop.
-   Lenis scrolls the real window, so framer-motion's useScroll and the
-   topbar's scroll listener keep working unchanged. Reduced motion:
-   no Lenis at all, native scrolling. */
+   Lenis scrolls the real window, so framer-motion's useScroll (and
+   everything built on it: progress, topbar, scroll-linked styles) keeps
+   working unchanged. Reduced motion: no Lenis at all, native scrolling.
+   Touch screens: none either — Lenis leaves touch scrolling native
+   anyway, and would only add blocking touch listeners (a busy main
+   thread would hold up the first swipe) and a frame loop that never
+   stops; their glides use the browser's own smooth scroll. */
 
 const scroller = { lenis: null };
 
 export function SmoothScroll({ children }) {
   const reduced = useReducedMotion();
+  const coarse = useMedia(MQ.coarse);
 
   useEffect(() => {
-    if (reduced) return;
+    if (reduced || coarse) return;
     const lenis = new Lenis({
       lerp: 0.09,
       wheelMultiplier: 1,
@@ -26,7 +32,7 @@ export function SmoothScroll({ children }) {
       lenis.destroy();
       scroller.lenis = null;
     };
-  }, [reduced]);
+  }, [reduced, coarse]);
 
   return children;
 }
@@ -41,8 +47,8 @@ function headerClearance() {
 
 /* Scroll helper that goes through Lenis when it exists and falls back
    to native scrolling otherwise. `target` is a number or an element.
-   `immediate` jumps; without Lenis (reduced motion, or before it has
-   mounted) every scroll is a jump. */
+   `immediate` jumps. Without Lenis the browser glides (touch screens),
+   and under reduced motion every scroll is a jump. */
 export function scrollTo(target, { immediate = false } = {}) {
   const l = scroller.lenis;
   if (l) {
@@ -52,10 +58,9 @@ export function scrollTo(target, { immediate = false } = {}) {
     l.scrollTo(target, { immediate, duration: immediate ? 0 : 1.1 });
     return;
   }
-  if (typeof target === "number") {
-    window.scrollTo({ top: target, behavior: "instant" });
-  } else {
-    const top = target.getBoundingClientRect().top + window.scrollY - headerClearance();
-    window.scrollTo({ top, behavior: "instant" });
-  }
+  const behavior = immediate || prefersReducedMotion() ? "instant" : "smooth";
+  const top = typeof target === "number"
+    ? target
+    : target.getBoundingClientRect().top + window.scrollY - headerClearance();
+  window.scrollTo({ top, behavior });
 }

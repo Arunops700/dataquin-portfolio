@@ -1,0 +1,90 @@
+/* ============================================================
+   The field — the 3D mark and its grains, or their 2D poster
+   ============================================================ */
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.field canvas { display: block; width: 100% !important; height: 100% !important; }
+.field.gl { opacity: 0; }
+.field.gl.ready { animation: fadeIn 1.4s var(--ease) 0.1s forwards; }
+.poster { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.9; }
+/* The hero's visible window, measured by Field: a stage taller than the
+   screen opens on its top, then sticks with its foot on the viewport's
+   foot, so the story plays in its bottom 100svh (where the beats sit).
+   The scene composes for a window this tall. */
+.field-win {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100vh;
+  height: 100svh;
+  visibility: hidden;
+  pointer-events: none;
+}
+/* The composer canvas is opaque (bloom needs a ground; it is tone-mapped
+   to the band's exact espresso), so the ledger grid and aura sit above
+   it, under the copy. */
+.stage .hero-grid, .stage .hero-aura,
+.hero-work .hero-grid, .hero-work .hero-aura { z-index: 1; }
+/* Lite path (touch devices): no bloom pass, so a soft glow sits under the
+   transparent canvas, where the mark lives. */
+.field[data-lite]:not([data-place="band"])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(45% 50% at 80% 26%, rgb(var(--gold-hi-rgb) / 0.1), transparent 70%);
+}
+
+/* Keeps the copy legible over the brightest grains. The foot layer
+   eases off (--foot, 0–1, driven by the landing hero) while the beats
+   play, so the ledger sheet and the bridge stay visible below the copy. */
+.stage-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgb(var(--esp-rgb) / 0.82) 0%, rgb(var(--esp-rgb) / 0.5) 42%, rgb(var(--esp-rgb) / 0) 76%),
+    linear-gradient(0deg, rgb(var(--esp-rgb) / calc(0.92 * var(--foot, 1))) 0%, rgb(var(--esp-rgb) / 0) 34%);
+}
+
+/* The Work hero on phones and small tablets: the settled mark in a ruled
+   band above the headline. Full-bleed across the .wrap gutter, its height
+   reserved from first paint (no layout shift); the edges fade like the
+   services strip. The traced poster shows until the live scene is ready,
+   then the two crossfade — the band itself never fades. (Selected by
+   data-place: `.band` is the global section class and would paint paper.) */
+.field[data-place="band"] {
+  position: relative;
+  inset: auto;
+  z-index: 0;
+  height: clamp(140px, 22vh, 200px);
+  margin: 0 -22px clamp(24px, 4vh, 36px);
+  border-block: 1px solid var(--rule);
+  background: radial-gradient(55% 75% at 50% 50%, rgb(var(--gold-hi-rgb) / 0.08), transparent 70%);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+}
+.field[data-place="band"].gl,
+.field[data-place="band"].gl.ready { opacity: 1; animation: none; }
+.field[data-place="band"] .poster { opacity: 1; transition: opacity var(--dur-slow) var(--ease); }
+.field[data-place="band"].ready .poster { opacity: 0; }
+.field[data-place="band"] canvas:not(.poster) { opacity: 0; transition: opacity var(--dur-slow) var(--ease); }
+.field[data-place="band"].ready canvas:not(.poster) { opacity: 1; }
+
+/* the band belongs to narrow screens only (Work mounts it there alone) */
+@media not all and (max-width: 860px) {
+  .field[data-place="band"] { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field.gl.ready { animation: none !important; opacity: 1; }
+  .field[data-place="band"] .poster,
+  .field[data-place="band"] canvas:not(.poster) { transition: none; }
+}

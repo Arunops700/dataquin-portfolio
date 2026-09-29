@@ -6,6 +6,12 @@
   Teams, SharePoint) are fine to name.
 
   metrics: { to, suffix, k } animates a CountUp; { v, k } renders plain text.
+  metrics[0] is the chapter's headline figure on the Work page.
+
+  Arrow rule: in `metrics` (and site.js IMPACTS) an arrow always means
+  before → after ("2 → 1", "hrs → min"); the Work page prints the old
+  figure small and struck through, like a corrected ledger entry.
+  `card.metric` is exempt — "detection → inbox" is a path, not a change.
 */
 export const STUDIES = [
   {

@@ -1,0 +1,63 @@
+/* ============================================================
+   CTA band
+   ============================================================ */
+.cta-band { text-align: center; overflow: hidden; }
+.cta-band .wrap { position: relative; z-index: 1; }
+.cta-glow {
+  position: absolute;
+  top: -30%;
+  left: 50%;
+  width: 46rem;
+  height: 30rem;
+  margin-left: -23rem;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--bloom), transparent 65%);
+  filter: blur(50px);
+  animation: ctaBloom 12s ease-in-out infinite alternate;
+}
+.cta-band:not([data-live]) .cta-glow { animation-play-state: paused; }   /* off-screen: holds still */
+@keyframes ctaBloom {
+  from { transform: translate(-3rem, -1rem) scale(1); }
+  to { transform: translate(3rem, 1.5rem) scale(1.14); }
+}
+.cta-h {
+  margin-top: 20px;
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 4.4vw, 3.4rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+.cta-s { margin: 20px auto 0; max-width: 560px; font-size: 16.5px; line-height: 1.65; color: var(--fg-soft); }
+/* Split CTA variant (stack / impact closers) */
+.cta-split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  flex-wrap: wrap;
+  text-align: left;
+}
+.cta-split .mono-note {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--fg-faint);
+  margin-top: 12px;
+}
+
+@media (max-width: 560px) {
+  /* Full-width CTA on phones (the landing's closing band): the magnetic
+     wrapper must stretch with its button */
+  .cta-band .btn { width: 100%; justify-content: center; }
+  .cta-band .magnet { width: 100%; }
+  /* the Work closer too: both pages end the same way on a phone */
+  .cta-split .magnet, .cta-split .btn { width: 100%; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-glow { animation: none !important; }
+}
