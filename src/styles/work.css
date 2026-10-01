@@ -17,7 +17,7 @@
   position: relative;
   display: grid;
   grid-template-columns: 1fr auto;
-  grid-template-areas: "num arr" "type type" "fig fig";
+  grid-template-areas: "num arr" "type type";
   align-content: start;
   row-gap: 6px;
   padding: 16px 0 20px;
@@ -52,17 +52,6 @@
 .ci-arr { grid-area: arr; color: var(--gold-hi); transition: transform var(--dur) var(--ease); }
 .ci-cell:focus-visible .ci-arr { transform: translateX(4px); }
 .ci-type { grid-area: type; font-size: 16px; font-weight: 600; line-height: 1.35; color: var(--ivory); }
-.ci-fig {
-  grid-area: fig;
-  font-family: var(--font-head);
-  font-weight: 600;
-  font-size: 1.2rem;
-  line-height: 1.2;
-  background: var(--foil-lux);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
 @media (hover: none) {
   .ci-cell:active::before { transform: scaleX(1); }
 }
@@ -154,329 +143,31 @@
 
 .ch-main { container: ch-main / inline-size; min-width: 0; }
 .ch-title { margin-top: 0; }
-.ch-tagline { margin-top: 14px; }
 
-/* Exhibit: one headline figure and a ruled list of the rest */
-.ch-exhibit {
+/* The summary, then the problem and our solution side by side: two
+   short labelled paragraphs, read in seconds. */
+.ch-summary { margin-top: 14px; max-width: 46ch; }
+.ps-grid {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  column-gap: clamp(28px, 4vw, 56px);
-  margin: clamp(36px, 5vw, 56px) 0 clamp(48px, 6vw, 72px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(28px, 4vw, 56px);
+  margin-top: clamp(28px, 4vw, 44px);
+  padding-top: clamp(20px, 2.6vw, 28px);
   border-top: 1px solid var(--rule);
 }
-.chapter.verso .ch-exhibit { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
-.chapter.verso .ch-lead { order: 2; text-align: right; }
-.ch-lead { position: relative; container-type: inline-size; padding: 26px 0 8px; }
-.ch-lead::before {
-  content: "";
-  position: absolute;
-  top: -2px;
-  left: 0;
-  width: 64px;
-  height: 3px;
-  background: var(--foil);
-}
-.chapter.verso .ch-lead::before { left: auto; right: 0; }
-.ch-lead-v {
-  font-family: var(--font-head);
-  font-weight: 600;
-  line-height: 0.92;
-  letter-spacing: -0.03em;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  font-size: clamp(3.6rem, 7vw, 6.4rem);
-  background: var(--foil);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-/* Auto-fit: never wider than its own cell (cqi = .ch-lead). Gated: a
-   var() declaration always wins the cascade, so an engine without
-   container units would drop the figure to body size, not to the
-   plain clamp above. */
-@supports (width: 1cqi) {
-  .ch-lead-v { font-size: min(clamp(3.6rem, 7vw, 6.4rem), calc(100cqi / (var(--len, 4) * 0.58))); }
-}
-.ch-lead-k { margin-top: 14px; max-width: 30ch; font-size: 17px; font-weight: 600; line-height: 1.45; color: var(--fg); }
-.chapter.verso .ch-lead-k { margin-left: auto; }
-
-/* Ruled metric list on a subgrid: every key starts at the same x, and
-   the value column's floor keeps a counting figure from nudging them. */
-.met-list {
-  align-self: start;
-  display: grid;
-  grid-template-columns: minmax(7.5rem, max-content) minmax(0, 1fr);
-  column-gap: 22px;
-}
-.met-li {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: 7.5rem minmax(0, 1fr); /* fallback without subgrid */
-  grid-template-columns: subgrid;
-  column-gap: 22px;
-  align-items: baseline;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--rule-soft);
-}
-.met-v {
-  font-family: var(--font-head);
-  font-weight: 600;
-  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
-  line-height: 1;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  background: var(--foil);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.met-k {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.5;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--fg-faint);
-}
-
-/* The ledger correction (LedgerFigure): the old figure small and struck
-   through, the new one full size. A child repaints its own fill, since
-   the foil parent's text fill is transparent. */
-.fig-was {
-  position: relative;
-  display: inline-block;
-  margin-right: 0.16em;
-  font-size: max(13px, 0.46em);
-  vertical-align: 0.55em;
-  letter-spacing: 0;
-  -webkit-text-fill-color: var(--fg-faint);
-}
-.fig-was::after {
-  content: "";
-  position: absolute;
-  left: -0.08em;
-  right: -0.08em;
-  top: 54%;
-  height: max(2px, 0.07em);
-  background: var(--accent-mark);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.6s var(--ease) 0.45s;
-}
-[data-in] .fig-was::after { transform: scaleX(1); }
-.fig-arr {
-  margin-right: 0.22em;
-  font-size: max(13px, 0.4em);
-  vertical-align: 0.6em;
-  -webkit-text-fill-color: var(--accent-mark);
-}
-/* Fraunces has no → (U+2192): set arrows in the body face, not in
-   whatever serif the system substitutes */
-.fig-arr, .ci-fig [aria-hidden] { font-family: var(--font-body); font-style: normal; font-weight: 600; }
-
-/* Story | tools. Stacks by the column's own width, same order on both sides. */
-.story-grid {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: clamp(40px, 5vw, 80px);
-  align-items: start;
-}
-.story { max-width: 34em; }   /* ~72 characters a line once story and tools stack */
-.story p { color: var(--fg-soft); font-size: 16.5px; }
-.story p + p { margin-top: 14px; }
-.story-points { margin-top: 26px; border-top: 1px solid var(--rule); }
-.story-points li {
-  display: flex;
-  gap: 13px;
-  align-items: baseline;
-  padding: 13px 4px;
-  border-bottom: 1px solid var(--rule-soft);
-  color: var(--fg-soft);
-  font-size: 15.5px;
-  line-height: 1.55;
-}
-.story-points li::before {
-  content: "";
-  flex: 0 0 auto;
-  width: 14px;
-  height: 1px;
-  margin-top: 0.7em;
-  background: var(--accent-mark);
-}
-.story-points strong { color: var(--fg); font-weight: 700; }
-
-/* Tools: a real dot-leader ledger — open ruled rows on a subgrid, so
-   every description starts at the same x. No box, no sticky. */
-.tools-ledger {
-  position: relative;
-  display: grid;
-  grid-template-columns: fit-content(46%) minmax(0, 1fr);
-  border-top: 1px solid var(--rule-strong);
-}
-.tools-ledger::before {
-  content: "";
-  position: absolute;
-  top: -2px;
-  left: 0;
-  width: 64px;
-  height: 3px;
-  background: var(--foil);
-}
-.tools-ledger .mlabel { grid-column: 1 / -1; display: block; padding: 16px 0 10px; }
-.tool-row {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr); /* fallback without subgrid */
-  grid-template-columns: subgrid;
-  align-items: baseline;
-  padding: 11px 0;
-  border-top: 1px solid var(--rule-soft);
-}
-.tool-name {
-  display: flex;
-  align-items: baseline;
-  font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: 13px;
-  letter-spacing: 0.02em;
-  color: var(--accent);
-}
-.tool-name::after {
-  content: "";
-  flex: 1 1 auto;
-  min-width: 18px;
-  margin: 0 12px;
-  border-bottom: 1px dotted var(--line);
-  transform: translateY(-4px);
-}
-.tool-desc { color: var(--fg-soft); font-size: 14.5px; line-height: 1.55; }
-
-@container ch-main (max-width: 820px) {
-  .story-grid { grid-template-columns: 1fr; gap: 44px; }
-}
+.ps-part p { color: var(--fg-soft); font-size: 17px; line-height: 1.6; max-width: 40em; }
 @container ch-main (max-width: 620px) {
-  .ch-exhibit, .chapter.verso .ch-exhibit { grid-template-columns: 1fr; }
-  .chapter.verso .ch-lead { order: 0; text-align: left; }
-  .chapter.verso .ch-lead::before { left: 0; right: auto; }
-  .chapter.verso .ch-lead-k { margin-left: 0; }
-  .met-list { margin-top: 12px; border-top: 1px solid var(--rule-soft); }
-}
-
-/* ============================================================
-   Orientation — the rail (≥1580px) and the chapter bar (≤1080px)
-   ============================================================ */
-/* Mounted only at ≥1580px, where the gutter beside the column holds it:
-   kept a fixed distance left of the 1200px column, never off-screen */
-.rail {
-  position: fixed;
-  left: max(16px, calc((100% - 1200px) / 2 - 196px));
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
-}
-/* Tone follows the band actually behind the rail (Rail in Orientation.jsx) */
-.rail[data-tone="dark"] {
-  --fg: var(--ivory);
-  --fg-faint: var(--ivory-faint);
-  --accent: var(--gold-hi);
-  --accent-mark: var(--gold-hi);
-  --rule-soft: var(--rule-gold);
-  --focus: var(--gold-hi);   /* gold-deep rings are 2.7:1 on espresso */
-}
-.rail.show { opacity: 1; pointer-events: auto; }
-.rail .mlabel { margin-bottom: 10px; color: var(--accent); transition: color var(--dur) ease; }
-/* The spine: every entry sits on one hairline; the gold marker glides */
-.rail a {
-  display: flex;
-  gap: 10px;
-  align-items: baseline;
-  max-width: 136px;
-  padding: 5px 0 5px 12px;
-  border-left: 1.5px solid var(--rule-soft);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.35;
-  letter-spacing: 0.06em;
-  color: var(--fg-faint);
-  transition: color var(--dur-fast) ease, border-color var(--dur) ease;
-}
-.rail a b { flex: 0 0 auto; font-weight: 600; }
-.rail a:focus-visible { color: var(--fg); }
-.rail a.on { color: var(--accent); }
-@media (pointer: coarse) { .rail a { padding-block: 13px; } }   /* 44px rows for touch */
-.rail::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 1.5px;
-  height: var(--rail-h, 0px);
-  background: var(--accent-mark);
-  transform: translateY(var(--rail-y, 0px));
-  transition: transform 0.45s var(--ease-in-out), height 0.45s var(--ease-in-out), background-color var(--dur) ease;
-}
-
-/* The chapter bar: a slim mono row fixed flush under the topbar (its
-   height is measured into --tb-h). Never over the reading column's
-   anchors: the page adds its height to scroll-padding-top. */
-.ch-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: var(--tb-h, 56px);
-  z-index: 60;
-  height: 34px;
-  background: rgb(var(--esp-rgb) / 0.96);
-  border-bottom: 1px solid var(--rule-gold);
-  opacity: 0;
-  transform: translateY(-6px);
-  pointer-events: none;
-  transition: opacity var(--dur) ease, transform var(--dur) var(--ease);
-}
-.ch-bar.show { opacity: 1; transform: none; }
-/* Landscape phones: no height to spare. Work.jsx (SHORT) drops the bar
-   and its anchor clearance with the same query. */
-@media (max-height: 500px) { .ch-bar { display: none; } }
-.ch-bar-in {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  white-space: nowrap;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ivory-soft);
-}
-.ch-bar-n { flex: none; color: var(--gold-hi); }
-.ch-bar-n em { font-style: normal; color: var(--ivory-faint); }
-.ch-bar-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.08em; }
-/* A segmented foil ruler: page progress, a tick where each section starts */
-.ch-ruler { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; }
-.ch-ruler i { position: absolute; inset: 0; display: block; background: var(--foil-lux); transform-origin: left; }
-.ch-ruler b {
-  position: absolute;
-  top: -3px;
-  left: calc(var(--x) * 100%);
-  width: 1px;
-  height: 5px;
-  background: rgb(var(--gold-hi-rgb) / 0.55);
+  .ps-grid { grid-template-columns: 1fr; gap: 24px; }
 }
 
 /* ============================================================
    Stack — the tool sphere and ledger, then the evolution line
    ============================================================ */
+/* How we've grown, then the stack, on one paper band: one gap between
+   them (the follow-on heading's spacing), not two sections' padding */
+.evo-sec.pad { padding-bottom: 0; }
+.stack-sec.pad { padding-top: clamp(64px, 8vw, 96px); }
+
 /* The eras on one scroll-drawn line (--p, 0–1, from Stack.jsx); each
    diamond fills as the line reaches its measured position (--at). */
 .evo {
@@ -680,7 +371,6 @@
 /* pointed at (hover, tap or keyboard focus — Stack.jsx): a wash and a
    gold edge; nothing moves, so nothing lays out */
 .stk-row.hot { background-color: var(--wash); box-shadow: inset 2px 0 0 var(--accent-mark); }
-.stk-row:focus-visible { outline-offset: -2px; }
 .stk-ico {
   grid-area: ico;
   width: 36px;
@@ -697,12 +387,9 @@
 
 /* ---------- Problems we have solved: the intro band and its index ---------- */
 .probs .ch-index { max-width: none; margin-top: 8px; }
-/* the two-part contents in the Work hero */
-.ch-index.toc { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: min(640px, 60%); }
 
-/* A chapter's story in two labelled parts. The labels (and "Tools
-   used") are h3s under the chapter's h2, set as mono labels. */
-.story-part + .story-part { margin-top: 22px; }
+/* The problem / Our solution labels: h3s under the chapter's h2, set
+   as mono labels. */
 .story-k {
   display: block;
   margin-bottom: 8px;
@@ -746,16 +433,23 @@
 
 /* Hover where a pointer can really hover: the keyboard-focus looks
    above. On a touch screen a tapped cell answers with the press wash
-   instead of staying lit. The selected rail entry keeps its gold
-   (hover sits later in the cascade than .on). */
+   instead of staying lit. */
 @media (hover: hover) {
   .ci-cell:hover::before { transform: scaleX(1); }
   .ci-cell:hover .ci-arr { transform: translateX(4px); }
-  .rail a:not(.on):hover { color: var(--fg); }
   .cta-reach a:hover { color: var(--accent); }
 }
 @media (hover: none) {
   .cta-reach a:active { color: var(--accent); }
+}
+
+/* ============================================================
+   Desktops (>860px): the header fills the first screen
+   ============================================================ */
+@media not all and (max-width: 860px) {
+  .hero-work { min-height: 100vh; min-height: 100svh; align-items: center; }
+  .hero-sub.hero-work { padding-top: calc(var(--bar-clear) + 4px); }
+  .hero-work.pad-b { padding-bottom: 40px; }
 }
 
 /* ============================================================
@@ -767,8 +461,8 @@
   /* never taller than a landscape phone's screen */
   .stk-stage { position: relative; top: auto; width: min(100%, 460px); width: min(100%, 460px, 80svh); margin: 0 auto; }
   .ch-index { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  /* one column; the numeral becomes an inline row above the title and
-     the chapter bar shows position instead of the track */
+  /* one column; the numeral becomes an inline row above the title (the
+     top bar's island shows position instead of the track) */
   .ch-grid, .chapter.verso .ch-grid { grid-template-columns: 1fr; }
   .chapter.verso .ch-aside, .chapter.verso .ch-main { grid-column: 1; grid-row: auto; }
   .ch-aside-in, .chapter.verso .ch-aside-in {
@@ -789,7 +483,6 @@
 }
 
 @media (max-width: 860px) {
-  .ch-index.toc { grid-template-columns: 1fr; max-width: none; }
   .hero-work { min-height: 0; }
   /* Phones and tablets: the gilt spine index is the hero's visual */
   .ch-index { position: relative; grid-template-columns: 1fr; margin-top: 36px; padding-left: 28px; }
@@ -828,7 +521,6 @@
   }
   .ci-cell:focus-visible::after { background: var(--gold-hi); }
   .ci-arr { align-self: center; }
-  .ci-fig { font-size: 1.05rem; }
 
   .evo { grid-template-columns: 1fr; row-gap: 30px; padding: 4px 0 0 32px; }
   .evo-line { top: 0; bottom: 0; left: 5px; right: auto; width: 1px; height: auto; }
@@ -845,12 +537,6 @@
   .evo-step::before { left: -32px; top: 5px; }
   .evo-step.now::before { left: -33px; top: 4px; }
 
-  .ch-bar { height: 32px; }
-
-  /* no container queries: stack story | tools by the viewport instead */
-  @supports not (container-type: inline-size) {
-    .story-grid { grid-template-columns: 1fr; gap: 44px; }
-  }
 }
 @media (max-width: 860px) and (hover: none) {
   .ci-cell:active::after { background: var(--gold-hi); }
@@ -863,30 +549,19 @@
 @media (max-width: 560px) {
   .stk-ledger { grid-template-columns: 1fr; gap: 32px; }
   .stk-stage { width: 100%; width: min(100%, 80svh); }
-  .chapter .shead .ser { display: none; } /* the numeral carries it; no 2-line wrap */
-  .met-k { letter-spacing: 0.06em; }      /* 2–3 lines at 390px, not 4–5 */
-  .tool-row { grid-template-columns: 1fr; row-gap: 2px; }
-  .tool-name::after { display: none; }
 
-  /* no container queries: the exhibit stacks by the viewport instead */
+  /* no container queries: problem and solution stack by the viewport */
   @supports not (container-type: inline-size) {
-    .ch-exhibit, .chapter.verso .ch-exhibit { grid-template-columns: 1fr; }
-    .chapter.verso .ch-lead { order: 0; text-align: left; }
-    .chapter.verso .ch-lead::before { left: 0; right: auto; }
-    .chapter.verso .ch-lead-k { margin-left: 0; }
-    .met-list { margin-top: 12px; border-top: 1px solid var(--rule-soft); }
+    .ps-grid { grid-template-columns: 1fr; gap: 24px; }
   }
 }
 
 /* Reduced motion: everything lands finished — the index and its spine
-   at once, the numerals already foiled, the strikes drawn, the "now"
-   dot still. Scroll-linked lines, tracks and rulers keep following the
+   at once, the numerals already foiled, the "now" dot still. Scroll-linked lines, tracks and rulers keep following the
    scroll (they move only when the reader does). */
 @media (prefers-reduced-motion: reduce) {
   .ci-cell { opacity: 1; animation: none; }
   .ch-index::before { animation: none; }
   .ch-num-ink { clip-path: none; transition: none; }
-  .fig-was::after { transform: none; transition: none; }
   .evo-dot { animation: none; }
-  .rail, .rail::after, .ch-bar { transition: none; }
 }

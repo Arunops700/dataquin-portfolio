@@ -1,10 +1,9 @@
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { animate } from "framer-motion";
-import { EASE, MQ } from "../motion/tokens.js";
+import { useEffect, useRef } from "react";
+import { MQ } from "../motion/tokens.js";
 import { useMedia, useReducedMotion, prefersReducedMotion } from "../motion/prefs.js";
 
 /* ---------- Shared "has it entered the screen?" watcher ---------- */
-/* Every Reveal and CountUp registers here instead of wiring its own
+/* Every Reveal registers here instead of wiring its own
    observer and scroll listener. One IntersectionObserver per option set
    does the work; two fail-safes cover the cases where it never fires
    (odd viewports, hash jumps, a broken observer):
@@ -13,8 +12,8 @@ import { useMedia, useReducedMotion, prefersReducedMotion } from "../motion/pref
      no per-frame reads) and shows any element that is on screen;
    - a per-element safety timer shows an element that is already inside
      the viewport after `safety` ms.
-   Elements below the fold (or beside it, on the sideways services
-   track) stay hidden until they arrive, so their entrance plays; nothing
+   Elements below the fold stay hidden until they arrive, so their
+   entrance plays; nothing
    can stay invisible once it is on screen. With reduced motion, no
    observer is created at all: content is shown at once. */
 function onScreen(el, inset = 0) {
@@ -120,68 +119,6 @@ export function Reveal({ children, as: Tag = "div", delay = 0, className = "", .
       {children}
     </Tag>
   );
-}
-
-/* ---------- Animated counter ---------- */
-/* The ticking figure is written straight to the DOM (no re-render per
-   frame) and hidden from assistive tech; the final value is always
-   present for screen readers. Reduced motion shows the final figure
-   from the start. The ticking span has no React children — its text is
-   owned by the effects alone, so a re-render can never fight them. */
-export function CountUp({ to, suffix = "", duration = 1.6 }) {
-  const ref = useRef(null);
-  // still from the first paint, or once reduced motion is switched on
-  // mid-visit — and it stays still: switching it off again never
-  // replays a settled count (a render-phase latch, set at most once)
-  const liveReduced = useReducedMotion();
-  const [still, setStill] = useState(prefersReducedMotion);
-  if (liveReduced && !still) setStill(true);
-  useLayoutEffect(() => {
-    if (ref.current) ref.current.textContent = `${still ? to : 0}${suffix}`;
-  }, [to, suffix, still]);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || still) return;
-    let controls;
-    const stop = whenOnScreen(
-      el,
-      () => {
-        controls = animate(0, to, {
-          duration,
-          ease: EASE,
-          onUpdate: (v) => { el.textContent = `${Math.round(v)}${suffix}`; },
-        });
-      },
-      { threshold: 0.4, rootMargin: "0px", safety: 1500 }
-    );
-    return () => {
-      stop();
-      controls?.stop();
-      el.textContent = `${to}${suffix}`;
-    };
-  }, [to, suffix, duration, still]);
-  return (
-    <span>
-      <span ref={ref} aria-hidden="true" />
-      <span className="sr-only">{to}{suffix}</span>
-    </span>
-  );
-}
-
-/* ---------- "Before → after", read aloud ---------- */
-/* The arrow is drawn; a screen reader says "to". */
-const TO = (
-  <>
-    <span aria-hidden="true"> → </span>
-    <span className="sr-only"> to </span>
-  </>
-);
-
-/* A plain "a → b" string with each arrow rendered as TO. */
-export function Arrowed({ text }) {
-  return String(text).split(" → ").map((part, i) => (
-    <Fragment key={i}>{i > 0 && TO}{part}</Fragment>
-  ));
 }
 
 /* An email address that may wrap after its @, never inside a name. Its

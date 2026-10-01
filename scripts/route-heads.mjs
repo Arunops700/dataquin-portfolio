@@ -1,7 +1,7 @@
 /*
-  Post-build: give /work its own <head> for link-preview scrapers, and
-  check that index.html's static copy (contact details, the home
-  description) still matches the data.
+  Post-build: give /work its own <head> for link-preview scrapers, write
+  the 404 page, and check that index.html's static copy (contact details,
+  the home description) still matches the data.
 
   The SPA serves one index.html for every route, so LinkedIn, Slack and
   WhatsApp (which run no JavaScript) would show the home page's title
@@ -75,4 +75,21 @@ for (const [route, meta] of Object.entries(ROUTES)) {
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, "index.html"), html);
   console.log(`route head written: /${route}`);
+}
+
+/* dist/404.html: Vercel serves it, with a real 404 status, for every
+   address that isn't a page (vercel.json rewrites only the two routes).
+   The app boots from it and the router shows the NotFound page; its
+   static head is already the 404's — not indexed, no canonical. */
+{
+  const meta = PAGE_META.notFound;
+  const title = esc(fullTitle(meta.title));
+  let html = src;
+  html = swap(html, /(<title>)[^<]*(<\/title>)/, title, "<title>");
+  html = swap(html, /(<meta name="description" content=")[^"]*(")/, esc(meta.description), "meta description");
+  html = swap(html, /(<link rel="canonical" href=")[^"]*(")/, "", "canonical link")
+    .replace(/<link rel="canonical" href="" \/?>\s*/, "");
+  html = html.replace("</head>", '  <meta name="robots" content="noindex, follow" />\n</head>');
+  writeFileSync(join(dist, "404.html"), html);
+  console.log("404 page written: /404.html");
 }

@@ -29,23 +29,3 @@ export function usePageProgress() {
   useMotionValueEvent(scrollYProgress, "change", (v) => p.set(v));
   return p;
 }
-
-/* Odometer keyframes for useTransform: rests on whole steps and rolls
-   at each switch point. `edges` are ascending switch points in the
-   driver's units; each roll takes `half` either side. The output is a %
-   of the list's own height (n lines), so it survives text zoom and
-   needs no shared line-height constant. Pair with .roll / .roll-list
-   (type.css). Input stays strictly ascending (a framer requirement). */
-export function stepRoll(edges, half, lo, hi) {
-  const n = edges.length + 1;
-  const at = (i) => `${(-i * 100) / n}%`;
-  const input = [lo];
-  const output = [at(0)];
-  edges.forEach((e, i) => {
-    input.push(e - half, e + half);
-    output.push(at(i), at(i + 1));
-  });
-  input.push(hi);
-  output.push(at(edges.length));
-  return [input, output];
-}

@@ -9,10 +9,9 @@ import { PAL } from "./palette.js";
 
   Metal shows its environment, not its lights. The front face reflects
   what sits behind the camera — a broad warm card, brighter up and to the
-  right where the face points at rest — so it reads as lit gold. Turned
-  away (the "problem" beat) it slides off that card and dims; squared up
-  (the "result") it sits in the brightest part. The tall strips draw crisp
-  lines along the bevels.
+  right where the face points at rest — so it reads as lit gold; squared
+  up toward the viewer it sits in the brightest part. The tall strips
+  draw crisp lines along the bevels.
 */
 export function bakeStudio(renderer, size = 256) {
   const env = new THREE.Scene();

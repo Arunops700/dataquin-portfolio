@@ -56,19 +56,13 @@ function Evolution() {
   );
 }
 
-/* Focus from the keyboard, not from a tap or a click (an engine without
-   :focus-visible just skips the highlight) */
-const byKeyboard = (el) => {
-  try { return el.matches(":focus-visible"); } catch { return false; }
-};
-
 /* The stack, shown two ways: the sphere of tool tiles (turn it, or point
    at a tool in the ledger to bring its tile to the front), and the
    ledger itself — every tool by discipline, with what we use it for.
-   The ledger is the readable version; the sphere is decoration.
-   A row points at its tile on hover (fine pointers), on a tap (which
-   toggles it) and on keyboard focus; focus or a tap leaving the ledger
-   lets go. */
+   The ledger is the readable version; the sphere is decoration, so a
+   row is not a keyboard stop (it would be a stop that does nothing).
+   A row points at its tile on hover (fine pointers) and on a tap, which
+   toggles it. */
 function StackShowcase() {
   const [hot, setHot] = useState(-1);
   const fine = useMedia(MQ.fine);
@@ -78,8 +72,7 @@ function StackShowcase() {
         <TechSphere hot={hot} />
         <p className="stk-hint" aria-hidden="true">Drag to turn</p>
       </div>
-      <div className="stk-ledger" onMouseLeave={fine ? () => setHot(-1) : undefined}
-        onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setHot(-1); }}>
+      <div className="stk-ledger" onMouseLeave={fine ? () => setHot(-1) : undefined}>
         {Object.entries(CATS).map(([k, label], ci) => (
           <Reveal className="stk-cat" key={k} delay={Math.min(ci, 4)}>
             <div className="stk-cat-h">
@@ -88,12 +81,10 @@ function StackShowcase() {
             </div>
             <ul>
               {TECH.map((t, i) => (t.cat !== k ? null : (
-                <li key={t.name} className={`stk-row${hot === i ? " hot" : ""}`} tabIndex={0}
+                <li key={t.name} className={`stk-row${hot === i ? " hot" : ""}`}
                   onMouseEnter={fine ? () => setHot(i) : undefined}
                   // a mouse has already pointed on hover; a tap toggles
-                  onClick={() => setHot((h) => (h === i && !fine ? -1 : i))}
-                  // keyboard focus only: a tap's own focus is left to the click
-                  onFocus={(e) => { if (byKeyboard(e.currentTarget)) setHot(i); }}>
+                  onClick={() => setHot((h) => (h === i && !fine ? -1 : i))}>
                   <span className="stk-ico"><img src={`/icons/${t.ico}`} alt="" loading="lazy" /></span>
                   <span className="stk-name">{t.name}</span>
                   <span className="stk-role">{t.role}</span>
@@ -107,37 +98,39 @@ function StackShowcase() {
   );
 }
 
+/* How we've grown first, then the stack itself: two sections on one
+   paper band (the evolution's foot and the stack's head share one gap),
+   each its own anchor (#evolution, #stack) and island label — the
+   island names the section, so neither carries a label row of its own. */
 export const Stack = memo(function Stack() {
   return (
-    <section className="band deep pad" id="stack" data-rail data-tone="paper">
-      <div className="wrap">
-        <Reveal className="shead">
-          <span className="mlabel">Tech stack</span>
-          <span className="ser">§ 01 · {countWord(TECH.length)} tools</span>
-        </Reveal>
-        <Reveal className="sec-intro">
-          <h2 className="h1">The tools <em className="foil">we build with.</em></h2>
-          <p className="lead">
-            {cap(countWord(TECH.length))} tools across {countWord(Object.keys(CATS).length)} disciplines — the
-            stack behind every solution we deliver, from reporting to AI engineering.
-          </p>
-        </Reveal>
-        <StackShowcase />
+    <>
+      <section className="band deep pad evo-sec" id="evolution" data-island="How we’ve grown">
+        <div className="wrap">
+          <Reveal className="sec-intro">
+            <h2 className="h1">Technology keeps evolving. <em className="foil">So do we.</em></h2>
+            <p className="lead">
+              Every time the data landscape shifts, we master the new layer and put it into
+              production. From spreadsheet automation to dashboards, from integration to AI
+              engineering — as the stack evolves, so does the way we deliver.
+            </p>
+          </Reveal>
+          <Evolution />
+        </div>
+      </section>
 
-        <Reveal className="shead follow">
-          <span className="mlabel">How we've grown</span>
-          <span className="ser">§ 02</span>
-        </Reveal>
-        <Reveal className="sec-intro">
-          <h2 className="h1">Technology keeps evolving. <em className="foil">So do we.</em></h2>
-          <p className="lead">
-            Every time the data landscape shifts, we master the new layer and put it into
-            production. From spreadsheet automation to dashboards, from integration to AI
-            engineering — as the stack evolves, so does the way we deliver.
-          </p>
-        </Reveal>
-        <Evolution />
-      </div>
-    </section>
+      <section className="band deep pad stack-sec" id="stack" data-island="Tech stack">
+        <div className="wrap">
+          <Reveal className="sec-intro">
+            <h2 className="h1">The tools <em className="foil">we build with.</em></h2>
+            <p className="lead">
+              {cap(countWord(TECH.length))} tools across {countWord(Object.keys(CATS).length)} disciplines — the
+              stack behind every solution we deliver, from reporting to AI engineering.
+            </p>
+          </Reveal>
+          <StackShowcase />
+        </div>
+      </section>
+    </>
   );
 });

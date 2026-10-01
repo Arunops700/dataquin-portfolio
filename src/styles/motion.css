@@ -5,8 +5,8 @@
    React re-render that rewrites className can never hide revealed
    content again. Anything that is also a reveal and carries its own
    transitions must list the reveal properties with var(--reveal-delay)
-   and its other properties with no delay (as .shead does in
-   layout.css). */
+   and its other properties with no delay (as .sv-cell does in
+   landing.css). */
 .reveal {
   --reveal-delay: 0s;
   opacity: 0;

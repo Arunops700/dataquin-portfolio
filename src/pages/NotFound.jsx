@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { STUDIES } from "../data/caseStudies.js";
 import { PAGE_META, usePageMeta } from "../seo.js";
+import "../styles/notfound.css";
 
 /* The rest of the site, beside the case-study index: the sections a
    visitor most often came looking for. */
@@ -17,22 +18,18 @@ function shownPath(pathname) {
   return p.length > 80 ? `${p.slice(0, 79)}…` : p;
 }
 
-/* Any unknown URL — including the retired /stack, /projects and /impact
-   addresses — is filed as an entry not on file: what was asked for,
-   its status, and every way back, as ruled rows. */
+/* Any unknown URL is filed as an entry not on file: what was asked for,
+   its status, and every way back, as ruled rows. (The retired /stack,
+   /projects and /impact addresses redirect to /work — vercel.json.) */
 export default function NotFound() {
   const { pathname } = useLocation();
   usePageMeta({ ...PAGE_META.notFound, path: pathname });
 
   return (
     <>
-      <section className="band dark hero-band hero-sub pad-b">
+      <section className="band dark hero-band hero-sub pad-b" data-island="Page not found">
         <div className="hero-grid" aria-hidden="true" />
         <div className="wrap">
-          <div className="hero-meta fade-in">
-            <span><b>Error 404</b> — nothing filed here</span>
-            <span>DQ / 404</span>
-          </div>
           <h1 className="h-xl sm hero-title nf-title">
             <span className="row"><span>That page</span></span>
             <span className="row"><span><em className="foil">doesn&rsquo;t exist.</em></span></span>

@@ -5,112 +5,16 @@
   - loadLogoShapes(): the mark's vector outline, precomputed by
     scripts/trace-logo.mjs (nothing is traced in the browser). The solid
     mark and the 2D poster both draw it.
-  - loadLogoTargets(): grain targets sampled from public/logo.png (white
-    on transparent). The two arcs and the DQ letters are sampled; the
-    tagline band between them is skipped — at grain resolution it would
-    only read as noise — and the letters carry extra weight so they stay
-    legible against the larger arcs. Resolves to null if the image fails;
-    the grains then run the story from their entrance rows instead.
-  - logoPlacement() / stageLayout() / POSE: where the mark, the copy
-    lane sit, by the shape of the window they are
-    seen in.
+  - logoPlacement() / stageLayout() / POSE: where the mark and the copy
+    lane sit, by the shape of the canvas they are seen in.
 */
-import { LOGO_W, TAGLINE, halfHeightAt, loadLogoImage, rng } from "./shared.js";
+import { halfHeightAt } from "./shared.js";
 
 let outline = null;
 export function loadLogoShapes() {
   // a failed fetch resolves null but isn't kept: the next mount retries
   if (!outline) outline = import("./logo-outline.json").then((m) => m.default, () => { outline = null; return null; });
   return outline;
-}
-
-// box holding "DQ", as fractions of the image
-const LETTERS = { x: [0.36, 0.64], y: [0.34, 0.58] };
-const LETTER_WEIGHT = 1.4;
-
-let source = null;
-export function loadLogoTargets(count, seed = 23) {
-  if (!source) {
-    source = loadLogoImage().then((img) => {
-      if (!img) { source = null; return null; } // not kept: the next mount retries
-      const c = document.createElement("canvas");
-      c.width = img.naturalWidth;
-      c.height = img.naturalHeight;
-      const ctx = c.getContext("2d", { willReadFrequently: true });
-      ctx.drawImage(img, 0, 0);
-      const { data } = ctx.getImageData(0, 0, c.width, c.height);
-      const px = [];
-      const weights = [];
-      let x0 = c.width;
-      let x1 = 0;
-      for (let y = 0; y < c.height; y++) {
-        const fy = y / c.height;
-        if (fy > TAGLINE[0] && fy < TAGLINE[1]) continue;
-        for (let x = 0; x < c.width; x++) {
-          const a = data[(y * c.width + x) * 4 + 3];
-          if (a < 40) continue;
-          const fx = x / c.width;
-          const letter = fx > LETTERS.x[0] && fx < LETTERS.x[1] && fy > LETTERS.y[0] && fy < LETTERS.y[1];
-          px.push(x, y);
-          weights.push((a / 255) * (letter ? LETTER_WEIGHT : 1));
-          if (x < x0) x0 = x;
-          if (x > x1) x1 = x;
-        }
-      }
-      if (!px.length) return null;
-      const cum = new Float64Array(weights.length);
-      let acc = 0;
-      for (let i = 0; i < weights.length; i++) { acc += weights[i]; cum[i] = acc; }
-      return { px, cum, total: acc, w: c.width, h: c.height, x0, x1: x1 + 1 };
-    }).catch(() => { source = null; return null; });
-  }
-  return source.then((s) => (s ? sample(s, count, seed) : null));
-}
-
-/* Targets in random order, so any prefix of them is a uniform subset of
-   the mark (the quality tiers draw a prefix). */
-function sample(s, count, seed) {
-  const rand = rng(seed);
-  const targets = new Float32Array(count * 3);
-  const ts = new Float32Array(count);
-  const scale = LOGO_W / s.w;
-  const cx = s.w / 2;
-  const cy = s.h / 2;
-  for (let i = 0; i < count; i++) {
-    // weighted pick by binary search on the cumulative weights
-    const u = rand() * s.total;
-    let lo = 0;
-    let hi = s.cum.length - 1;
-    while (lo < hi) {
-      const mid = (lo + hi) >> 1;
-      if (s.cum[mid] < u) lo = mid + 1; else hi = mid;
-    }
-    const x = s.px[lo * 2] + rand();
-    const y = s.px[lo * 2 + 1] + rand();
-    targets[i * 3] = (x - cx) * scale;
-    targets[i * 3 + 1] = -(y - cy) * scale;
-    targets[i * 3 + 2] = (rand() - 0.5) * 0.55;
-    // 0 → 1 across the drawn mark (not the whole image, which has wide
-    // transparent margins): the writing, the glints and the sweep all
-    // travel over the mark itself
-    ts[i] = Math.min(1, Math.max(0, (x - s.x0) / (s.x1 - s.x0)));
-  }
-
-  // Additive grains burn to white where strokes are dense: dim each grain
-  // by the square root of its cell's crowding against the mean.
-  const CELL = 0.09;
-  const counts = new Map();
-  const keys = new Int32Array(count);
-  for (let i = 0; i < count; i++) {
-    const k = ((Math.floor(targets[i * 3] / CELL) + 512) << 10) | (Math.floor(targets[i * 3 + 1] / CELL) + 512);
-    keys[i] = k;
-    counts.set(k, (counts.get(k) || 0) + 1);
-  }
-  const mean = count / counts.size;
-  const dens = new Float32Array(count);
-  for (let i = 0; i < count; i++) dens[i] = Math.min(1, Math.max(0.45, 1 / Math.sqrt(counts.get(keys[i]) / mean)));
-
-  return { targets, ts, dens };
 }
 
 /* The mark's pose as the rig plays it: at rest it is turned `yaw` (a 3/4
@@ -122,11 +26,10 @@ export const POSE = { yaw: 0.2 };
    that window's height in CSS px, so px rules can be kept. `alpha` dims
    the mark where it must sit behind copy — by light, never by
    transparency.
-   "hero":  large, owning the right of the stage. Where the copy runs
-            wider than half the window (near-square desktop windows,
-            landscape phones) the mark takes the room right of it, smaller.
-            On phones and tablets the copy fills the width, so it sits
-            dimmed in the top-right corner, above the beat titles.
+   "hero":  on desktops, sized to and centred in the free space right of
+            the copy (heroDesktop); on landscape phones, beside the copy;
+            on phones and portrait tablets the copy fills the width, so it
+            sits dimmed in the top-right corner, behind the headline.
    "aside": the Work page's desktop mark — far right, clear of a headline
             that spans most of the width; beside the copy when the window
             is near square.
@@ -145,18 +48,47 @@ export function logoPlacement(aspect, place = "hero", win = 0) {
     if (aspect >= 0.8) return { scale: 0.55, x: 2.8, y: 1.2, alpha: 1 };
     return { scale: 0.42, x: 1.0, y: 2.6, alpha: 1 };
   }
+  // desktops: centred in the free space right of the copy
+  if (width > 860 && win > 0) return heroDesktop(width, win);
   // landing.css: the lead's 620px measure; the headline, at 5.9vw, runs ~0.56 of the width
   const reach = () => Math.max(Math.min(620, wrapOf(width)), 0.56 * width);
   if (aspect >= 1.25) {
     const wide = { scale: 1.15, x: 4.8, y: 0.2, alpha: 1 };
-    return width > 560 && width <= 860 ? { ...wide, ...besideCopy(width, win, reach(), 1.15) } : wide;
+    if (width > 560 && width <= 860) return { ...wide, ...besideCopy(width, win, reach(), 1.15) };
+    return wide;
   }
-  if (aspect >= 0.8 && width > 860) return { ...besideCopy(width, win, reach(), 1.0), y: 0.3 };
   if (aspect >= 0.8 && !win) return { scale: 1.0, x: 1.8, y: 0.8, alpha: 0.9 };
   return phonePlacement(width, win);
 }
 
 const wrapOf = (width) => (width > 860 ? Math.min(1200, width - 88) : width - 44);   // .wrap
+
+/* The landing hero on a desktop: the mark sits in the free space right
+   of the copy — sized to it and centred in it, at least 40px clear of
+   the copy, 48px of the window's right edge, the island above (100px)
+   and the foot (40px). The copy's widest line is the larger of the
+   lead (620px), the headline (~8.3em at clamp(2.6rem, 5.9vw, 5.5rem))
+   and the credentials row (min(800px, 62vw)) — landing.css. The drawn
+   mark is ~4.66 × 4.85 world units at scale 1 with its swell and turn;
+   too little room even at the smallest scale and it is dimmed. */
+function heroDesktop(width, win) {
+  const k = win / (2 * halfHeightAt(0));   // CSS px per world unit at the mark's depth
+  const font = Math.min(88, Math.max(41.6, 0.059 * width));
+  const reach = Math.max(Math.min(620, wrapOf(width)), 8.3 * font, Math.min(800, 0.62 * width));
+  const left = (width - wrapOf(width)) / 2 + reach + 40;
+  const right = width - 48;
+  const top = 100;
+  const bottom = win - 40;
+  const fitW = (right - left) / (4.66 * k);
+  const fitH = (bottom - top) / (4.85 * k);
+  const scale = Math.max(0.4, Math.min(1.25, fitW, fitH));
+  return {
+    scale,
+    x: ((left + right) / 2 - width / 2) / k,
+    y: (win / 2 - (top + bottom) / 2) / k,
+    alpha: fitW < 0.4 ? 0.6 : 1,
+  };
+}
 
 /* The room right of copy that reaches `reach` px past the .wrap's left
    edge: the mark's scale (at most `max`, 5% spare for its turn) and x. Too
@@ -169,29 +101,28 @@ function besideCopy(width, win, reach, max) {
   return { scale: Math.max(0.4, Math.min(max, fit)), x: (from + room / 2 - width / 2) / k, alpha: fit < 0.4 ? 0.6 : 1 };
 }
 
-/* Phones: each beat's copy (at most ~300px) is centred in the window, its
-   titles starting about 108px above the middle. The mark's lowest point
-   stays 10px above them (idle bob and the result's 3% swell included). It
-   shrinks only where that would leave less than 65% of it below the
-   topbar (~62px), and moves in from the right only as far as it must to
-   keep its right edge 12px inside the window (its right half is 2.21
-   units; 2.3 covers the 3% swell and its depth in perspective). Without a
-   window height, the tall-phone values. */
+/* Phones and portrait tablets: the copy fills the width, so the mark sits
+   dimmed in the top-right corner, behind the headline. It shrinks only
+   where that would leave less than 65% of it below the top bar, and moves
+   in from the right only as far as it must to keep its right edge inside
+   the window (its right half is 2.21 units; 2.5 covers its 3% swell, the
+   turn and its depth in perspective). Without a window height, the
+   tall-phone values. */
 function phonePlacement(width, win) {
   const H0 = halfHeightAt(0);
   const k = win / (2 * H0);   // CSS px per world unit at the mark's depth
   const base = { scale: 0.62, x: 1.9, y: 2.6, alpha: 0.6 };
   if (!(k > 0)) return base;
   const scale = Math.max(0.4, Math.min(0.62, (H0 - 180 / k - 0.05) / 3.09));
-  const x = Math.min(base.x, (width / 2 - 12) / k - 2.3 * scale);
+  const x = Math.min(base.x, (width / 2 - 12) / k - 2.5 * scale);
   return { ...base, scale, x, y: 118 / k + 2.37 * scale + 0.05 };
 }
 
 /* The copy lane, for a window of `width` × `win` CSS px (its `aspect`)
    on the landing hero: [ndc x edge, ndc y edge, feather] — grains inside
-   are dimmed so the beat copy always reads. Wide screens: the text column
-   on the left (the .wrap gutter plus .beat-t's 860px measure). Narrow
-   screens: everything below the top of the centred beat copy. */
+   are dimmed so the copy always reads. Wide screens: the text column on
+   the left (the .wrap gutter plus an 860px measure). Narrow screens:
+   everything below the top of the copy. */
 export function stageLayout(width, aspect, win = 0) {
   const wrap = wrapOf(width);
   const laneX = (((width - wrap) / 2 + Math.min(860, wrap)) / width) * 2 - 1;

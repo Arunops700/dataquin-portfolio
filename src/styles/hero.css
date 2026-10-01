@@ -33,27 +33,9 @@
 }
 /* the drift waits while its hero is off-screen (data-live is set by the
    page while the hero is in view), so it plays when it can be seen */
-.hero-story:not([data-live]) .hero-aura,
+.hero-home:not([data-live]) .hero-aura,
 .hero-work:not([data-live]) .hero-aura { animation-play-state: paused; }
 @keyframes auraDrift { to { transform: translate(-8rem, 7rem) scale(1.12); } }
-/* Top meta row inside the hero */
-.hero-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--ivory-soft);   /* its right end sits on the aura's glow: faint would dip to 4.4:1 */
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 18px;
-  margin-bottom: clamp(44px, 7vh, 84px);
-}
-.hero-meta b { color: var(--gold-hi); font-weight: 600; }
 
 /* padding-top only: a shorthand here would cancel .pad-b beneath it */
 .hero-sub { padding-top: 128px; }
@@ -102,7 +84,6 @@
 }
 
 @media (max-width: 560px) {
-  .hero-meta { display: none; }
   .hero-sub { padding-top: 96px; }
 }
 

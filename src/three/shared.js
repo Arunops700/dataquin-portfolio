@@ -1,10 +1,9 @@
 /*
-  Constants and loaders shared by the grain sampler (main bundle), the
+  Constants shared by the placements and the poster (main bundle), the
   outline generator (Node, scripts/trace-logo.mjs) and the 3D chunk.
   No three.js import and no browser API at module level: Node imports
   this file too.
 */
-const LOGO_SRC = "/logo.png";
 export const LOGO_W = 8.8;              // world units across the logo
 export const TAGLINE = [0.585, 0.69];   // image rows holding the tagline (skipped)
 export const CAMERA_Z = 11;
@@ -23,21 +22,4 @@ export function rng(seed) {
     s = (s * 16807) % 2147483647;
     return (s - 1) / 2147483646;
   };
-}
-
-let logoImg = null;
-/* One fetch, one decode. Resolves to null on failure. */
-export function loadLogoImage() {
-  if (!logoImg) {
-    logoImg = new Promise((resolve, reject) => {
-      const img = new Image();
-      img.decoding = "async";
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = LOGO_SRC;
-    })
-      .then((img) => (img.decode ? img.decode().then(() => img, () => img) : img))
-      .catch(() => { logoImg = null; return null; }); // not kept: the next mount retries
-  }
-  return logoImg;
 }

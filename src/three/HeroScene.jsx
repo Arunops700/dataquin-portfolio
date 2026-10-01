@@ -4,7 +4,7 @@ import * as THREE from "three";
 import ParticleField from "./ParticleField.jsx";
 import GoldMark from "./GoldMark.jsx";
 import Effects from "./Effects.jsx";
-import { StoryRig, createRig } from "./rig.js";
+import { Rig, createRig } from "./rig.js";
 import { TIERS, Governor, dprRange, initialTierIndex, nextTier } from "./quality.js";
 import { groundFor } from "./studio.js";
 import { CAMERA_FOV, CAMERA_Z } from "./shared.js";
@@ -24,8 +24,8 @@ import { PAL } from "./palette.js";
   Frameloop: "always" while on screen, "never" off it, "demand" once the
   idle motion has settled (the rig eases it to a stop ~5s after the last
   scroll or pointer move, and wakes it on the next). Reduced motion
-  (`still`): "demand" — a few frames to settle the lighting, then one
-  frame per scroll step (the rig asks), nothing at rest.
+  (`still`): "demand" — a few frames to settle the lighting, then a frame
+  only when the turn moves (the rig asks), nothing at rest.
 
   A lost context reports `onLost("lost", canvas)` (Field retries with a
   fresh scene); a shader that fails to compile, `onLost("shader")`.
@@ -51,7 +51,7 @@ function Settle({ still }) {
   return null;
 }
 
-export default function HeroScene({ place, settled, progress, yaw, count, targets, outers, still, active, box, win, onReady, onLost }) {
+export default function HeroScene({ place, yaw, count, outers, still, active, box, onReady, onLost }) {
   const [tierIdx, setTierIdx] = useState(() => initialTierIndex(place));
   const tier = TIERS[tierIdx];
   const lite = !!tier.lite;
@@ -108,22 +108,19 @@ export default function HeroScene({ place, settled, progress, yaw, count, target
         };
       }}
     >
-      <StoryRig
+      <Rig
         rig={rig}
         place={place}
-        progress={progress}
         yaw={yaw}
-        fixed={settled ? 1 : undefined}
         still={still}
         active={active}
         skipEntrance={place === "band"}
-        win={win}
         onRest={setResting}
       />
       <Governor enabled={!still && active && !resting} onStepDown={stepDown} />
       <directionalLight position={[-4, 6, 8]} intensity={0.6} color={PAL.champagneHi} />
       {outers && <GoldMark outers={outers} rig={rig} lite={lite} />}
-      <ParticleField count={count} targets={targets} rig={rig} tier={tier} onFirstFrame={onReady} />
+      <ParticleField count={count} rig={rig} tier={tier} onFirstFrame={onReady} />
       {!lite && <Effects tier={tier} rig={rig} />}
       <Settle still={still} />
     </Canvas>

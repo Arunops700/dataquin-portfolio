@@ -4,8 +4,7 @@
    native scrolling. */
 /* The one header clearance for every anchor landing — Lenis and the
    native fallback both read it (SmoothScroll.jsx). --bar-clear carries
-   the same number to layers that must start below the fixed topbar
-   (the hero's beats). */
+   the same number to layers that must start below the fixed topbar. */
 html {
   --bar-clear: 84px;
   scroll-padding-top: var(--bar-clear);

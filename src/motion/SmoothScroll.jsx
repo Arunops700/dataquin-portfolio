@@ -43,12 +43,20 @@ export function SmoothScroll({ children }) {
   return children;
 }
 
-/* The header clearance is one number, `scroll-padding-top` on <html>:
-   Lenis reads it when it scrolls to an element, and the native path
-   applies it by hand. Nothing else adds an offset. */
-function headerClearance() {
-  const v = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
-  return Number.isFinite(v) ? v : 0;
+/* Where an element lands: the header clearance (`scroll-padding-top` on
+   <html>, one number for the whole site) plus the element's own
+   `scroll-margin-top`, as the browser's native anchor scrolling counts
+   them. A one-screen landing section sets a negative margin that cancels
+   the clearance: its own top padding already clears the bar. Both paths
+   below aim at this one number. */
+const px = (v) => {
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : 0;
+};
+function landingTop(el) {
+  const clearance = px(getComputedStyle(document.documentElement).scrollPaddingTop);
+  const margin = px(getComputedStyle(el).scrollMarginTop);
+  return el.getBoundingClientRect().top + window.scrollY - clearance - margin;
 }
 
 /* Scroll helper that goes through Lenis when it exists and falls back
@@ -61,12 +69,11 @@ export function scrollTo(target, { immediate = false } = {}) {
     // the page may have just been swapped: refresh the scroll limit
     // before aiming, or a long target clamps at the old page's end
     l.resize();
-    l.scrollTo(target, { immediate, duration: immediate ? 0 : 1.1 });
+    const top = typeof target === "number" ? target : landingTop(target);
+    l.scrollTo(top, { immediate, duration: immediate ? 0 : 1.1 });
     return;
   }
   const behavior = immediate || prefersReducedMotion() ? "instant" : "smooth";
-  const top = typeof target === "number"
-    ? target
-    : target.getBoundingClientRect().top + window.scrollY - headerClearance();
+  const top = typeof target === "number" ? target : landingTop(target);
   window.scrollTo({ top, behavior });
 }

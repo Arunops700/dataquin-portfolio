@@ -1,6 +1,5 @@
 /*
-  Site-wide content that is not a case study: the hero's story beats,
-  the service pillars, hero credentials, the delivery steps, the values
+  Site-wide content that is not a case study: the service pillars, hero credentials, the delivery steps, the values
   and the tech index. Case studies live in caseStudies.js. The counts
   the copy states (areas, steps, tools) are derived from these lists
   (format.js), so they can't go stale.
@@ -13,33 +12,6 @@ export const CONTACT = {
   phone: "+1 908 672 0809",
   phoneHref: "tel:+19086720809",
 };
-
-/* The scroll story played over the 3D field in the landing hero.
-   `range` is the slice of the hero's scroll progress each beat owns. */
-export const STORY_BEATS = [
-  {
-    k: "How we work",
-    t: "Precise, accurate,",
-    em: "agile and reliable.",
-    s: "Our PAAR promise: a dedicated engagement lead, one team across onshore and offshore, and a value-based cost model focused on measurable ROI.",
-    range: [0.19, 0.46],
-  },
-  {
-    k: "What we do",
-    t: "Data and analytics,",
-    em: "now powered by AI.",
-    s: "Commercial operations, patient support, analytics and insights, targeting and field reporting — joined by integrations, pipelines and AI agents.",
-    range: [0.47, 0.72],
-  },
-  {
-    k: "The result",
-    t: "Manual days become",
-    em: "automated hours.",
-    s: "A few of the problems we've solved with AI, automation and modern data tools, not the traditional way. Each one measured and secured.",
-    range: [0.74, 1],
-    cta: true,
-  },
-];
 
 /* The pillars — Kavita's list, every one stays. The one-line
    descriptors are new copy and should be read by her before launch. */

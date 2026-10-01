@@ -1,6 +1,7 @@
 import { Fragment, useId, useLayoutEffect, useRef, useState } from "react";
 import { useMotionValue, useMotionValueEvent } from "framer-motion";
 import { pad2 } from "../data/format.js";
+import "../styles/flow.css";
 
 /*
   Scroll-drawn flow diagram, in one of two layouts picked by a measured

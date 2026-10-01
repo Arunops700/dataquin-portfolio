@@ -5,4 +5,4 @@
 
 /* One source for the /work description: Work.jsx (usePageMeta) and
    scripts/route-heads.mjs (the static preview head), so they never drift. */
-export const WORK_DESCRIPTION = "DataQuin's tech stack, and selected case studies: problems we've solved for professional services firms with AI, automation and modern data tools — cross-system integration, AI-accelerated BI delivery, fraud alerting, client activity reporting, centralized reporting and an AI documentation coworker. Anonymized and measured.";
+export const WORK_DESCRIPTION = "DataQuin's tech stack and selected case studies: real problems solved for professional services firms with AI, automation and modern data tools.";

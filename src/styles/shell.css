@@ -27,11 +27,9 @@
   opacity: 0;
   transition: opacity var(--dur) ease;
 }
-/* Gold reading-progress hairline (scaleX bound in App.jsx). It moves
-   only when the reader scrolls, so it stays under reduced motion. It
-   steps aside only while the Work chapter bar shows its own ruler (see
-   the 1080px block). The fade is on the container, never on the
-   scroll-driven bar. */
+/* Gold reading-progress hairline (scaleX bound in shell/Chrome.jsx). It
+   moves only when the reader scrolls, so it stays under reduced
+   motion. */
 .progress {
   position: fixed;
   top: 0;
@@ -40,7 +38,6 @@
   height: 2px;
   z-index: 400;
   pointer-events: none;
-  transition: opacity var(--dur) ease;
 }
 .progress-bar {
   height: 100%;
@@ -72,83 +69,168 @@
 }
 
 /* ============================================================
-   Top bar
+   Top bar — the island
    ============================================================ */
+/* A fully transparent strip with one floating island at its centre.
+   Only the island takes clicks; the page runs untouched around it. */
 .topbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 300;
-  padding: 18px 0;
+  display: flex;
+  justify-content: center;
+  padding: 16px var(--gutter) 0;
+  pointer-events: none;
   animation: topIn 0.7s var(--ease) both;
-  transition: background-color var(--dur) ease, box-shadow var(--dur) ease,
-              border-color var(--dur) ease, padding var(--dur) ease;
-  border-bottom: 1px solid transparent;
+  transition: padding var(--dur) var(--ease), background-color var(--dur) ease;
 }
-.topbar.scrolled {
-  padding: 12px 0;
-  /* solid, not a live blur: blurring whatever scrolls beneath (the 3D
-     canvas included) cost a full re-blur on every scrolled frame */
-  background-color: rgb(var(--esp-rgb) / 0.94);
-  border-bottom-color: var(--rule-gold);
-  box-shadow: var(--shadow-bar);
-}
+.topbar.scrolled { padding-top: 10px; }
 @keyframes topIn {
   from { opacity: 0; transform: translateY(-14px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.topbar-in { display: flex; align-items: center; justify-content: space-between; gap: clamp(8px, 3vw, 20px); }
+/* The capsule: near-opaque espresso, a faint gold edge. It opens by
+   widening (interpolate-size lets width ease to auto where supported;
+   elsewhere it simply snaps open). */
+.island {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 6px 6px 6px 10px;
+  border-radius: 999px;
+  background: rgb(var(--esp-rgb) / 0.94);
+  border: 1px solid rgb(var(--gold-hi-rgb) / 0.22);
+  box-shadow: 0 12px 34px rgb(0 0 0 / 0.3), inset 0 1px 0 rgb(255 255 255 / 0.04);
+  interpolate-size: allow-keywords;
+  transition: border-color var(--dur) ease, box-shadow var(--dur) ease;
+}
+.island.open {
+  border-color: rgb(var(--gold-hi-rgb) / 0.32);
+  box-shadow: 0 16px 42px rgb(0 0 0 / 0.38), 0 0 0 4px rgb(var(--gold-hi-rgb) / 0.05), inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
 /* The mark is present at every width. On the narrowest phones it is
-   also the one item allowed to give way (down to 36px), so the nav
-   labels always fit on one row. */
-.brand { display: block; flex: 0 1 auto; min-width: 36px; width: 84px; }
+   also the one item allowed to give way, so the island keeps one row. */
+.brand { display: block; flex: 0 1 auto; min-width: 36px; width: 62px; margin-right: 10px; }
 .brand-logo {
   display: block;
   width: 100%;
   aspect-ratio: 216 / 121;
   background: var(--foil-lux);
-  /* the tagline-free lockup: at 84px wide the tagline is a smear */
+  /* the tagline-free lockup: at this size the tagline is a smear */
   -webkit-mask: url("/logo-mark.png") center / contain no-repeat;
   mask: url("/logo-mark.png") center / contain no-repeat;
   /* The mark's strokes are thin; lift it so it reads on espresso. */
   filter: brightness(1.25);
   transition: filter var(--dur) ease, transform var(--dur) var(--ease);
 }
-
 .brand:focus-visible .brand-logo { filter: brightness(1.45); transform: scale(1.03); }
-.topbar nav { display: flex; flex: none; align-items: center; gap: 34px; }
-.topbar nav a {
-  position: relative;
+
+/* What is live: the section being read, behind a hairline, with a
+   glowing dot. Closed, it takes no width at all. */
+.island-now {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 0;
+  opacity: 0;
+  transition: width 0.55s var(--ease), opacity 0.3s ease, margin-right 0.55s var(--ease);
+}
+.island.open .island-now { width: auto; opacity: 1; margin-right: 14px; }
+.island-now-t {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 14px;
+  border-left: 1px solid rgb(var(--gold-hi-rgb) / 0.25);
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ivory-soft);
-  padding: 8px 0;
-  white-space: nowrap;
-  transition: color var(--dur-fast) ease;
+  animation: islandIn 0.45s var(--ease) both;
 }
-/* Gold overline that draws in — a partial draw on hover (see the
-   (hover: hover) block) and keyboard focus, the full rule for the
-   section or page the reader is in */
-.topbar nav a::before {
+.island-now-t::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold-hi);
+  box-shadow: 0 0 10px rgb(var(--gold-hi-rgb) / 0.7);
+}
+@keyframes islandIn {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: none; }
+}
+
+.topbar nav { display: flex; flex: none; align-items: center; gap: 6px; }
+/* Both items are framed controls in the island: The Work in foil (the
+   way on, from anywhere), Contact in a hairline frame */
+.topbar nav a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease,
+              border-color var(--dur-fast) ease, box-shadow var(--dur) ease,
+              background-position var(--dur) var(--ease);
+}
+
+/* Contact: a hairline frame, lit while the contact section is read */
+.topbar nav .nav-link {
+  color: var(--ivory);
+  border-color: rgb(var(--gold-hi-rgb) / 0.4);
+}
+.topbar nav .nav-link:focus-visible,
+.topbar nav .nav-link.active {
+  color: var(--gold-hi);
+  border-color: var(--gold-hi);
+  background-color: rgb(var(--gold-hi-rgb) / 0.1);
+}
+
+/* The Work: champagne foil, the lead item. Hover and focus slide the
+   foil and nudge the arrow; a streak passes once after load (as on
+   .btn-shine: nothing loops) and again on hover or focus. */
+.topbar nav .nav-cta {
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--btn-ink);
+  background: var(--foil-lux);
+  background-size: 170% auto;
+}
+.nav-cta::before {
   content: "";
   position: absolute;
-  left: 0;
   top: 0;
-  height: 1.5px;
-  width: 100%;
-  background: var(--foil-lux);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--dur) var(--ease);
+  left: -60%;
+  width: 45%;
+  height: 100%;
+  z-index: -1;
+  transform: translateX(0) skewX(-22deg);
+  background: linear-gradient(90deg, transparent, var(--sheen), transparent);
+  animation: btnShine 4.5s ease-in-out 1;
 }
-.topbar nav a:focus-visible { color: var(--ivory); }
-.topbar nav a:focus-visible::before { transform: scaleX(0.4); }
-.topbar nav a.active { color: var(--gold-hi); }
-.topbar nav a.active::before { transform: scaleX(1); }
+.topbar nav .nav-cta:focus-visible { background-position: right center; }
+.nav-cta:focus-visible::before {
+  transform: translateX(422%) skewX(-22deg);
+  transition: transform 0.9s var(--ease);
+}
+.nav-cta:focus-visible .arr { transform: translateX(4px); }
+.nav-cta:focus-visible .arr.back { transform: translateX(-4px); }
 
 /* ============================================================
    Page transition
@@ -184,29 +266,31 @@
 }
 .foot-mark { order: -1; width: clamp(64px, 6vw, 88px); }
 
-/* ≤1080px the Work chapter bar (work.css) carries a foil ruler of the
-   same progress just under the topbar: one progress line at a time */
-@media (max-width: 1080px) {
-  html:has(.ch-bar.show) .progress { opacity: 0; }
-  /* ...and the topbar matches the bar's espresso, so the two read as
-     one strip */
-  html:has(.ch-bar.show) .topbar.scrolled { background-color: rgb(var(--esp-rgb) / 0.96); }
-}
-
-/* The compact bar: phones, and landscape phones, where the full bar
-   would take a sixth of the screen. html's --bar-clear (base.css)
-   follows the same query. */
+/* The compact island: phones, and landscape phones. html's --bar-clear
+   (base.css) follows the same query. */
 @media (max-width: 860px), (max-height: 500px) {
-  .topbar { padding: 12px 0; }
-  .topbar.scrolled { padding: 9px 0; }
-  /* 66px from ~364px up, ~54px at 320, ~42px at 280; tracking eases off
-     below ~400px, so the bar keeps one row down to 280px */
-  .brand { width: clamp(42px, calc(28vw - 36px), 66px); }
-  .topbar nav { gap: clamp(10px, 3.6vw, 16px); }
-  .topbar nav a { letter-spacing: clamp(0px, calc((100vw - 280px) * 0.011), 0.1em); }
+  .topbar { padding-top: 10px; }
+  .topbar.scrolled { padding-top: 8px; }
+  .island { padding: 5px 5px 5px 8px; }
+  /* 52px from ~350px up, ~40px at 320; tracking eases off below
+     ~400px, so the island keeps one row down to 280px */
+  .brand { width: clamp(36px, calc(28vw - 46px), 52px); margin-right: 8px; }
+  .topbar nav { gap: 5px; }
+  .topbar nav a {
+    gap: 8px;
+    padding: 9px clamp(10px, 3vw, 14px);
+    letter-spacing: clamp(0px, calc((100vw - 280px) * 0.011), 0.1em);
+  }
+}
+/* phones: no room to show what is live; the island stays closed */
+@media (max-width: 560px) {
+  .island-now { display: none; }
 }
 @media (max-width: 860px) {
   .footer { padding: 52px 0 60px; }
+}
+@media (max-height: 700px) and (min-width: 861px) {
+  .footer { padding: 36px 0 40px; }
 }
 
 /* Hover only where a pointer really hovers. On a touch screen a tapped
@@ -214,13 +298,25 @@
    half-lit after the reader has moved on — the lit item is .active. */
 @media (hover: hover) {
   .brand:hover .brand-logo { filter: brightness(1.45); transform: scale(1.03); }
-  .topbar nav a:not(.active):hover { color: var(--ivory); }
-  .topbar nav a:not(.active):hover::before { transform: scaleX(0.4); }
+  .topbar nav .nav-link:hover {
+    color: var(--gold-hi);
+    border-color: var(--gold-hi);
+    background-color: rgb(var(--gold-hi-rgb) / 0.1);
+  }
+  .topbar nav .nav-cta:hover { background-position: right center; }
+  .nav-cta:hover::before {
+    transform: translateX(422%) skewX(-22deg);
+    transition: transform 0.9s var(--ease);
+  }
+  .nav-cta:hover .arr { transform: translateX(4px); }
+  .nav-cta:hover .arr.back { transform: translateX(-4px); }
 }
 
 /* touch: ≥44px targets without a taller bar; a press answers */
 @media (pointer: coarse) {
-  .topbar nav a::after { content: ""; position: absolute; inset: -12px -6px; }
+  /* the foil pill clips its own overflow (the shine), so a ::after hit
+     area can't grow it: the pills themselves are 44px tall */
+  .topbar nav a { min-height: 44px; }
   /* the mark is ~30px tall on a 320px phone: its hit area grows to 44px
      around it (and stays inside the bar's own padding) */
   .brand { position: relative; }
@@ -234,12 +330,19 @@
   }
 }
 @media (hover: none) {
-  .topbar nav a:active { color: var(--ivory); }
+  .topbar nav .nav-link:active { border-color: currentColor; background-color: rgb(var(--gold-hi-rgb) / 0.1); }
+  .topbar nav .nav-cta:active { background-position: right center; }
+}
+/* the narrowest phones: the arrow gives way so the island keeps one row */
+@media (max-width: 400px) {
+  .nav-cta .arr { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .page { animation: none; }
   .topbar { animation: none; }
+  .nav-cta::before { animation: none !important; transition: none !important; }
+  .island-now { transition: none; }
+  .island-now-t { animation: none; }
   .page-turn { display: none; }
-  .progress { transition: none; }
 }

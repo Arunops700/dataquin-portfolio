@@ -1,53 +1,20 @@
 /*
-  Single source of truth for the six case studies.
-  Client-side product names are deliberately generic ("accounting platform",
-  "audit platform") — prospects won't know niche vendor tools, and client
-  environments stay anonymous. Widely-known tools (Power BI, Excel, Outlook,
-  Teams, SharePoint) are fine to name.
-
-  metrics: { to, suffix, k } animates a CountUp; { v, k } renders plain text.
-  metrics[0] is the chapter's headline figure on the Work page.
-
-  Arrow rule: in `metrics` an arrow always means
-  before → after ("2 → 1", "hrs → min"); the Work page prints the old
-  figure small and struck through, like a corrected ledger entry.
-  `card.metric` is exempt — "detection → inbox" is a path, not a change.
+  Single source of truth for the six case studies. Written for senior
+  readers who skim: each study is a plain name, a one-line summary, the
+  problem, our solution and its system flow — nothing more.
+  Client-side product names are deliberately generic ("accounting
+  system", "audit platform") — prospects won't know niche vendor tools,
+  and client environments stay anonymous. Widely-known tools (Power BI,
+  Excel, Outlook, Teams, Confluence) are fine to name.
 */
 export const STUDIES = [
   {
     id: "integration",
     num: "01",
-    type: "System Integration",
-    title: "Cross-System Data Integration",
-    tagline: "Project financials that sync themselves between two disconnected platforms",
-    card: {
-      metric: "0 manual entry",
-    },
-    intro: [
-      "Project financials — WIP amounts, WIP hours, fieldwork hours — lived in the firm's accounting platform. The audit team managed those same projects in a separate audit management system. The two platforms had no connection, so keeping records current meant re-typing figures by hand: slow, repetitive, error-prone. Worse, the records didn't line up — the audit system keys on an internal project ID, while the financial report only carries client and project names.",
-      "We built an automated bridge. Power BI reads the accounting platform's database and builds the metrics; the audit platform's API supplies each project's ID; Python matches both feeds by client + project name and writes the results straight back. The loop closes itself — zero manual data entry.",
-    ],
-    points: [
-      ["No manual entry", " — figures move between systems automatically"],
-      ["Always current", " — the audit platform reflects the latest WIP & hours at any time"],
-      ["Fewer errors", " — programmatic matching removes typing mistakes"],
-      ["One source of truth", " — a single, consistent view of every project"],
-    ],
-    metrics: [
-      { v: "0", k: "manual data entry" },
-      { v: "2", k: "platforms kept in sync, one source of truth" },
-      { to: 100, suffix: "%", k: "always current — WIP & hours" },
-      { v: "auto", k: "runs unattended, end to end" },
-    ],
-    tools: [
-      ["Python", "the automation engine — gathers, matches, writes back"],
-      ["Excel", "the working format where both data feeds meet"],
-      ["Accounting platform", "holds each project's WIP amounts and hours"],
-      ["SQL Server", "the database behind the accounting platform"],
-      ["Power BI", "builds the metrics and the exported financial report"],
-      ["Audit platform", "source of project IDs and final destination"],
-      ["Platform API", "the secure link used to read and write audit data"],
-    ],
+    title: "Automatic Data Sync Between Two Systems",
+    summary: "Project figures now flow from the finance system into the audit system on their own — no re-typing.",
+    problem: "Project figures lived in the accounting system, but the audit team worked in a separate system. Staff copied the numbers across by hand — slow, repetitive and prone to mistakes.",
+    solution: "We built an automatic link between the two systems. It reads the figures, matches each project and updates the audit system by itself — no manual entry at all.",
     flow: {
       nodes: [
         { id: "a", t: "Accounting System", s: "WIP amounts & hours", ab: "ACC", col: 0, row: 0 },
@@ -73,35 +40,10 @@ export const STUDIES = [
   {
     id: "bi-delivery",
     num: "02",
-    type: "AI Engineering",
-    title: "AI-Accelerated BI Delivery",
-    tagline: "A plain-English request in — a secure, ready-to-use dashboard out",
-    card: {
-      metric: "days → <4 hrs",
-    },
-    intro: [
-      "“I need a regional sales dashboard with row-level security by Friday — can you pull the data and build it in Power BI?” At most firms that request travels through five roles, ~28 hours of effort and 3–5 business days: intake, extraction, build, 2–3 review cycles, manual security setup.",
-      "We built an AI-powered engine — Power BI MCP Server + Claude Code — that takes the same request and handles the data model, DAX measures, programmatic row-level security and deployment automatically, with continuous validation at every step. Stakeholders self-serve in plain English; nothing waits in a developer queue.",
-    ],
-    points: [
-      ["<4 hours end-to-end", " — was 3–5 business days"],
-      ["<3 hours human effort", " — was ~28 hours across five roles"],
-      ["Single review cycle", " — accurate and well-structured from the start"],
-      ["Security on every deploy", " — per-role, audited, consistent"],
-    ],
-    metrics: [
-      { to: 90, suffix: "%+", k: "faster turnaround" },
-      { to: 85, suffix: "%+", k: "less human effort — 28 hours to under 3" },
-      { to: 100, suffix: "%", k: "auditable security" },
-      { v: "0", k: "queue wait" },
-    ],
-    tools: [
-      ["Claude Code", "AI engineering engine that builds the solution end-to-end"],
-      ["Power BI MCP", "bridge that lets AI create DAX, models and security safely"],
-      ["Power BI", "where the live dashboard is delivered"],
-      ["Source systems", "the business data the dashboard is built from"],
-      ["RLS", "row-level security — each role sees only its own data"],
-    ],
+    title: "Dashboards Built by AI in Hours",
+    summary: "A request in plain English becomes a secure, ready-to-use dashboard in under four hours.",
+    problem: "Every new dashboard passed through five people and took three to five working days, with several review rounds and security set up by hand.",
+    solution: "We built an AI engine that builds the dashboard, its calculations and its access rules automatically, checking its own work at every step. Ready in under four hours.",
     flow: {
       nodes: [
         { id: "r", t: "Plain-English request", s: "no ticket · no spec", ab: "NL", col: 0 },
@@ -125,35 +67,10 @@ export const STUDIES = [
   {
     id: "alerting",
     num: "03",
-    type: "ML Pipeline",
-    title: "AI-Based Alerting Automation",
-    tagline: "Rules find the fraud, AI writes the report — and the alert lands in your inbox",
-    card: {
-      metric: "detection → inbox",
-    },
-    intro: [
-      "Analysts were manually searching high-volume transaction datasets for suspicious activity — combing through millions of rows, dataset by dataset, waiting days per request and unable to scale without adding people. And after finding something, the work wasn't done: someone still had to write it up and notify the right people.",
-      "The replacement automates the whole chain. The system scans the full dataset and applies the firm's fraud conditions — the rules that define exactly what suspicious looks like. Every detection is handed to AI, which generates a clear case report: what was flagged, the amounts, the pattern, why it matters. Then the AI drafts the alert mail and sends it to the right people. From raw data to a finished report in someone's inbox — automatically, every time.",
-    ],
-    points: [
-      ["The full dataset, every time", " — every transaction is tested against the fraud conditions, not a sample"],
-      ["AI-written case reports", " — each detection explained clearly: what, how much, why it was flagged"],
-      ["Alerts send themselves", " — the AI drafts the mail and it goes straight to the right people"],
-      ["Analysts start at review", " — the finding, the report and the notification are already done"],
-    ],
-    metrics: [
-      { to: 90, suffix: "%", k: "faster than manual review" },
-      { to: 100, suffix: "%", k: "of the dataset scanned" },
-      { v: "auto", k: "report + alert mail, no human in the middle" },
-      { v: "min", k: "from detection to inbox" },
-    ],
-    tools: [
-      ["Transaction data", "the datasets being screened — millions of rows in MySQL"],
-      ["Python", "scans every row and applies the fraud conditions"],
-      ["Fraud conditions", "the firm's rules for exactly what suspicious looks like"],
-      ["AI report writer", "turns each detection into a clear, readable case report"],
-      ["AI mail alerts", "drafts the notification and sends it to the right people"],
-    ],
+    title: "Automatic Fraud Alerts",
+    summary: "Suspicious transactions are found, written up and reported to the right people — automatically.",
+    problem: "Analysts searched millions of transactions by hand for suspicious activity, then still had to write up each case and alert the right people. Each request took days.",
+    solution: "The system checks every transaction against the firm's fraud rules. For each case it finds, AI writes a clear report and emails the alert to the right people.",
     flow: {
       nodes: [
         { id: "d", t: "Transaction data", s: "millions of rows", ico: "mysql.svg", col: 0 },
@@ -176,36 +93,10 @@ export const STUDIES = [
   {
     id: "engageai",
     num: "04",
-    type: "AI Reporting",
-    title: "EngageAI — Client Activity Reporting",
-    tagline: "Sent mail, calls & meetings become an automated weekly client report",
-    card: {
-      metric: "<3h weekly",
-    },
-    intro: [
-      "Client-facing teams were burning days reconstructing “what did we do this week?” from inboxes, call logs and calendars.",
-      "EngageAI ingests Outlook sent mail, Teams call logs and calendar meetings through Power Automate; AI generates “work performed” summaries; every item is classified by date, recipient, task type and billable status; and a polished weekly report ships automatically.",
-    ],
-    points: [
-      ["<3 hours", " — reporting down from days of manual gathering"],
-      ["Billable vs non-billable", " — classified automatically"],
-      ["Call & meeting analytics", " — duration, date, core details"],
-      ["Client-ready", " — weekly visibility without lifting a finger"],
-    ],
-    metrics: [
-      { v: "<3h", k: "weekly reporting — down from days" },
-      { v: "100%", k: "billability classified" },
-      { v: "3", k: "feeds combined — mail, calls, meetings" },
-      { v: "auto", k: "report ships itself every week" },
-    ],
-    tools: [
-      ["Outlook", "sent-mail feed — what was communicated, to whom"],
-      ["Teams", "call logs with duration, date and core call info"],
-      ["Calendar", "scheduled meeting details and durations"],
-      ["Power Automate", "collects all three feeds into one flow"],
-      ["AI summarization", "writes the “work performed” narrative"],
-      ["Classifier", "labels each item by task type and billable status"],
-    ],
+    title: "Automatic Weekly Client Activity Reports",
+    summary: "Emails, calls and meetings turn into a finished weekly client report, with no manual work.",
+    problem: "Client teams spent days every week piecing together what they had done from inboxes, call logs and calendars.",
+    solution: "We connected Outlook, Teams and the calendar. AI summarises the week's work, sorts each item by task and whether it is billable, and sends the report automatically.",
     flow: {
       nodes: [
         { id: "o", t: "Outlook", s: "sent mail", ab: "OL", col: 0, row: 0 },
@@ -230,35 +121,10 @@ export const STUDIES = [
   {
     id: "modernization",
     num: "05",
-    type: "Reporting Modernization",
-    title: "Centralized Power BI Reporting",
-    tagline: "SQL Server and Excel data, combined into Power BI reports everyone can rely on",
-    card: {
-      metric: "2 sources → 1 model",
-    },
-    intro: [
-      "The firm's reporting ran on two kinds of data: core business data sitting in SQL Server, and the working numbers teams maintained in Excel workbooks. Building a report meant pulling from both by hand — exporting, copying, pasting, re-checking — every single cycle. Numbers drifted between versions, the same figure showed up differently in different meetings, and hours disappeared into refreshing reports that should have refreshed themselves.",
-      "Over a five-month engagement we connected both sources directly into Power BI. SQL Server data and the Excel workbooks now feed one combined, cleaned data model — and every report and dashboard is built on top of that single model. Reports refresh themselves on schedule, access control is built in so each person sees only what they should, and teams self-serve instead of waiting. No more copy-paste. One version of every number.",
-    ],
-    points: [
-      ["Two sources, one model", " — SQL Server and Excel data combined in Power BI"],
-      ["No more copy-paste", " — reports refresh themselves on schedule"],
-      ["One version of the truth", " — every report reads from the same model"],
-      ["Access control built in", " — each person sees only what they should"],
-    ],
-    metrics: [
-      { v: "2 → 1", k: "data sources into one model" },
-      { v: "0", k: "copy-paste refreshes" },
-      { to: 100, suffix: "%", k: "reports on the central model" },
-      { v: "auto", k: "scheduled refresh, access control built in" },
-    ],
-    tools: [
-      ["SQL Server", "the database holding the core business data"],
-      ["Excel", "team workbooks — the second data source"],
-      ["Power Query", "pulls and cleans both sources into one model"],
-      ["Power BI", "where every report and dashboard is built and shared"],
-      ["Access control", "each person sees only the data they're allowed to"],
-    ],
+    title: "All Reports from One Central Source",
+    summary: "Database and Excel data combined into one set of Power BI reports — one version of every number.",
+    problem: "Reports were rebuilt every cycle by copying data from the database and Excel by hand. Numbers drifted, and the same figure differed from meeting to meeting.",
+    solution: "We connected both sources into one Power BI data model. Every report now refreshes itself, each person sees only what they should, and everyone works from the same numbers.",
     flow: {
       nodes: [
         { id: "sq", t: "SQL Server", s: "core business data", ico: "sql.svg", col: 0, row: 0 },
@@ -278,35 +144,10 @@ export const STUDIES = [
   {
     id: "coworker",
     num: "06",
-    type: "Agentic AI",
-    title: "AI Documentation Coworker",
-    tagline: "A skill-based AI agent that writes and maintains report documentation, straight into Confluence",
-    card: {
-      metric: "hours → minutes",
-    },
-    intro: [
-      "Documentation is the work everyone agrees matters — and no one has time for. Every new report needs a documentation page: purpose, data sources, logic, measures, owners. Every change to an existing report means finding the old page and updating it. Done by hand in Confluence, it consumed hours per report, pulled analysts away from real work, and drifted out of date almost immediately.",
-      "We built an AI documentation coworker with a skill-based design. It starts by gathering the details from the user in plain language — which report, what it does, what changed. Then it selects the right skill for the requirement: a new-report skill that carries the firm's documentation template and standards and produces a complete, consistently structured page, or an update skill that locates the existing documentation in Confluence and revises exactly the sections that changed. The agent is connected to Confluence through MCP, so it reads and writes pages directly — no copy-paste, no formatting fixes, and every page follows the same standard.",
-    ],
-    points: [
-      ["Hours become minutes", " — documentation happens while it's fresh, not “later”"],
-      ["The right skill, automatically", " — the agent chooses create vs. update from the requirement"],
-      ["One standard everywhere", " — the template lives inside the skill, so every page matches"],
-      ["Direct to Confluence", " — the MCP connection reads and writes pages, zero copy-paste"],
-    ],
-    metrics: [
-      { v: "hrs → min", k: "per documentation page" },
-      { to: 100, suffix: "%", k: "template-consistent pages" },
-      { v: "2", k: "skills — create & update" },
-      { v: "0", k: "copy-paste steps" },
-    ],
-    tools: [
-      ["AI Coworker", "the agent that gathers input and does the documenting"],
-      ["Skills", "reusable playbooks — one for new documentation, one for updates"],
-      ["Templates", "the firm's documentation standard, built into the skill"],
-      ["Confluence", "where every report's documentation lives"],
-      ["MCP", "the secure bridge that lets the agent read & write Confluence"],
-    ],
+    title: "AI Assistant That Writes Documentation",
+    summary: "An AI assistant writes and updates report documentation in Confluence in minutes.",
+    problem: "Every report needs a documentation page, and every change means updating it. Done by hand, it took hours per report and quickly went out of date.",
+    solution: "We built an AI assistant that asks a few plain-language questions, then writes a new page or updates the existing one directly in Confluence — always in the firm's standard format.",
     flow: {
       nodes: [
         { id: "q", t: "User input", s: "plain language · report details", ab: "Q", col: 0 },

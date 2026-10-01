@@ -82,7 +82,6 @@
   .entry-row { grid-template-columns: 104px minmax(0, 1fr); column-gap: 14px; }
   /* hero.css hides the hero meta on phones; the error screen keeps its
      status line */
-  .status-screen .hero-meta { display: flex; }
 }
 
 @media (hover: none) {

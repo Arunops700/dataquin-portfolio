@@ -3,7 +3,7 @@
 .cform {
   position: relative;
   border: 1px solid var(--rule-strong);
-  padding: 40px 36px 32px;
+  padding: clamp(24px, 3.6vh, 40px) clamp(22px, 2.6vw, 36px) clamp(20px, 3vh, 32px);
   background: var(--sheet);
 }
 .cform::before {
@@ -30,11 +30,13 @@
   font-size: clamp(21px, 2vw, 26px);
   font-weight: 600;
   line-height: 1.2;
-  margin: 10px 0 26px;
+  margin: 8px 0 clamp(14px, 2.4vh, 26px);
 }
+/* name and email side by side */
+.cform-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
 
 /* Numbered ledger fields */
-.cfield { margin-bottom: 22px; }
+.cfield { margin-bottom: clamp(12px, 2vh, 22px); }
 .cfield label {
   display: flex;
   align-items: baseline;
@@ -63,7 +65,7 @@
   color: var(--ink);
   transition: border-color var(--dur-fast) ease;
 }
-.cfield textarea { resize: vertical; min-height: 96px; line-height: 1.55; }
+.cfield textarea { resize: vertical; min-height: 78px; line-height: 1.55; }
 .cfield input::placeholder,
 .cfield textarea::placeholder { color: var(--placeholder); }
 /* focus: a 2px gold-deep rule (6:1), unmistakable against the resting
@@ -73,12 +75,18 @@
   outline: none;
   border-bottom-color: var(--gold-deep);
   box-shadow: 0 1px 0 0 var(--gold-deep);
+  background-color: var(--wash);
 }
+/* the field being typed in names itself: its label turns gold */
+.cfield:focus-within label { color: var(--gold-deep); }
 /* Errors are marked by text, a heavier ink rule and a diamond — never
    by colour alone. The rule swaps 1px of padding for 1px of border, so
    nothing shifts. */
 .cfield.invalid input,
 .cfield.invalid textarea { border-bottom: 2px solid var(--ink); padding-bottom: 11px; }
+/* a field in error still shows focus: a heavier gold rule over the ink */
+.cfield.invalid input:focus,
+.cfield.invalid textarea:focus { border-bottom-color: var(--gold-deep); box-shadow: 0 2px 0 0 var(--gold-deep); }
 .cfield-err {
   display: flex;
   align-items: baseline;
@@ -111,14 +119,14 @@
 /* the compact secondary actions (.btn-sm) inside the status entry */
 .cform .btn-sm { width: auto; margin-top: 0; }
 .cform-note {
-  margin-top: 12px;
+  margin-top: 10px;
   font-size: 14px;
   line-height: 1.5;
   color: var(--ink-soft);
   text-align: center;
 }
 .cform-privacy {
-  margin-top: 16px;
+  margin-top: 10px;
   font-size: 13px;
   line-height: 1.55;
   color: var(--ink-faint);
@@ -167,8 +175,34 @@
   .cfield:not(.invalid) textarea:hover:not(:focus) { border-bottom-color: rgb(var(--gold-deep-rgb) / 0.8); }
 }
 
+/* Short browser windows: the form tightens so its section holds one
+   screen (the head's serial row gives way; the title still names it) */
+@media (max-height: 800px) and (min-width: 861px) {
+  .cform-head { display: none; }
+  .cform-t { font-size: 19px; margin: 0 0 12px; }
+  .cfield input, .cfield textarea { padding: 6px 2px 8px; }
+  .cfield.invalid input, .cfield.invalid textarea { padding-bottom: 7px; }
+  .cfield textarea { min-height: 56px; }
+  .cform .btn:not(.btn-sm) { padding-block: 12px; }
+  .cform-note { margin-top: 6px; }
+}
+/* very short windows (~600px): the sheet's own padding and the message
+   box give the last few pixels */
+@media (max-height: 640px) and (min-width: 861px) {
+  .cform { padding-top: 18px; padding-bottom: 14px; }
+  .cfield textarea { min-height: 46px; }
+  .cfield { margin-bottom: 9px; }
+  .cform-t { margin-bottom: 8px; }
+}
+/* the shortest: the button's own label carries the hand-off */
+@media (max-height: 700px) and (min-width: 861px) {
+  .cform-note { display: none; }
+  .cform .btn:not(.btn-sm) { margin-bottom: 4px; }
+}
+
 @media (max-width: 560px) {
   .cform { padding: 30px 16px 24px; }   /* "Continue in email →" on one line at 320 */
+  .cform-row { grid-template-columns: 1fr; }
   .cform-status-acts .btn { flex: 1 1 100%; justify-content: center; }
 }
 

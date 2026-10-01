@@ -9,18 +9,10 @@ export const BP = {
   phone: 560,    // one column, tightest gutters
   tablet: 860,   // gutters halve, grids collapse, sticky stages relax
   desktop: 1080, // two-column splits stack
-  wide: 1580,    // room for the fixed contents rail beside the column
 };
 
 export const MQ = {
   aboveTablet: `not all and (max-width: ${BP.tablet}px)`,
-  wide: `(min-width: ${BP.wide}px)`,
-  // "at or below" — identical to the CSS queries
-  desktopDown: `(max-width: ${BP.desktop}px)`,
-  // the process stack pins only when a row fits under its pin line
-  tall: "(min-height: 561px)",
-  // landscape phones: too short for the pinned services strip
-  short: "(max-height: 500px)",
   fine: "(hover: hover) and (pointer: fine)",
   coarse: "(pointer: coarse)",
 };

@@ -2,7 +2,6 @@ import { memo, useRef, useState } from "react";
 import { m, useTransform } from "framer-motion";
 import { Reveal } from "../fx.jsx";
 import Flow from "../Flow.jsx";
-import { LedgerFigure, figLen } from "./LedgerFigure.jsx";
 import { STUDIES } from "../../data/caseStudies.js";
 import { pad2 } from "../../data/format.js";
 import { useProgress } from "../../motion/scroll.js";
@@ -10,14 +9,15 @@ import { useMedia, useReducedMotion } from "../../motion/prefs.js";
 import { MQ } from "../../motion/tokens.js";
 
 /*
-  One case study as a ledger spread. Chapters alternate:
-  - recto (CS·01, 03, 05, no class): a paper band, numeral aside on the left, the
-    dark machine-room flow panel;
-  - verso (CS·02, 04, 06): an espresso band, numeral aside and the
-    metrics exhibit mirrored to the right, a paper blueprint panel.
-  The story/tools split is never mirrored, so the visual order always
-  follows the DOM: story first. Tones come from `i % 2`, so adding a
-  study re-flows the pattern by itself.
+  One case study, kept short for senior readers who skim: its name, a
+  one-line summary, the problem and our solution side by side, and the
+  system flow. Chapters alternate:
+  - recto (CS·01, 03, 05, no class): a paper band, numeral aside on the
+    left, the dark machine-room flow panel;
+  - verso (CS·02, 04, 06): an espresso band, numeral aside mirrored to
+    the right, a paper blueprint panel.
+  Tones come from `i % 2`, so adding a study re-flows the pattern by
+  itself.
 */
 
 /* Flow panel scroll ranges. Across: the sheet settles over the first
@@ -67,18 +67,13 @@ function FlowStage({ s, verso }) {
 export const Chapter = memo(function Chapter({ s, i }) {
   const gridRef = useRef(null);
   const verso = i % 2 === 1;
-  const [lead, ...rest] = s.metrics; // metrics[0] is each study's headline
   // the aside's track fills while its numeral is pinned
   const track = useProgress(gridRef, ["start 128px", "end 60%"]);
 
   return (
     <section className={`chapter band pad${verso ? " dark verso" : ""}`} id={`cs-${s.num}`}
-      data-rail data-tone={verso ? "dark" : "paper"}>
+      data-island={`Case study ${s.num}`}>
       <div className="wrap">
-        <Reveal className="shead">
-          <span className="mlabel">Case Study {s.num} — {s.type}</span>
-          <span className="ser">DQ / CS·{s.num}</span>
-        </Reveal>
 
         <div className="ch-grid" ref={gridRef}>
           <div className="ch-aside" aria-hidden="true">
@@ -95,48 +90,16 @@ export const Chapter = memo(function Chapter({ s, i }) {
 
           <div className="ch-main">
             <Reveal as="h2" className="h1 ch-title"><span className="foil">{s.title}</span></Reveal>
-            <Reveal as="p" className="lead ch-tagline" delay={1}>{s.tagline}.</Reveal>
+            <Reveal as="p" className="lead ch-summary" delay={1}>{s.summary}</Reveal>
 
-            <Reveal className="ch-exhibit">
-              <div className="ch-lead" style={{ "--len": figLen(lead) }}>
-                <div className="ch-lead-v"><LedgerFigure m={lead} /></div>
-                <div className="ch-lead-k">{lead.k}</div>
-              </div>
-              <div className="met-list">
-                {rest.map((x) => (
-                  <div className="met-li" key={x.k}>
-                    <span className="met-v"><LedgerFigure m={x} /></span>
-                    <span className="met-k">{x.k}</span>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-
-            <div className="story-grid">
-              <Reveal as="article" className="story">
-                {/* every intro is [the problem, the solution…] */}
-                <div className="story-part">
-                  <h3 className="story-k">The problem</h3>
-                  <p>{s.intro[0]}</p>
-                </div>
-                <div className="story-part">
-                  <h3 className="story-k">Our solution</h3>
-                  {s.intro.slice(1).map((p, k) => <p key={k}>{p}</p>)}
-                </div>
-                <ul className="story-points">
-                  {s.points.map(([strong, more]) => (
-                    <li key={strong}><span><strong>{strong}</strong>{more}</span></li>
-                  ))}
-                </ul>
+            <div className="ps-grid">
+              <Reveal className="ps-part">
+                <h3 className="story-k">The problem</h3>
+                <p>{s.problem}</p>
               </Reveal>
-              <Reveal delay={1} className="tools-ledger">
-                <h3 className="mlabel">Tools used</h3>
-                {s.tools.map(([name, desc]) => (
-                  <div className="tool-row" key={name}>
-                    <span className="tool-name">{name}</span>
-                    <span className="tool-desc">{desc}</span>
-                  </div>
-                ))}
+              <Reveal className="ps-part" delay={1}>
+                <h3 className="story-k">Our solution</h3>
+                <p>{s.solution}</p>
               </Reveal>
             </div>
           </div>

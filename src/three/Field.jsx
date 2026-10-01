@@ -2,7 +2,7 @@ import { Component, Suspense, lazy, useCallback, useEffect, useLayoutEffect, use
 import { useMotionValue } from "framer-motion";
 import { canRun3D, isLitePath, particleBudget, useReducedMotion } from "../motion/prefs.js";
 import { useProgress } from "../motion/scroll.js";
-import { loadLogoShapes, loadLogoTargets } from "./logo.js";
+import { loadLogoShapes } from "./logo.js";
 import Poster from "./Poster.jsx";
 
 // One download shared by the warm-up and every mount. A failed one is not
@@ -54,23 +54,11 @@ function useBox() {
   return [box, attach, el];
 }
 
-/* An element's height in CSS px: the hero's window probe (.field-win). */
-function useHeight() {
-  const [h, setH] = useState(0);
-  const attach = useCallback((node) => {
-    if (!node) return undefined;
-    const ro = new ResizeObserver(([e]) => setH(Math.round(e.contentRect.height)));
-    ro.observe(node);
-    return () => ro.disconnect();
-  }, []);
-  return [h, attach];
-}
-
-/* The settled mark turns as its hero section scrolls away (tracking the
-   section, not the field: the phone band would turn only while hidden
-   under the topbar). Mounted only for the settled places, once the field
-   has been measured, so `field` is attached; the section is resolved
-   before useProgress's own layout effect reads it. */
+/* The mark turns as its hero section scrolls away (tracking the section,
+   not the field: the phone band would turn only while hidden under the
+   topbar). Mounted once the field has been measured, so `field` is
+   attached; the section is resolved before useProgress's own layout
+   effect reads it. */
 function Turn({ field, into }) {
   const section = useRef(null);
   useLayoutEffect(() => {
@@ -87,31 +75,27 @@ function Turn({ field, into }) {
 /*
   The gate in front of the 3D scene, and its API:
 
-    <Field place="hero" | "aside" | "band" progress={mv} active={bool} />
+    <Field place="hero" | "aside" | "band" active={bool} />
 
-  - "hero":  the landing stage. `progress` is the story progress, in the
-             units of STORY_BEATS[i].range; the grains and the mark play
-             the beats with it.
-  - "aside": the Work hero on desktop — the settled result (the mark in
-             its data streams), far right, turning as the hero scrolls
-             away.
-  - "band":  the Work hero at ≤ 860px — the same settled mark in a ruled
-             strip of reserved height above the headline; lite render
-             path, the poster shown until the scene is ready.
+  Every place shows the same scene: as the page opens the grains gather
+  from their rows into six streams of data flowing behind the solid DQ
+  mark, which materialises over them; the mark turns a little as its
+  hero scrolls away.
+  - "hero":  the landing hero — large, owning the right of the stage.
+  - "aside": the Work hero on desktop — far right of the headline.
+  - "band":  the Work hero at ≤ 860px — a ruled strip of reserved height
+             above the headline; lite render path, the poster shown until
+             the scene is ready.
 
-  WebGL2 available: the outline and grain targets load, the WebGL chunk
-  loads when the page is idle, and the scene fades in. Reduced motion
-  renders the same scene as finished stills that follow the scroll. No
-  WebGL2, Save-Data, a scene error, a shader that fails to compile or a
-  context lost more than twice in a visit: the 2D poster. A lost context
-  is retried with a fresh scene once the page is visible again, when the
-  browser restores it, or after a short wait.
-
-  The hero measures its visible window (.field-win, the bottom 100svh of
-  the stage): the scene and the poster compose for it.
+  WebGL2 available: the outline loads, the WebGL chunk loads when the
+  page is idle, and the scene fades in. Reduced motion renders the same
+  scene as a finished still. No WebGL2, Save-Data, a scene error, a
+  shader that fails to compile or a context lost more than twice in a
+  visit: the 2D poster. A lost context is retried with a fresh scene once
+  the page is visible again, when the browser restores it, or after a
+  short wait.
 */
-export function Field({ place = "hero", progress, active = true }) {
-  const settled = place !== "hero";
+export function Field({ place = "hero", active = true }) {
   // null until probed: the probe creates (and at once releases) a WebGL2
   // context, a synchronous GPU round trip that must not hold up the first
   // paint — so it runs when the page is idle. A yes starts the scene's
@@ -131,12 +115,10 @@ export function Field({ place = "hero", progress, active = true }) {
   const lite = useMemo(() => isLitePath(place), [place]);
   const count = useMemo(() => (gl ? grainsFor(place) : 0), [gl, place]);
   const [traced, setTraced] = useState(undefined);   // the outline: poster and mark
-  const [targets, setTargets] = useState(undefined); // the grain targets: scene only
   const [load, setLoad] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [box, attach, el] = useBox();
-  const [win, winRef] = useHeight();
   const markReady = useCallback(() => setReady(true), []);
   const fail = useCallback(() => setFailed(true), []);
   const yaw = useMotionValue(0);
@@ -170,28 +152,21 @@ export function Field({ place = "hero", progress, active = true }) {
     };
   }, [lostCanvas]);
 
-  // Either may come back null (the scene then does without); neither
-  // rejects. The outline loads at once (the poster needs it whatever the
-  // probe says); the grain targets only once the scene can run.
+  // The outline loads at once (the poster needs it whatever the probe
+  // says). It may come back null: the scene then does without the solid.
   useEffect(() => {
     let alive = true;
     loadLogoShapes().then((t) => { if (alive) setTraced(t); });
     return () => { alive = false; };
   }, []);
-  useEffect(() => {
-    if (!gl) return undefined;
-    let alive = true;
-    loadLogoTargets(count).catch(() => null).then((t) => { if (alive) setTargets(t); });
-    return () => { alive = false; };
-  }, [gl, count]);
 
   useEffect(() => {
-    if (!gl || failed || traced === undefined || targets === undefined) return undefined;
+    if (!gl || failed || traced === undefined) return undefined;
     const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 180));
     const cancel = window.cancelIdleCallback || clearTimeout;
     const id = idle(() => setLoad(true), { timeout: 1500 });
     return () => cancel(id);
-  }, [gl, failed, traced, targets]);
+  }, [gl, failed, traced]);
 
   // still probing (gl null): styled for the scene, as capable devices were
   const poster = gl === false || failed;
@@ -204,26 +179,21 @@ export function Field({ place = "hero", progress, active = true }) {
       data-lite={lite && !poster ? "" : undefined}
       aria-hidden="true"
     >
-      {place === "hero" && <div className="field-win" ref={winRef} />}
-      {outline && (poster || place === "band") && <Poster outline={outline} place={place} settled={settled} win={win} />}
-      {settled && box && <Turn field={el} into={yaw} />}
+      {outline && (poster || place === "band") && <Poster outline={outline} place={place} />}
+      {box && <Turn field={el} into={yaw} />}
       {!poster && load && box && (
         <SceneBoundary key={attempt} onFail={fail}>
           <Suspense fallback={null}>
             <HeroScene
               place={place}
-              settled={settled}
-              progress={progress}
-              yaw={settled ? yaw : undefined}
+              yaw={yaw}
               count={count}
-              targets={targets}
               outers={outline ? outline.outers : null}
               still={still}
               /* keep the loop running until the first frame has been drawn;
                  only then does visibility get to pause it */
               active={(active || !ready) && !lostCanvas}
               box={box}
-              win={win}
               onReady={markReady}
               onLost={lost}
             />

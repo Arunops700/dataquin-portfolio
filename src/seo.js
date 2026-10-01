@@ -87,8 +87,8 @@ export function usePageMeta({ title, description, path, noindex = false }) {
     setMeta("property", "og:url", url);
     setMeta("name", "twitter:title", full);
     setMeta("name", "twitter:description", description);
-    // Unknown URLs still resolve with a 200 through the SPA rewrite, so the
-    // "not found" page has to opt out of indexing by hand.
+    // An unknown URL opened directly gets dist/404.html (a 404, noindex);
+    // one reached inside the app is only a route, so it opts out here too.
     setMeta("name", "robots", noindex ? "noindex, follow" : "index, follow");
 
     // A noindex page must not also declare a canonical: the two

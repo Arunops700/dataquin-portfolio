@@ -151,11 +151,12 @@ export default function ContactForm() {
     <form className="cform" noValidate onSubmit={onSubmit} aria-labelledby="lp-form-t">
       <div className="cform-head">
         <span className="mlabel">Start here</span>
-        <span className="cform-ser">DQ / Intake</span>
+        <span className="cform-ser" aria-hidden="true">DQ / Intake</span>
       </div>
       <h3 className="cform-t" id="lp-form-t">Tell us what&rsquo;s slowing you down.</h3>
       <p className="sr-only" aria-live="assertive" aria-atomic="true" ref={liveRef} />
 
+      <div className="cform-row">
       <CField id={IDS.name} n={1} label="Name" error={errors.name}>
         <input id={IDS.name} name="name" type="text" autoComplete="name" required
           placeholder="Your name" value={form.name} onChange={set("name")} {...described("name")} />
@@ -165,6 +166,7 @@ export default function ContactForm() {
         <input id={IDS.email} name="email" type="email" autoComplete="email" required
           placeholder="you@company.com" value={form.email} onChange={set("email")} {...described("email")} />
       </CField>
+      </div>
 
       <CField id={IDS.company} n={3} label="Company" optional>
         <input id={IDS.company} name="company" type="text" autoComplete="organization"
@@ -173,7 +175,7 @@ export default function ContactForm() {
 
       <CField id={IDS.message} n={4} label="What do you need?" error={errors.message} hint={msgHint}>
         {/* data-lenis-prevent: the wheel scrolls a long message, not the page */}
-        <textarea id={IDS.message} name="message" rows={4} required maxLength={MAX_MSG} data-lenis-prevent
+        <textarea id={IDS.message} name="message" rows={3} required maxLength={MAX_MSG} data-lenis-prevent
           placeholder="The process, report or bottleneck you'd like to fix."
           value={form.message} onChange={set("message")}
           {...described("message", msgHint && `${IDS.message}-hint`)} />

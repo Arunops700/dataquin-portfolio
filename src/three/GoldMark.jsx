@@ -111,7 +111,7 @@ export default function GoldMark({ outers, rig, lite }) {
 
   // The studio light, baked once, on the material itself: with a scene
   // environment three takes the intensity from the scene and ignores the
-  // material's, and the rig dims the light per beat. A layout effect, so
+  // material's, and the rig sets the light per placement. A layout effect, so
   // no frame ever shows the metal unlit.
   useLayoutEffect(() => {
     const rt = bakeStudio(gl, lite ? 128 : 256);

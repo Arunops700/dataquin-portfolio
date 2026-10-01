@@ -1,19 +1,10 @@
 /* ============================================================
-   Hero story — a sticky stage the reader scrolls through
+   Hero — one screen: who we are, two ways on, the credentials
    ============================================================ */
-/* The landing hero: a tall section the sticky stage scrolls through.
-   (Named hero-story, not story: the Work chapters use .story for their
-   article, and the shared name gave every chapter a 300vh-tall body.)
-   --stage-over (Landing.jsx) adds the lead-in a tall stage needs. */
-.hero-story { height: calc(300vh + var(--stage-over, 0px)); }
 /* min-height, not height: on a short viewport (or at 200% zoom) the
-   copy is taller than the screen. Such a stage first scrolls its
-   overflow into view, then sticks with its foot on the viewport's foot
-   (the negative top); the story only starts after that lead-in, so the
-   credentials and actions are always seen before the headline fades. */
+   copy is taller than the screen and the hero grows to hold it. */
 .stage {
-  position: sticky;
-  top: calc(-1 * var(--stage-over, 0px));
+  position: relative;
   min-height: 100vh;
   min-height: 100svh;
   overflow: hidden;
@@ -21,7 +12,8 @@
   flex-direction: column;
   justify-content: center;
 }
-.stage-copy { position: relative; z-index: 2; padding: 64px 0 40px; will-change: transform, opacity; }
+/* the top padding keeps the copy clear of the island at any height */
+.stage-copy { position: relative; z-index: 2; padding: calc(var(--bar-clear) + 4px) 0 32px; }
 /* The copy keeps a text-free lane on the left; the mark owns the right.
    Measured with Fraunces 600 (opsz = size): at the 88px top size the
    rows set 711px and 728px, inside the 800px lane, and clear the mark's
@@ -31,24 +23,6 @@
 .stage .hero-lead { max-width: 620px; margin-top: clamp(20px, 3vh, 30px); }
 .stage .hero-actions { margin-top: clamp(28px, 4.5vh, 42px); }
 .stage .hero-creds { margin-top: clamp(28px, 5vh, 64px); }
-/* The meta rule draws itself on load (scoped to the stage: .hero-meta
-   is shared with Work and NotFound) */
-.stage .hero-meta {
-  position: relative;
-  margin-bottom: clamp(28px, 5vh, 64px);
-  border-bottom-color: transparent;
-}
-.stage .hero-meta::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 1px;
-  background: linear-gradient(90deg, rgb(var(--gold-hi-rgb) / 0.55), rgb(var(--gold-hi-rgb) / 0.16) 45%);
-  transform-origin: 0 50%;
-  animation: ruleDraw 1.2s var(--ease) 0.3s both;
-}
 /* Credentials: the figures stay still; a foil tick draws over each
    entry, one after another, once the row has faded in */
 .stage .cred { position: relative; }
@@ -65,101 +39,6 @@
   animation-delay: calc(1s + var(--i, 0) * 0.14s);
 }
 .stage .cred + .cred::before { left: 26px; }
-
-/* Beats: a static, viewport-tall frame anchored to the stage's foot —
-   the visible window, even when a tall stage sticks with a negative
-   top. Only the inner layer fades; the title rows rise through their
-   own masks on the same scroll progress. The frame keeps the topbar's
-   clearance at its head and as much again at its foot, so a beat stays
-   centred on the screen; `safe` lets a beat taller than the room left
-   (a landscape phone) run off the foot, never up under the bar. */
-.beat {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 100vh;
-  height: 100svh;
-  padding-block: var(--bar-clear);
-  display: flex;
-  align-items: center;
-  align-items: safe center;
-  z-index: 2;
-  pointer-events: none;
-}
-.beat-in { width: 100%; will-change: opacity; }
-.beat-k { display: flex; align-items: center; gap: 14px; }
-/* the kicker rule: foil = the beat in play */
-.beat-rule {
-  display: block;
-  width: 44px;
-  height: 1.5px;
-  background: var(--foil-lux);
-  transform-origin: 0 50%;
-}
-/* Each row sets on one line on desktop, so the heading reads as two
-   rows like the headline: every row is a short phrase, inside the
-   860px measure at the 64px top size. */
-.beat-t {
-  font-family: var(--font-head);
-  font-size: clamp(2rem, 5vw, 4rem);
-  font-weight: 600;
-  line-height: 1.04;
-  letter-spacing: -0.02em;
-  max-width: 860px;
-  margin-top: 20px;
-  text-wrap: balance;
-}
-/* Row 1 is the roman setup, row 2 the gold emphasis, always on its own
-   line. The padding keeps descenders and italic overhang out of reach
-   of the mask; the negative margin keeps the leading unchanged. */
-.beat-row { display: block; overflow: hidden; padding: 0 0.08em 0.1em 0; margin-bottom: -0.1em; }
-.beat-row > span { display: block; will-change: transform; }
-.beat-s {
-  margin-top: 22px;
-  max-width: 560px;
-  color: var(--ivory-soft);
-  font-size: clamp(1.05rem, 1.3vw, 1.2rem);
-  line-height: 1.6;
-}
-/* on the frame, not the Magnetic wrapper, so the gap holds everywhere */
-.beat-cta { margin-top: 32px; }
-
-/* Story index: "01 / 03" and one ledger tick per beat, at the foot of
-   the copy lane (the mark owns the right). A viewport-tall frame like
-   .beat, so it stays on screen when the stage is taller than the
-   viewport. Above the scrim (z 1). */
-.story-index {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 100vh;
-  height: 100svh;
-  z-index: 2;
-  pointer-events: none;
-  display: flex;
-  align-items: flex-end;
-  padding-bottom: clamp(22px, 4.5vh, 44px);
-}
-.si-in { display: flex; flex-direction: column; gap: 12px; }
-.si-now {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  color: var(--ivory-soft);
-}
-.si-now b { color: var(--gold-hi); font-weight: 600; }
-.si-bars { display: grid; grid-template-columns: repeat(var(--n, 3), 1fr); gap: 6px; width: min(420px, 100%); }
-.si-bar { position: relative; height: 2px; background: rgb(var(--gold-hi-rgb) / 0.2); overflow: hidden; }
-.si-fill {
-  position: absolute;
-  inset: 0;
-  background: var(--foil-lux);
-  transform-origin: 0 50%;
-  transform: scaleX(0);
-}
 
 .scroll-cue {
   position: absolute;
@@ -196,204 +75,216 @@
 }
 
 /* ============================================================
-   Services strip — sideways travel driven by vertical scroll
+   Screens — the landing's sections, one screen each
    ============================================================ */
-/* Pace from the pillar count (inline --n): ~1.9px sideways per 1px
-   scrolled at 1440 — each pillar still reads as it passes, without a
-   long pinned stretch. Pure CSS — no measured height, no layout shift,
-   exact hash links. */
-.strip-sec { height: calc(100vh + var(--n, 7) * 20vh); height: calc(100svh + var(--n, 7) * 20vh); }
-.strip-stage {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100svh;
+/* A section one screen tall, its top padding clear of the fixed topbar;
+   sizes and spacing follow the viewport's height so it fits a laptop
+   screen too. Below 860px it is a plain band (the 860px block). */
+.screen {
+  min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-top: clamp(72px, 10vh, 110px);
-  gap: clamp(28px, 5vh, 56px);
-  overflow: hidden;
+  padding: calc(var(--bar-clear) + clamp(4px, 1.5vh, 20px)) 0 clamp(28px, 5vh, 56px);
 }
-/* The track's clip fades out at both edges instead of cutting glyphs */
-.strip-clip {
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 56px, #000 calc(100% - 56px), transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0, #000 56px, #000 calc(100% - 56px), transparent 100%);
+/* Not a scroll anchor: its content is centred, so a late web-font swap
+   moves the text inside it, and the browser would "follow" that text by
+   nudging the scroll after a link has landed on the section's top. */
+.screen { overflow-anchor: none; }
+.screen .sec-intro { margin-bottom: clamp(20px, 3.6vh, 40px); }
+/* A link to a screen lands on the section's own top: its padding already
+   holds the bar's clearance, so it cancels the page-wide one
+   (SmoothScroll.jsx counts scroll-margin, as native anchors do). */
+@media not all and (max-width: 860px) {
+  .screen { scroll-margin-top: calc(-1 * var(--bar-clear)); }
 }
-.strip-track {
-  display: flex;
-  width: max-content;
-  padding-left: max(var(--gutter), calc((100% - 1200px) / 2));   /* on the .wrap's left edge */
-  will-change: transform;
+.screen .sec-intro .lead { margin-top: clamp(10px, 1.8vh, 16px); }
+/* Laptop-height screens: a tighter heading, so every section still fits */
+@media (max-height: 820px) and (min-width: 861px) {
+  .screen .h1 { font-size: clamp(2rem, 5vh, 2.6rem); }
+  .screen .lead { font-size: 1.05rem; }
 }
-.pillar {
-  position: relative;
-  flex: 0 0 auto;
-  width: min(440px, 78vw);
-  margin-right: 34px;
-  padding: 30px 30px 34px 0;
+
+/* ============================================================
+   Services — a ruled grid, a bento drawn as a ledger
+   ============================================================ */
+/* Twelve columns, two rows: the large first cell (6) and two of 3, then
+   four of 3. Each cell rules its own right and bottom edge; the grid's
+   top and left close the frame. */
+.sv-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   border-top: 1px solid var(--rule-strong);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  border-left: 1px solid var(--rule);
 }
-.pillar:last-child { margin-right: 44px; }
-/* foil rule = the pillar in focus (--act, 0–1, from the strip's focus) */
-.pillar::before {
+/* Each cell spans three rows of the grid and takes them as a subgrid —
+   numeral, title, copy — so across a row the numerals, the titles' last
+   lines and the copy all line up, whatever each cell's text length.
+   (Without subgrid support the cells simply stack their three parts.) */
+.sv-cell {
+  position: relative;
+  grid-column: span 3;
+  grid-row: span 3;
+  display: grid;
+  grid-template-rows: subgrid;
+  row-gap: 0;
+  padding: clamp(18px, 2.8vh, 30px) clamp(18px, 2vw, 28px) clamp(20px, 3vh, 32px);
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  /* a reveal too: its own wash transition runs with no delay */
+  transition:
+    opacity var(--dur-slow) var(--ease) var(--reveal-delay),
+    transform var(--dur-slow) var(--ease) var(--reveal-delay),
+    background-color var(--dur-fast) ease 0s;
+}
+.sv-cell.lg { grid-column: span 6; }
+/* foil rule along the top edge of the cell under the pointer */
+.sv-cell::before {
   content: "";
   position: absolute;
-  left: 0;
-  right: 30px;
-  top: -1px;
-  height: 2px;
-  background: var(--foil-ink);
-  transform-origin: 0 50%;
-  transform: scaleX(var(--act, 0));
-}
-/* Ledger numeral: a pale-foil ghost until reached, then inked for good */
-.pillar-num {
-  align-self: flex-start;
-  font-family: var(--font-head);
-  font-size: clamp(2.6rem, 4vw, 3.6rem);
-  font-weight: 600;
-  line-height: 0.9;
-  letter-spacing: -0.03em;
-  margin-bottom: 4px;
-}
-.pillar .num-ink { --fill: var(--got, 0); }
-.pillar-t {
-  font-family: var(--font-head);
-  font-size: clamp(1.7rem, 2.6vw, 2.5rem);
-  font-weight: 600;
-  line-height: 1.08;
-  letter-spacing: -0.015em;
-}
-.pillar-s { color: var(--ink-soft); font-size: 16px; line-height: 1.6; max-width: 360px; }
-
-/* Meter: odometer counter + progress hairline (+ arrows on mobile) */
-.strip-meter { display: flex; align-items: center; gap: 20px; }
-.sm-count {
-  flex: 0 0 auto;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  color: var(--ink-faint);
-}
-.sm-count b { color: var(--gold-deep); font-weight: 600; }
-.sm-bar { position: relative; flex: 1; max-width: 520px; height: 1px; background: var(--rule); }
-.sm-fill {
-  position: absolute;
-  left: 0;
+  left: -1px;
   right: 0;
-  top: -0.5px;
+  top: -1px;
   height: 2px;
   background: var(--foil-ink);
   transform-origin: 0 50%;
   transform: scaleX(0);
+  transition: transform var(--dur-slow) var(--ease);
 }
-.sm-nav { display: none; }
+/* Ledger numeral: a pale-foil ghost that inks as its cell arrives */
+.sv-num {
+  align-self: start;
+  justify-self: start;
+  margin-bottom: var(--sv-num-gap, clamp(14px, 3.2vh, 34px));
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 4.6vh, 3rem);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  --fill: 0;
+}
+.sv-num::after { transition: opacity 0.9s var(--ease) calc(var(--reveal-delay, 0s) + 0.25s); }
+.sv-cell[data-in] .sv-num { --fill: 1; }
+/* a longer title grows upward, so its last line sits with the others' */
+.sv-t {
+  align-self: end;
+  margin-bottom: 10px;
+  transition: transform var(--dur-fast) var(--ease);
+  font-family: var(--font-head);
+  font-size: clamp(1.3rem, min(1.8vw, 3.2vh), 1.75rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+.sv-s { align-self: start; color: var(--ink-soft); font-size: 16px; line-height: 1.5; max-width: 420px; transition: transform var(--dur-fast) var(--ease); }
+/* the large cell speaks up */
+.sv-cell.lg .sv-num { font-size: clamp(2.8rem, 8vh, 4.8rem); }
+.sv-cell.lg .sv-t { font-size: clamp(1.8rem, min(3vw, 5vh), 2.6rem); }
+.sv-cell.lg .sv-s { font-size: 17px; }
+@media (max-height: 820px) and (min-width: 861px) {
+  .sv-s, .sv-cell.lg .sv-s { font-size: 15px; line-height: 1.45; }
+  .sv-cell { --sv-num-gap: clamp(10px, 2.2vh, 22px); }
+}
+/* Short browser windows (a laptop under its tabs and taskbar): every
+   gap gives a little more, so each section still holds one screen */
+@media (max-height: 700px) and (min-width: 861px) {
+  .screen { padding-bottom: 16px; }
+  .stage-copy { padding-bottom: 14px; }
+  .stage .hero-title { font-size: clamp(2.4rem, min(5.9vw, 10vh), 5.5rem); }
+  .stage .hero-lead { margin-top: 12px; font-size: 1.05rem; }
+  .stage .hero-actions, .stage .hero-creds { margin-top: 16px; }
+  .sv-s, .sv-cell.lg .sv-s { font-size: 14.5px; line-height: 1.4; }
+  .sv-cell.lg .sv-num { font-size: clamp(2.4rem, 7vh, 3.6rem); }
+  .sv-cell { padding-top: 14px; padding-bottom: 16px; --sv-num-gap: 10px; }
+}
+/* Narrow desktops (861–1080px): the bento's quarter cells are slim, so
+   their type and padding step down to keep the grid on one screen (the
+   contact split's own narrow-desktop rules follow its base rules). */
+@media (min-width: 861px) and (max-width: 1080px) {
+  .sv-cell { padding-left: 16px; padding-right: 16px; --sv-num-gap: clamp(10px, 2.2vh, 22px); }
+  .sv-num { font-size: clamp(1.8rem, 4vh, 2.4rem); }
+  .sv-cell.lg .sv-num { font-size: clamp(2.4rem, 6.5vh, 3.6rem); }
+  .sv-t { font-size: 1.2rem; }
+  .sv-cell.lg .sv-t { font-size: 1.7rem; }
+  .sv-s, .sv-cell.lg .sv-s { font-size: 15px; line-height: 1.42; }
+}
 
 /* ============================================================
-   Process — ledger step rows that stack as the reader scrolls
+   Process — the steps on a ruled rail, one screen
    ============================================================ */
-.step-row {
+/* Five columns under one rule. Each step draws its own stretch of the
+   foil line as it arrives (staggered, so the line runs left to right)
+   and carries a diamond tick where it starts. */
+.proc {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-top: 1px solid var(--rule-strong);
+}
+.proc-step {
   position: relative;
-  display: grid;
-  grid-template-columns: 110px 0.85fr 1.15fr;
-  gap: 26px;
-  align-items: baseline;
-  padding: 34px 12px 34px 0;
-  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: clamp(26px, 4vh, 40px) clamp(14px, 1.6vw, 24px) clamp(14px, 2vh, 24px);
+  border-left: 1px solid var(--rule-soft);
+  /* a reveal too: its own wash transition runs with no delay */
+  transition:
+    opacity var(--dur-slow) var(--ease) var(--reveal-delay),
+    transform var(--dur-slow) var(--ease) var(--reveal-delay),
+    background-color var(--dur-fast) ease 0s;
 }
-/* the paint is .num-ink's: ghost until the row arrives, then foil */
-.step-num {
-  justify-self: start;
-  font-family: var(--font-head);
-  font-size: clamp(1.9rem, 3vw, 2.7rem);
-  font-weight: 600;
-  line-height: 1;
-}
-.step-t {
-  font-family: var(--font-head);
-  font-weight: 600;
-  font-size: clamp(1.25rem, 1.9vw, 1.6rem);
-  line-height: 1.2;
-}
-.step-s { color: var(--ink-soft); font-size: 16px; line-height: 1.6; }
-
-/* --spine-x: mid-gutter between the numeral column and the step */
-.stack-rows { position: relative; isolation: isolate; --spine-x: calc(110px + 13px); }
-/* the stack's own run-out is the section's bottom breathing room */
-#process.pad { padding-bottom: 48px; }
-/* No transform and no transition on a sticky, scroll-driven row: the
-   stack must track the scroll exactly. The spine's track is painted
-   into the opaque paper, so a covering row hides the one beneath it.
-   The top rule fades as the row is covered (--cov). No hover wash: a
-   step is not a link. */
-.stack-row {
-  position: sticky;
-  margin-bottom: 5vh;
-  background: linear-gradient(var(--rule-soft), var(--rule-soft)) var(--spine-x) 0 / 1px 100% no-repeat, var(--paper);
-  border-top: 1px solid rgb(var(--ink-rgb) / calc(0.2 * (1 - var(--cov, 0))));
-}
-/* The gold spine fills down each row as it arrives (--arr) and stays
-   filled. Covered rows show only their tab strip, so their segments
-   stack into one continuous gold rule down to the current step. */
-.stack-row::before {
+.proc-step:first-child { border-left-color: transparent; padding-left: 0; }
+/* its stretch of the foil rule */
+.proc-step::before {
   content: "";
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: calc(var(--spine-x) - 0.5px);
-  width: 2px;
-  z-index: 2;
-  background: var(--foil-ink);
-  transform-origin: 50% 0;
-  transform: scaleY(var(--arr, 0));
-  pointer-events: none;
-}
-/* The veil also covers the row's top rule, so covered rows never pile
-   up as a stack of stray hairlines */
-.stack-row::after {
-  content: "";
-  position: absolute;
-  inset: -1px 0 0 0;
-  background: var(--paper);
-  opacity: var(--dim, 0);
-  pointer-events: none;
-}
-.stack-row .num-ink { --fill: var(--arr, 1); }
-/* Filed tab: the strip of a covered row that stays in view becomes an
-   index line, above the veil at full contrast. It shows only once the
-   row is mostly covered, so the title is never read twice. */
-.stack-tab {
-  position: absolute;
-  top: -1px;
-  left: 0;
+  left: -1px;
   right: 0;
-  height: var(--tab-h, 28px);
-  z-index: 3;
-  pointer-events: none;
-  display: grid;
-  grid-template-columns: 110px 1fr auto;
-  column-gap: 26px;
-  align-items: center;
-  padding-right: 12px;
-  border-top: 1px solid var(--rule);
-  opacity: clamp(0, calc((var(--cov, 0) - 0.6) * 2.5), 1);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  line-height: 1;
-  text-transform: uppercase;
+  top: -1px;
+  height: 2px;
+  background: var(--foil-ink);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  transition: transform 0.9s var(--ease) calc(var(--reveal-delay, 0s) + 0.2s);
 }
-.stack-tab-n { color: var(--gold-deep); }
-.stack-tab-t { min-width: 0; color: var(--ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.stack-tab::after { content: ""; width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); }
-/* Short viewports: a pinned row would not fit under its pin line */
-.stack-rows.flat .stack-row { position: relative; }
+.proc-step[data-in]::before { transform: scaleX(1); }
+/* the diamond tick where the step starts */
+.proc-step::after {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 9px;
+  height: 9px;
+  background: var(--gold);
+  transform: rotate(45deg);
+}
+.proc-step:first-child::after { left: 0; }
+.proc-num {
+  align-self: flex-start;
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 4.6vh, 2.9rem);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  margin-bottom: clamp(4px, 1.2vh, 12px);
+  --fill: 0;
+}
+.proc-num::after { transition: opacity 0.9s var(--ease) calc(var(--reveal-delay, 0s) + 0.25s); }
+.proc-step[data-in] .proc-num { --fill: 1; }
+.proc-t {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: clamp(1.25rem, min(1.8vw, 3vh), 1.6rem);
+  line-height: 1.15;
+}
+.proc-s { color: var(--ink-soft); font-size: 16px; line-height: 1.55; }
+@media (max-height: 820px) and (min-width: 861px) {
+  .proc-s { font-size: 15px; line-height: 1.45; }
+}
 
 /* ============================================================
    Contact split + ledger form
@@ -402,17 +293,17 @@
   display: grid;
   grid-template-columns: 1fr 0.92fr;
   gap: clamp(40px, 5vw, 80px);
-  align-items: start;
+  align-items: center;
 }
-.contact-lead { margin-top: 18px; }
+.contact-lead { margin-top: clamp(12px, 2vh, 18px); }
 /* The values as one ruled ledger line, not boxed chips */
 .values-line {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px 18px;
-  margin-top: 30px;
-  padding: 14px 0;
+  margin-top: clamp(18px, 3vh, 30px);
+  padding: clamp(10px, 1.6vh, 14px) 0;
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
   font-family: var(--font-mono);
@@ -425,7 +316,7 @@
 .values-line li { display: inline-flex; align-items: center; gap: 12px; }
 .values-line li::before { content: ""; width: 5px; height: 5px; background: var(--gold); transform: rotate(45deg); }
 .close-line {
-  margin-top: 30px;
+  margin-top: clamp(18px, 3vh, 30px);
   font-family: var(--font-head);
   font-size: clamp(19px, 1.9vw, 23px);
   font-weight: 600;
@@ -435,7 +326,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin-top: 22px;
+  margin-top: clamp(14px, 2.4vh, 22px);
   border-top: 1px solid var(--rule);
 }
 /* Ledger links: hover and keyboard focus look the same — wash, and the
@@ -445,7 +336,7 @@
   display: flex;
   align-items: baseline;
   gap: 14px;
-  padding: 14px 4px;
+  padding: clamp(10px, 1.6vh, 14px) 4px;
   border-bottom: 1px solid var(--rule-soft);
   font-family: var(--font-mono);
   font-size: 14px;
@@ -463,162 +354,117 @@
   min-width: 52px;
 }
 
+/* Narrow desktops (861–1080px): the form takes a little more of the
+   width, so name and email still sit side by side unclipped, and the
+   values set two by two instead of leaving one alone on a line */
+@media (min-width: 861px) and (max-width: 1080px) {
+  .contact-grid { grid-template-columns: 1fr 1.1fr; gap: 36px; }
+  .values-line { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; padding: 9px 0; }
+}
+
 /* ============================================================
    Closing — the way on to the Work page
    ============================================================ */
 .cta-next .cta-copy { max-width: 760px; margin: 0 auto; }
+/* the landing's close and the footer together fill the last screen
+   (--footer-h is published by the footer, App.jsx) */
+.cta-home {
+  min-height: calc(100vh - var(--footer-h, 0px));
+  min-height: calc(100svh - var(--footer-h, 0px));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.cta-home.pad { padding: clamp(48px, 9vh, 110px) 0; }
+/* short windows: the close's own padding gives way (the Work close
+   also carries a Mail / Tel row) */
+@media (max-height: 700px) and (min-width: 861px) {
+  .cta-home.pad { padding: 28px 0; }
+}
+/* no label above it here: the heading opens the band */
+.cta-home .cta-h { margin-top: 0; }
 .cta-next .cta-s { margin: 20px auto 0; }
 .cta-next .btn { margin-top: 0; }
 /* the spacing lives on the frame, not on the button or its wrapper */
 .cta-act { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-top: 36px; }
 
-/* Landing-only section helper (the strip's intro sits on the track) */
-.sec-intro.flush { margin-bottom: 0; }
 
 /* ============================================================
    Responsive, touch and reduced motion
    ============================================================ */
-/* Touch: the same wash on press (the strip arrows too — the browser's
-   tap highlight is off site-wide) */
+/* Touch: the same wash on press (the browser's tap highlight is off
+   site-wide) */
 @media (hover: none) {
-   .reach a:active { background-color: var(--wash); }
-  .sm-btn:not([aria-disabled="true"]):active { border-color: var(--accent-mark); background-color: var(--wash); }
+  .reach a:active { background-color: var(--wash); }
 }
 /* Hover where a pointer can really hover: the keyboard-focus looks above */
 @media (hover: hover) {
   .reach a:hover { color: var(--accent); padding-left: var(--row-shift); background-color: var(--wash); }
+  .sv-cell:hover { background-color: var(--wash); }
+  .sv-cell:hover::before { transform: scaleX(1); }
+  .sv-cell:hover .sv-t,
+  .sv-cell:hover .sv-s { transform: translateX(var(--row-shift, 12px)); }
+  .proc-step:hover { background-color: var(--wash); }
 }
 
-/* Short viewports: the cue would land on the credentials, and the
-   index would crowd the last beat */
+/* Short viewports: the cue would land on the credentials */
 @media (max-height: 820px) { .scroll-cue { display: none; } }
-@media (max-height: 760px) {
-  .pillar-num { font-size: 2.2rem; }
-  .strip-stage { gap: 22px; padding-top: 76px; }
-}
-@media (max-height: 640px) { .story-index { display: none; } }
-/* Landscape phones: the beat's copy tightens to fit under the bar */
-@media (max-height: 500px) {
-  .beat { padding-bottom: 16px; }
-  .beat-t { margin-top: 14px; }
-  .beat-s { margin-top: 14px; font-size: 0.95rem; line-height: 1.5; }
-  .beat-cta { margin-top: 20px; }
-}
-
 @media not all and (max-width: 860px) {
-  /* While the track travels (never on a short landscape screen, which
-     swipes), the travel paces the pillars: no stagger */
-  @media not all and (max-height: 500px) {
-    .strip-clip .reveal { --reveal-delay: 0s; }
-  }
-  /* the meta rule and credentials keep to the h1's lane: full width,
-     their right end sat on the mark's top arc (1920x1080, 1280x1024) */
-  .stage .hero-meta, .stage .hero-creds { max-width: 800px; }
+  /* the credentials keep to the h1's lane: full width, their right end
+     sat on the mark's top arc (1920x1080, 1280x1024). On narrower
+     desktops they give the mark room (logo.js reads the same
+     min(800px, 62vw) to fit it beside them). */
+  .stage .hero-creds { max-width: min(800px, 62vw); }
 }
 
-@media (max-width: 1080px) {
-  .contact-grid { grid-template-columns: 1fr; gap: 48px; }
-}
+
 
 @media (max-width: 860px) {
   .stage .cred + .cred::before { left: 0; }
+  .contact-grid { grid-template-columns: 1fr; gap: 48px; }
+  .screen { min-height: 0; padding: 76px 0; }
+  /* the steps: a vertical rail, the foil line drawn down it */
+  .proc { grid-template-columns: minmax(0, 1fr); border-top: none; border-left: 1px solid var(--rule-strong); }
+  .proc-step,
+  .proc-step:first-child { border-left: none; padding: 18px 0 22px 28px; }
+  .proc-step::before { left: -1px; right: auto; top: 0; bottom: 0; width: 2px; height: auto; transform: scaleY(0); transform-origin: 50% 0; }
+  .proc-step[data-in]::before { transform: scaleY(1); }
+  .proc-step::after,
+  .proc-step:first-child::after { left: -5px; top: 26px; }
+  /* services: two columns, the large cell a full row */
+  .sv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sv-cell { grid-column: span 1; }
+  .sv-cell.lg { grid-column: span 2; }
 
-  .step-row { grid-template-columns: 64px 1fr; row-gap: 8px; padding: 26px 8px 26px 0; }
-  .step-s { grid-column: 2; }
-  .stack-rows { --spine-x: calc(64px + 13px); }
-  .stack-tab { grid-template-columns: 64px 1fr auto; padding-right: 8px; }
-}
-
-/* Services: a native swipe track with snap points inside the strip —
-   the page itself is never hijacked. Phones, and landscape phones too
-   wide for the width query but too short for the pinned strip (the JS
-   side is `wide` in Landing.jsx). The track's inset follows the .wrap
-   gutter. */
-@media (max-width: 860px), (max-height: 500px) {
-  .strip-sec { height: auto; padding: 76px 0 64px; }
-  .strip-stage { position: static; height: auto; overflow: visible; padding-top: 0; gap: 26px; }
-  .strip-clip { -webkit-mask-image: none; mask-image: none; }
-  .strip-scroller {
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: var(--gutter);
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-  .strip-scroller::-webkit-scrollbar { display: none; }
-  .strip-scroller:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
-  /* a stale desktop x must never survive a resize; the 2px top padding
-     keeps the foil rule clear of the scroller's clip */
-  .strip-track { gap: 18px; width: max-content; padding: 2px var(--gutter) 0; transform: none !important; }
-  /* pillars swiped into view fade in place: a rise would be clipped */
-  .strip-scroller .reveal { transform: none; }
-  .pillar,
-  .pillar:last-child {
-    width: min(calc(100vw - 88px), 380px);
-    margin-right: 0;
-    padding: 22px 0 6px;
-    scroll-snap-align: start;
-  }
-  .pillar::before { right: 0; }
-  .sm-bar { max-width: none; }
-  .sm-nav { display: flex; gap: 8px; margin-left: auto; }
-  .sm-btn {
-    width: 44px;
-    height: 44px;
-    display: grid;
-    place-items: center;
-    border: 1px solid var(--rule-strong);
-    border-radius: 4px;
-    background-color: transparent;
-    color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 16px;
-    transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease, background-color var(--dur-fast) ease;
-  }
-  .sm-btn:not([aria-disabled="true"]):focus-visible {
-    border-color: var(--accent-mark);
-    color: var(--accent);
-    background-color: var(--wash);
-  }
-  /* At the end of the track the arrow keeps focus (aria-disabled), so
-     only its glyph and border dim, never its focus ring */
-  .sm-btn[aria-disabled="true"] { cursor: default; border-color: var(--rule-soft); }
-  .sm-btn[aria-disabled="true"] > span { opacity: 0.35; }
-}
-@media (max-width: 860px) and (hover: hover), (max-height: 500px) and (hover: hover) {
-  .sm-btn:not([aria-disabled="true"]):hover {
-    border-color: var(--accent-mark);
-    color: var(--accent);
-    background-color: var(--wash);
-  }
 }
 
 @media (max-width: 560px) {
   /* Phone hero: the copy fills the stage, so the cue would sit on the
-     credentials; the credentials tighten to one line each. The meta row
-     is hidden here, so the headline is the first line: it starts clear
-     of the fixed top bar (~62px) even when the copy overflows the
-     screen and starts at the stage's top. */
+     credentials; the credentials tighten to one line each. The headline
+     is the first line: it starts clear of the fixed top bar (~62px) even
+     when the copy overflows the screen and starts at the stage's top. */
   .scroll-cue { display: none; }
   .stage-copy { padding-top: 76px; }
   .stage .hero-creds { margin-top: 26px; }
   .stage .cred { padding: 10px 0; gap: 12px; grid-template-columns: 4.25rem minmax(0, 1fr); }
   .stage .cred-v { font-size: 1.5rem; }
   .stage .hero-actions { margin-top: 28px; gap: 10px; }
-  .beat-t { font-size: clamp(1.8rem, 9vw, 2.4rem); }
-  .beat-s { font-size: 1rem; }
-  .si-bars { width: 100%; }
   .values-line { display: grid; grid-template-columns: 1fr 1fr; }
+  /* one column: every cell a ruled row */
+  .sv-grid { grid-template-columns: minmax(0, 1fr); }
+  .sv-cell,
+  .sv-cell.lg { grid-column: auto; padding: 22px 20px 24px; --sv-num-gap: 18px; }
+  .sv-num,
+  .sv-cell.lg .sv-num { font-size: 2.2rem; }
+  .sv-cell.lg .sv-t { font-size: clamp(1.6rem, 7vw, 2rem); }
 }
 
-/* Reduced motion: every resting state is finished — rules drawn, the
-   cue a still hairline. The
-   scroll-linked beats, strip, index and stack stay: they move only
-   while the reader scrolls. */
+/* Reduced motion: every resting state is finished — rules drawn,
+   numerals inked, the cue a still hairline. */
 @media (prefers-reduced-motion: reduce) {
-  .stage .hero-meta::after,
   .stage .cred::before { animation: none; }
+  .sv-num, .proc-num { --fill: 1; }
+  .proc-step::before { transform: none !important; }
+  .sv-num::after, .sv-cell::before, .sv-t, .sv-s, .proc-num::after, .proc-step::before { transition: none; }
   .scroll-cue::after { animation: none !important; transform: none; }
 }

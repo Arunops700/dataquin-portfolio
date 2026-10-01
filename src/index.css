@@ -8,6 +8,11 @@
    The sheet is split by concern; the import order IS the cascade
    order, so shared layers come first and page layers last. Each
    partial carries its own breakpoints and reduced-motion rules.
+   The lazy pages bring their own sheets with their chunks (Work:
+   work.css and, through Flow.jsx, flow.css; NotFound: notfound.css),
+   so the landing doesn't download them. None of them restyles a
+   selector from the sheets here, so their later arrival changes no
+   cascade.
    ============================================================ */
 @import "./styles/tokens.css";
 @import "./styles/base.css";
@@ -20,7 +25,4 @@
 @import "./styles/components.css";
 @import "./styles/forms.css";
 @import "./styles/landing.css";
-@import "./styles/work.css";
-@import "./styles/flow.css";
 @import "./styles/three.css";
-@import "./styles/notfound.css";

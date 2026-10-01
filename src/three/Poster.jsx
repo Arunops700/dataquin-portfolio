@@ -6,14 +6,11 @@ import { PAL } from "./palette.js";
 /*
   The mark drawn once in 2D: the fallback when WebGL is missing, declined
   (Save-Data) or fails, and the Work band's first paint while its scene
-  loads. Same outline, placement and camera maths as the scene — the hero
-  composed for the window it opens on (`win` tall, at the top of a stage
-  taller than the screen) — so the crossfade into the live mark does not
-  jump. Settled places also draw
-  the six data streams, dotted, flowing behind the mark. Main bundle,
-  no three.js.
+  loads. Same outline, placement and camera maths as the scene, so the
+  crossfade into the live mark does not jump; the six data streams are
+  drawn dotted behind it. Main bundle, no three.js.
 */
-export default function Poster({ outline, place, settled, win = 0 }) {
+export default function Poster({ outline, place }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -30,16 +27,15 @@ export default function Poster({ outline, place, settled, win = 0 }) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
 
-      const view = win > 0 ? Math.min(h, win) : h;
-      const s = view / 2 / halfHeightAt(0);   // CSS px per world unit at the mark's depth
-      const pl = logoPlacement(w / view, place, view);
+      const s = h / 2 / halfHeightAt(0);   // CSS px per world unit at the mark's depth
+      const pl = logoPlacement(w / h, place, h);
       const cx = w / 2 + pl.x * s;
-      const cy = view / 2 - pl.y * s;
+      const cy = h / 2 - pl.y * s;
       const k = pl.scale * s;
 
-      // the streams, as the scene draws them settled: six dotted waves
-      // behind the mark, fading in and out at their ends
-      if (settled) {
+      // the streams, as the scene draws them: six dotted waves behind the
+      // mark, fading in and out at their ends
+      {
         ctx.save();
         const fade = ctx.createLinearGradient(cx - 5 * k, 0, cx + 5 * k, 0);
         fade.addColorStop(0, `${PAL.goldHi}00`);
@@ -95,7 +91,7 @@ export default function Poster({ outline, place, settled, win = 0 }) {
       ro.disconnect();
       cancelAnimationFrame(raf);
     };
-  }, [outline, place, settled, win]);
+  }, [outline, place]);
 
   return <canvas className="poster" ref={ref} />;
 }

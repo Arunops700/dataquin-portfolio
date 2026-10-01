@@ -73,13 +73,6 @@ em.foil { font-style: italic; }
 .met-v, .cred-v { font-variant-numeric: tabular-nums; }
 
 /* ---------- Shared numeral primitives ---------- */
-/* Mono odometer: a one-line window over a column of lines, rolled by a
-   useTransform built with stepRoll() (motion/scroll.js). em-sized from
-   the element's own font-size, so text zoom never clips it. */
-.roll { display: block; height: 1.5em; line-height: 1.5em; overflow: hidden; }
-.roll-list { display: flex; flex-direction: column; will-change: transform; }
-.roll-list > span { display: block; height: 1.5em; white-space: nowrap; }
-
 /* Ink-in numerals: a pale-foil ghost while still ahead of the reader,
    full foil once reached. --fill (0–1) is set by the owner. The ::after
    repeats the digits from data-n, so every .num-ink is aria-hidden. */
@@ -108,8 +101,7 @@ em.foil { font-style: italic; }
    system text colour. (Every rule with a transparent text fill.) The
    partials that style these load later, hence !important. */
 @media (forced-colors: active) {
-  .foil, .cred-v, .num-ink, .ci-fig, .ch-num-ink,
-  .ch-lead-v, .met-v {
+  .foil, .cred-v, .num-ink, .ch-num-ink {
     background: none !important;
     -webkit-text-fill-color: currentColor !important;
   }
