@@ -140,7 +140,19 @@
   opacity: 0;
   transition: width 0.55s var(--ease), opacity 0.3s ease, margin-right 0.55s var(--ease);
 }
-.island.open .island-now { width: auto; opacity: 1; margin-right: 14px; }
+.island.open .island-now,
+.island-ghost.open .island-now { width: auto; opacity: 1; margin-right: 14px; }
+/* the label's hidden twin to the island's right (Topbar.jsx): it keeps the
+   buttons still while the island grows to the left; it gives way first
+   when the bar runs short of room */
+.island-ghost {
+  display: flex;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
 .island-now-t {
   display: inline-flex;
   align-items: center;
@@ -169,9 +181,10 @@
   to { opacity: 1; transform: none; }
 }
 
-.topbar nav { display: flex; flex: none; align-items: center; gap: 6px; }
-/* Both items are framed controls in the island: Case Studies (or Home) in foil (the
-   way on, from anywhere), Contact in a hairline frame */
+.topbar nav { display: flex; flex: none; align-items: center; gap: 8px; }
+/* Three matching buttons in one recessed track, a lamp under the lit one
+   (Topbar.jsx). Each has a filled face (an outline alone reads as text,
+   not a button), a press-in and a focus ring. */
 .topbar nav a {
   position: relative;
   display: inline-flex;
@@ -188,50 +201,67 @@
   white-space: nowrap;
   transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease,
               border-color var(--dur-fast) ease, box-shadow var(--dur) ease,
-              background-position var(--dur) var(--ease);
+              background-position var(--dur) var(--ease), transform 0.15s ease;
 }
+/* a press answers at once, on every input */
+.topbar nav a:active { transform: scale(0.96); }
 
-/* Contact: a hairline frame, lit while the contact section is read */
-.topbar nav .nav-link {
+/* the full label, or (phones) its short stand-in — Topbar.jsx */
+.nav-short { display: none; }
+
+/* The track: the buttons, set into the capsule like a recessed rail */
+.nav-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.34);
+  border: 1px solid rgb(var(--gold-hi-rgb) / 0.14);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.5);
+}
+/* each a filled button, plainly a button: a raised gold-tinted face, a
+   gold edge, ivory type */
+.topbar nav .nav-seg {
+  z-index: 1;
+  padding-top: 9px;
+  padding-bottom: 9px;
   color: var(--ivory);
-  border-color: rgb(var(--gold-hi-rgb) / 0.4);
+  background-color: rgb(var(--gold-hi-rgb) / 0.15);
+  border-color: rgb(var(--gold-hi-rgb) / 0.5);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1), 0 1px 2px rgb(0 0 0 / 0.45);
 }
-.topbar nav .nav-link:focus-visible,
-.topbar nav .nav-link.active {
-  color: var(--gold-hi);
-  border-color: var(--gold-hi);
-  background-color: rgb(var(--gold-hi-rgb) / 0.1);
-}
-
-/* Case Studies / Home: champagne foil, the lead item. Hover and focus slide the
-   foil and nudge the arrow; a streak passes once after load (as on
-   .btn-shine: nothing loops) and again on hover or focus. */
-.topbar nav .nav-cta {
-  overflow: hidden;
-  isolation: isolate;
+/* the lit one gives its face to the lamp beneath it: ink on gold */
+.topbar nav .nav-seg.lit {
   color: var(--btn-ink);
-  background: var(--foil-lux);
-  background-size: 170% auto;
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
-.nav-cta::before {
-  content: "";
+/* The lamp: measured onto the lit item (--lx, --lw); it glides only
+   once placed. Solid champagne foil, as the page's gold buttons, with a
+   bright rim and a soft glow. */
+.nav-lamp {
   position: absolute;
-  top: 0;
-  left: -60%;
-  width: 45%;
-  height: 100%;
-  z-index: -1;
-  transform: translateX(0) skewX(-22deg);
-  background: linear-gradient(90deg, transparent, var(--sheen), transparent);
-  animation: btnShine 4.5s ease-in-out 1;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  width: var(--lw, 0px);
+  transform: translateX(var(--lx, 0px));
+  border-radius: 999px;
+  background: var(--foil-lux);
+  border: 1px solid var(--gold-hi);
+  box-shadow: 0 0 20px rgb(var(--gold-hi-rgb) / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.35);
+  opacity: 0;
+  pointer-events: none;
 }
-.topbar nav .nav-cta:focus-visible { background-position: right center; }
-.nav-cta:focus-visible::before {
-  transform: translateX(422%) skewX(-22deg);
-  transition: transform 0.9s var(--ease);
+.nav-track.lit .nav-lamp { opacity: 1; }
+.nav-track.ready .nav-lamp {
+  transition: transform 0.45s var(--ease), width 0.45s var(--ease), opacity 0.3s ease;
 }
-.nav-cta:focus-visible .arr { transform: translateX(4px); }
-.nav-cta:focus-visible .arr.back { transform: translateX(-4px); }
+.nav-track.snap .nav-lamp { transition: none; }
+.topbar nav .nav-seg:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
 
 /* ============================================================
    Page transition
@@ -283,9 +313,30 @@
     letter-spacing: clamp(0px, calc((100vw - 280px) * 0.011), 0.1em);
   }
 }
-/* phones: no room to show what is live; the island stays closed */
+/* phones: no room to show what is live; the island stays closed. Three
+   items keep one row down to 320px, type kept at 13px: the short label,
+   a narrower margin either side of the island, a little less padding
+   and tracking — and under 390px the mark gives way (the hero shows it;
+   the Case Studies page has its Home item) */
 @media (max-width: 560px) {
+  .topbar {
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+  }
   .island-now { display: none; }
+  .nav-full { display: none; }
+  .nav-short { display: inline; }
+  .topbar nav { gap: 5px; }
+  .nav-track { gap: 3px; padding: 2px; }
+  .nav-lamp { top: 2px; bottom: 2px; }
+  .topbar nav a {
+    padding: 9px clamp(7px, 2.2vw, 12px);
+    letter-spacing: clamp(0px, calc((100vw - 360px) * 0.008), 0.08em);
+  }
+}
+@media (max-width: 389px) {
+  .brand { display: none; }
+  .island { padding-left: 5px; }
 }
 @media (max-width: 860px) {
   .footer { padding: 52px 0 60px; }
@@ -299,24 +350,13 @@
    half-lit after the reader has moved on — the lit item is .active. */
 @media (hover: hover) {
   .brand:hover .brand-logo { filter: brightness(1.45); transform: scale(1.03); }
-  .topbar nav .nav-link:hover {
-    color: var(--gold-hi);
-    border-color: var(--gold-hi);
-    background-color: rgb(var(--gold-hi-rgb) / 0.1);
-  }
-  .topbar nav .nav-cta:hover { background-position: right center; }
-  .nav-cta:hover::before {
-    transform: translateX(422%) skewX(-22deg);
-    transition: transform 0.9s var(--ease);
-  }
-  .nav-cta:hover .arr { transform: translateX(4px); }
-  .nav-cta:hover .arr.back { transform: translateX(-4px); }
+  .topbar nav .nav-seg:hover { border-color: var(--gold-hi); }
+  .nav-seg:hover .arr.back { transform: translateX(-3px); }
 }
 
 /* touch: ≥44px targets without a taller bar; a press answers */
 @media (pointer: coarse) {
-  /* the foil pill clips its own overflow (the shine), so a ::after hit
-     area can't grow it: the pills themselves are 44px tall */
+  /* the pills themselves are 44px tall */
   .topbar nav a { min-height: 44px; }
   /* the mark is ~30px tall on a 320px phone: its hit area grows to 44px
      around it (and stays inside the bar's own padding) */
@@ -331,18 +371,14 @@
   }
 }
 @media (hover: none) {
-  .topbar nav .nav-link:active { border-color: currentColor; background-color: rgb(var(--gold-hi-rgb) / 0.1); }
-  .topbar nav .nav-cta:active { background-position: right center; }
-}
-/* the narrowest phones: the arrow gives way so the island keeps one row */
-@media (max-width: 400px) {
-  .nav-cta .arr { display: none; }
+  .topbar nav .nav-seg:active { border-color: var(--gold-hi); background-color: rgb(var(--gold-hi-rgb) / 0.28); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .page { animation: none; }
   .topbar { animation: none; }
-  .nav-cta::before { animation: none !important; transition: none !important; }
+  .nav-track.ready .nav-lamp { transition: none; }
+  .topbar nav a:active { transform: none; }
   .island-now { transition: none; }
   .island-now-t { animation: none; }
   .page-turn { display: none; }
