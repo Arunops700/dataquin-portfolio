@@ -102,7 +102,8 @@ export function TechSphere({ hot = -1 }) {
     s.kick = kick;
 
     const measure = () => {
-      s.R = Math.max(90, Math.min(el.clientWidth, el.clientHeight) * 0.4);
+      // the hint line along the foot stays clear of the tiles (stack.css)
+      s.R = Math.max(90, Math.min(el.clientWidth, el.clientHeight) * 0.37);
       paint();
     };
     measure();

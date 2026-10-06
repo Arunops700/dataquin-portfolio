@@ -18,8 +18,8 @@ export const TIERS = [
   { id: "lite-low", dpr: 1.2, px: 0.55e6, lite: true, grains: 0.6 },
 ];
 
-export function initialTierIndex(place) {
-  if (isLitePath(place)) return 3;
+export function initialTierIndex() {
+  if (isLitePath()) return 3;
   const weak = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory ?? 8) <= 4;
   return weak ? 1 : 0;
 }
@@ -32,8 +32,8 @@ export const nextTier = (i) => (i === 0 ? 1 : i === 1 ? 2 : i === 3 ? 4 : i);
    a child's setDpr would silently be undone. The array form keeps
    following window.devicePixelRatio (browser zoom, a second display).
    The pixel budget caps big screens: a 1440p-class target at most. */
-export function dprRange(tier, place, box) {
-  const px = place === "band" ? 0.4e6 : tier.px;
+export function dprRange(tier, box) {
+  const px = tier.px;
   const area = Math.max(1, (box?.w || window.innerWidth) * (box?.h || window.innerHeight));
   return [1, Math.max(1, Math.min(tier.dpr, Math.sqrt(px / area)))];
 }

@@ -39,7 +39,7 @@ export function createRig() {
     mark: Object.assign(new THREE.Object3D(), { matrixAutoUpdate: false }),
     lane: new THREE.Vector4(2, 2, 0.12, 0),               // ndc x edge, ndc y edge, feather, strength
     aspect: 1, pl: null, layout: null,                    // the canvas's shape and layout,
-    lw: -1, lh: -1,                                       // for this canvas width and height
+    lw: -1, lh: -1, lroom: -1,                            // for this canvas width and height, and room
     pointer: { tx: 0, ty: 0, x: 0, y: 0, vx: 0, vy: 0 },
     mat: { roughness: 0.26, env: 1.15, clearcoat: 0.6, emissive: 0.02 },
     sweep: -1, sweepAmt: 0, envRot: 0, bloom: 0.28,
@@ -49,7 +49,7 @@ export function createRig() {
 /* Mounted once, first inside <Canvas>. `yaw` (0..1) turns the mark as
    its hero scrolls away; `onRest(bool)` is told when the idle motion has
    come to a stop (the loop may rest) and when it wakes. */
-export function Rig({ rig, place, yaw, still, active, skipEntrance, onRest }) {
+export function Rig({ rig, yaw, room = 0, still, active, onRest }) {
   const invalidate = useThree((s) => s.invalidate);
 
   // reduced motion: a frame whenever the turn moves
@@ -58,7 +58,7 @@ export function Rig({ rig, place, yaw, still, active, skipEntrance, onRest }) {
     return yaw.on("change", () => invalidate());
   }, [still, active, yaw, invalidate]);
 
-  usePointerSpring(rig, still || place === "band");
+  usePointerSpring(rig, still);
   useIdle(rig, still, onRest, invalidate);
 
   useFrame((state, delta) => {
@@ -81,20 +81,22 @@ export function Rig({ rig, place, yaw, still, active, skipEntrance, onRest }) {
     // entrance (time): rows → streams, the mark materialising over them
     // (a scene that opens still counts it as played, so switching motion
     // back on mid-visit never replays it)
-    if (r.start == null) r.start = skipEntrance || still ? -1e6 : r.time;
+    if (r.start == null) r.start = still ? -1e6 : r.time;
     const age = still ? 1e6 : r.time - r.start;
     r.gather = clamp01(age / (TIMING.GATHER + 0.3));
     r.reveal = clamp01((age - TIMING.GATHER + 0.25) / TIMING.MATERIALISE);
     r.halo = clamp01((age - TIMING.GATHER - 0.1) / (TIMING.MATERIALISE + 0.7));   // the entrance is over at 1
 
     // placement and copy lane, recomputed only when the canvas resizes
+    // or the room above a stacked hero's copy changes
     const { width, height } = state.size;
-    if (r.lw !== width || r.lh !== height) {
+    if (r.lw !== width || r.lh !== height || r.lroom !== room) {
       r.lw = width;
       r.lh = height;
+      r.lroom = room;
       r.aspect = width / Math.max(1, height);
-      r.pl = logoPlacement(r.aspect, place, height);
-      r.layout = stageLayout(width, r.aspect, height);
+      r.pl = logoPlacement(r.aspect, height, room);
+      r.layout = stageLayout(width, r.aspect, height, room);
     }
     const pl = r.pl;
     const L = r.layout;
@@ -113,9 +115,7 @@ export function Rig({ rig, place, yaw, still, active, skipEntrance, onRest }) {
     m.updateMatrix();
 
     // the copy lane: grains behind the copy are dimmed so it always reads
-    if (place === "hero") r.lane.set(L.lane[0], L.lane[1] >= 1 ? 2 : L.lane[1], L.lane[2], 0.5);
-    else if (place === "aside") r.lane.set(0.3, 2, 0.12, 0.35);   // the Work headline, left
-    else r.lane.w = 0;
+    r.lane.set(L.lane[0], L.lane[1] >= 1 ? 2 : L.lane[1], L.lane[2], 0.5);
 
     // light. Phones dim the mark by light, never by transparency.
     r.mat.env = 1.15 * (pl.alpha ?? 1);
@@ -187,7 +187,7 @@ function useIdle(rig, off, onRest, invalidate) {
 /* The mark leans toward a mouse pointer and comes back to rest when the
    pointer leaves the page, the window loses focus or the tab hides.
    Critically damped (settles in ~0.6s, no overshoot). Mouse and pen with
-   hover only: never on touch, in reduced motion, or in the Work band. */
+   hover only: never on touch or in reduced motion. */
 function usePointerSpring(rig, off) {
   useEffect(() => {
     const P = rig.current.pointer;

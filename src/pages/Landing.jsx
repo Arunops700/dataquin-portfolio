@@ -5,9 +5,10 @@ import { useProgress } from "../motion/scroll.js";
 import { Reveal, Magnetic, Email } from "../components/fx.jsx";
 import ContactForm from "../components/ContactForm.jsx";
 import FoilSheen from "../components/landing/FoilSheen.jsx";
+import { Stack } from "../components/landing/Stack.jsx";
 import { Field } from "../three/Field.jsx";
 import {
-  CREDS, PILLARS, DELIVERY, VALUES, TECH, CATS, CONTACT,
+  CREDS, PILLARS, DELIVERY, VALUES, CONTACT,
 } from "../data/site.js";
 import { STUDIES } from "../data/caseStudies.js";
 import { cap, countWord, pad2 } from "../data/format.js";
@@ -30,7 +31,7 @@ function Hero() {
       <div className="stage">
         <div className="hero-grid" aria-hidden="true" />
         <div className="hero-aura" aria-hidden="true" />
-        <Field place="hero" active={inView} />
+        <Field active={inView} />
         <div className="stage-scrim" aria-hidden="true" />
 
         <div className="wrap stage-copy">
@@ -45,7 +46,7 @@ function Hero() {
             shows what we offer, what we&rsquo;ve built and the technology behind it.
           </p>
           <div className="hero-actions fade-in">
-            <Magnetic><Link to="/work" className="btn btn-gold btn-shine">See the work</Link></Magnetic>
+            <Magnetic><Link to="/case-studies" className="btn btn-gold btn-shine">See our case studies</Link></Magnetic>
             {/* a router link, not a native anchor: the native jump would
                 fight the smooth scroller and snap back to the hero */}
             <Magnetic><Link to="/#contact" className="btn btn-line">Start a conversation <span className="arr" aria-hidden="true">→</span></Link></Magnetic>
@@ -73,7 +74,7 @@ function Hero() {
    bento layout drawn as a ledger: rules, no boxes). The first area
    takes the large cell; nothing is pinned or driven by the scroll.
    Each cell is a link: to the case study that shows the area, or to
-   the Work page.
+   the contact section.
    ============================================================ */
 function Services() {
   const word = countWord(PILLARS.length);
@@ -96,9 +97,9 @@ function Services() {
                 {/* a router link (see the hero's note), laid over the whole
                     cell; outside the title, whose hover shift would
                     otherwise shrink it to the title's box */}
-                <Link to={study ? `/work#cs-${study.num}` : "/work"} className="sv-go">
+                <Link to={study ? `/case-studies#cs-${study.num}` : "/#contact"} className="sv-go">
                   <span className="sr-only">
-                    {pl.t}{study ? `, case study ${study.num}: ${study.title}` : ", see our work"}
+                    {pl.t}{study ? `, case study ${study.num}: ${study.title}` : ", talk to us"}
                   </span>
                 </Link>
               </Reveal>
@@ -118,7 +119,7 @@ function Services() {
 function Process() {
   const word = countWord(DELIVERY.length);
   return (
-    <section className="band screen" id="process" data-island="How we work">
+    <section className="band deep screen" id="process" data-island="How we work">
       <div className="wrap">
         <Reveal className="sec-intro">
           <h2 className="h1">{cap(word)} steps. <em className="foil">No surprises.</em></h2>
@@ -146,11 +147,11 @@ function Process() {
 }
 
 /* ============================================================
-   WHY + CONTACT
+   WHY + CONTACT — the last section, before the footer
    ============================================================ */
 function Contact() {
   return (
-    <section className="band deep screen" id="contact" data-island="Contact">
+    <section className="band screen" id="contact" data-island="Contact">
       <div className="wrap">
         <div className="contact-grid">
           <Reveal>
@@ -182,34 +183,29 @@ function Contact() {
 }
 
 /* ============================================================
-   CLOSING — the way on to the Work page: what's there, and two ways in.
+   CASE STUDIES — a dark band between the process and the contact
+   section: the way on to the Case Studies page.
    ============================================================ */
-function Closing() {
+function CaseStudies() {
   const ref = useRef(null);
   const p = useProgress(ref, ["start 90%", "center 45%"]);
   const live = useInView(ref); // the glow drifts only while the band is in view
   return (
-    <section className="band dark cta-band cta-next cta-home pad" ref={ref} data-live={live || undefined}
-      data-island="Explore the work">
+    <section className="band dark cta-band cta-next pad" ref={ref} data-live={live || undefined}
+      data-island="Case studies">
       <span className="cta-glow" aria-hidden="true" />
       <div className="wrap">
         <Reveal className="cta-copy">
           <h2 className="cta-h">
-            See the stack. <FoilSheen progress={p}>See what it solved.</FoilSheen>
+            See the problems <FoilSheen progress={p}>we&rsquo;ve solved.</FoilSheen>
           </h2>
           <p className="cta-s">
-            {cap(countWord(TECH.length))} tools across {countWord(Object.keys(CATS).length)} disciplines,
-            and {countWord(STUDIES.length)} real problems solved with them — the modern way, not the
-            traditional one.
+            {cap(countWord(STUDIES.length))} case studies — the problem, our solution and how it works,
+            built with AI, automation and modern data tools, not the traditional way.
           </p>
           <div className="cta-act">
             <Magnetic>
-              <Link to="/work" className="btn btn-gold btn-shine">Explore the work</Link>
-            </Magnetic>
-            <Magnetic>
-              <Link to="/work#stack" className="btn btn-line">
-                Tech stack <span className="arr" aria-hidden="true">→</span>
-              </Link>
+              <Link to="/case-studies" className="btn btn-gold btn-shine">Explore the case studies</Link>
             </Magnetic>
           </div>
         </Reveal>
@@ -227,9 +223,10 @@ export default function Landing() {
     <>
       <Hero />
       <Services />
+      <Stack />
       <Process />
+      <CaseStudies />
       <Contact />
-      <Closing />
     </>
   );
 }

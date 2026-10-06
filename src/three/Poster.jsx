@@ -5,12 +5,11 @@ import { PAL } from "./palette.js";
 
 /*
   The mark drawn once in 2D: the fallback when WebGL is missing, declined
-  (Save-Data) or fails, and the Work band's first paint while its scene
-  loads. Same outline, placement and camera maths as the scene, so the
-  crossfade into the live mark does not jump; the six data streams are
+  (Save-Data) or fails. Same outline, placement and camera maths as the
+  scene, so it sits where the live mark would; the six data streams are
   drawn dotted behind it. Main bundle, no three.js.
 */
-export default function Poster({ outline, place }) {
+export default function Poster({ outline, room = 0 }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -28,7 +27,7 @@ export default function Poster({ outline, place }) {
       ctx.clearRect(0, 0, w, h);
 
       const s = h / 2 / halfHeightAt(0);   // CSS px per world unit at the mark's depth
-      const pl = logoPlacement(w / h, place, h);
+      const pl = logoPlacement(w / h, h, room);
       const cx = w / 2 + pl.x * s;
       const cy = h / 2 - pl.y * s;
       const k = pl.scale * s;
@@ -91,7 +90,7 @@ export default function Poster({ outline, place }) {
       ro.disconnect();
       cancelAnimationFrame(raf);
     };
-  }, [outline, place]);
+  }, [outline, room]);
 
   return <canvas className="poster" ref={ref} />;
 }

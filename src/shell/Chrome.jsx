@@ -100,8 +100,8 @@ export function Spotlight() {
 }
 
 /* The close: the sign-off and the mark. Its height is published as
-   --footer-h, so the landing's closing band and the footer together
-   fill the last screen. */
+   --footer-h, so the Case Studies page's closing band and the footer
+   together fill the last screen. */
 export function Footer() {
   const ref = useRef(null);
   useEffect(() => {

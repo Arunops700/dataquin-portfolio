@@ -1,0 +1,279 @@
+/* ============================================================
+   How we've grown and the tech stack (landing) — the evolution
+   line, then the tool sphere beside its ledger. Colours come from
+   the surface tokens, so the sections read right on any band.
+   ============================================================ */
+/* How we've grown, then the stack, on one paper band: one gap between
+   them (the follow-on heading's spacing), not two sections' padding */
+.evo-sec.pad { padding-bottom: 0; }
+.stack-sec.pad { padding-top: clamp(64px, 8vw, 96px); }
+
+/* The eras on one scroll-drawn line (--p, 0–1, from Stack.jsx); each
+   diamond fills as the line reaches its measured position (--at). */
+.evo {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr));
+  column-gap: 36px;
+  margin-top: 48px;
+  padding-top: 40px;
+}
+.evo-line { position: absolute; left: 0; right: 0; top: 9px; height: 1px; background: var(--rule); }
+.evo-line i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -0.5px;
+  height: 2px;
+  background: var(--foil);
+  transform-origin: left;
+  transform: scaleX(var(--p, 1));
+}
+.evo-step {
+  --lit: clamp(0, calc((var(--p, 1) - var(--at, 0)) * 25 + 1), 1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.evo-step::before {
+  content: "";
+  position: absolute;
+  top: -36px;
+  left: 0;
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid var(--accent-mark);
+  background: rgb(var(--gold-rgb) / var(--lit));
+  transform: rotate(45deg) scale(calc(0.7 + 0.3 * var(--lit)));
+}
+.evo-step.now::before { width: 13px; height: 13px; top: -37px; }
+.evo-step .era {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent); /* gold-deep: 4.9:1 on paper-2, "now" included */
+}
+.evo-step .t { font-family: var(--font-head); font-weight: 600; font-size: clamp(1.25rem, 1.8vw, 1.5rem); line-height: 1.2; }
+.evo-step .s { font-size: 15.5px; line-height: 1.6; color: var(--fg-soft); }
+.evo-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+/* three beats once its era is on screen (at page load it sits far
+   below), then still: nothing loops past 5s */
+@media (prefers-reduced-motion: no-preference) {
+  .evo-step[data-in] .evo-dot { animation: pulse 1.6s ease-in-out 3; }
+}
+@keyframes pulse {
+  50% { box-shadow: 0 0 0 5px rgb(var(--gold-rgb) / 0.2); }
+}
+
+/* ---------- The stack showcase: a sphere of tools beside the ledger ---------- */
+.stk {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(36px, 4.5vw, 72px);
+  align-items: start;
+  margin-top: 8px;
+}
+/* The sphere sits in a machine-room panel: espresso, a faint gold grid,
+   one orbit ring. Sticky beside the ledger on desktops. */
+.stk-stage {
+  position: sticky;
+  top: 112px;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid rgb(var(--gold-hi-rgb) / 0.22);
+  background: radial-gradient(circle at 50% 50%, rgb(var(--gold-hi-rgb) / 0.1), transparent 62%), var(--esp);
+  box-shadow: var(--shadow-panel);
+}
+.stk-stage::before,
+.stk-stage::after { content: ""; position: absolute; pointer-events: none; }
+.stk-stage::before {
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(var(--gold-hi-rgb) / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--gold-hi-rgb) / 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: center;
+}
+.stk-stage::after {
+  left: 50%;
+  top: 50%;
+  width: 84%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px dashed rgb(var(--gold-hi-rgb) / 0.16);
+}
+.stk-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  z-index: 2;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ivory-faint);
+  pointer-events: none;
+}
+.tsp {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding-bottom: 36px; /* the sphere sits above the hint line */
+  cursor: grab;
+  touch-action: pan-y; /* a vertical swipe still scrolls the page */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.tsp:active { cursor: grabbing; }
+.tsp-core { position: relative; width: 0; height: 0; }
+/* each tile is placed by TechSphere (transform, opacity, z-index per frame) */
+.tsp-tile {
+  position: absolute;
+  left: -24px;
+  top: -24px;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  background: var(--esp-0);
+  border: 1px solid rgb(var(--gold-hi-rgb) / 0.35);
+  box-shadow: var(--shadow-node);   /* tight: 21 layers, each rastered with its shadow */
+  will-change: transform, opacity;
+  transition: border-color var(--dur-fast) ease;
+}
+.tsp-tile img { width: 24px; height: 24px; object-fit: contain; pointer-events: none; }
+.tsp-name {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-hi);
+  opacity: 0;
+  transition: opacity var(--dur-fast) ease;
+}
+/* lit by a ring, not a wide glow: lands at once, nothing big to raster */
+.tsp-tile.hot { border-color: var(--gold-hi); box-shadow: 0 0 0 1px var(--gold-hi), 0 0 0 4px rgb(var(--gold-hi-rgb) / 0.22), var(--shadow-node); }
+.tsp-tile.hot .tsp-name { opacity: 1; }
+
+/* The ledger: four disciplines, every tool with what we use it for */
+.stk-ledger { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 44px 36px; align-items: start; }
+.stk-col { display: flex; flex-direction: column; gap: 44px; min-width: 0; }
+.stk-cat { border-top: 1px solid var(--rule-strong); }
+.stk-cat-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0 12px;
+}
+.stk-cat-t { font-family: var(--font-head); font-weight: 600; font-size: 1.3rem; line-height: 1.2; }
+.stk-n {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+}
+.stk-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-areas: "ico name" "ico role";
+  column-gap: 14px;
+  row-gap: 2px;
+  align-items: start;
+  padding: 12px 8px 12px 0;
+  border-top: 1px solid var(--rule-soft);
+  transition: background-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+}
+/* pointed at (hover or tap — Stack.jsx): a wash and a gold edge;
+   nothing moves, so nothing lays out */
+.stk-row.hot { background-color: var(--wash); box-shadow: inset 2px 0 0 var(--accent-mark); }
+.stk-ico {
+  grid-area: ico;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  background: var(--esp);
+  border: 1px solid rgb(var(--gold-hi-rgb) / 0.35);
+}
+.stk-ico img { width: 20px; height: 20px; object-fit: contain; display: block; }
+.stk-name { grid-area: name; font-weight: 700; font-size: 16px; line-height: 1.35; }
+.stk-role { grid-area: role; font-size: 14.5px; line-height: 1.5; color: var(--fg-soft); }
+
+/* ============================================================
+   Responsive: 1080 → 860 → 560 → reduced motion
+   ============================================================ */
+/* Narrow desktops: the sphere stays beside the ledger, which runs as
+   one column (its two column wrappers dissolve; `order` keeps CATS order) */
+@media (min-width: 861px) and (max-width: 1080px) {
+  .stk-ledger { grid-template-columns: minmax(0, 1fr); }
+  .stk-col { display: contents; }
+}
+
+@media (max-width: 1080px) {
+  /* four eras in ~170px columns: tighter gap and tracking keep
+     "Chapter 04 · Now" on one line */
+  .evo { column-gap: 24px; }
+  .evo-step .era { letter-spacing: 0.12em; }
+}
+
+@media (max-width: 860px) {
+  /* the sphere above, the ledger below it */
+  .stk { grid-template-columns: 1fr; }
+  /* never taller than a landscape phone's screen */
+  .stk-stage { position: relative; top: auto; width: min(100%, 460px); width: min(100%, 460px, 80svh); margin: 0 auto; }
+  /* the eras run down a vertical spine */
+  .evo { grid-template-columns: 1fr; row-gap: 30px; padding: 4px 0 0 32px; }
+  .evo-line { top: 0; bottom: 0; left: 5px; right: auto; width: 1px; height: auto; }
+  .evo-line i {
+    left: -0.5px;
+    right: auto;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    height: auto;
+    transform-origin: top;
+    transform: scaleY(var(--p, 1));
+  }
+  .evo-step::before { left: -32px; top: 5px; }
+  .evo-step.now::before { left: -33px; top: 4px; }
+}
+
+@media (max-width: 560px) {
+  .stk-ledger { grid-template-columns: 1fr; gap: 32px; }
+  .stk-col { display: contents; }
+  .stk-stage { width: 100%; width: min(100%, 80svh); }
+}
+
+/* Reduced motion: the "now" dot still. The era line keeps following
+   the scroll (it moves only when the reader does). */
+@media (prefers-reduced-motion: reduce) {
+  .evo-dot { animation: none; }
+}

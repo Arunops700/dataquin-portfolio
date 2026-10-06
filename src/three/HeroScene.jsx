@@ -18,7 +18,7 @@ import { PAL } from "./palette.js";
   - composer (desktop): an opaque canvas whose ground is pre-compensated
     for the tone mapping, so it renders as the band's exact espresso;
     bloom and tone mapping in Effects.
-  - lite (touch devices, the Work band): a transparent canvas over the
+  - lite (touch devices): a transparent canvas over the
     CSS ground, native antialiasing, no post-processing.
 
   Frameloop: "always" while on screen, "never" off it, "demand" once the
@@ -51,8 +51,8 @@ function Settle({ still }) {
   return null;
 }
 
-export default function HeroScene({ place, yaw, count, outers, still, active, box, onReady, onLost }) {
-  const [tierIdx, setTierIdx] = useState(() => initialTierIndex(place));
+export default function HeroScene({ yaw, room, count, outers, still, active, box, onReady, onLost }) {
+  const [tierIdx, setTierIdx] = useState(initialTierIndex);
   const tier = TIERS[tierIdx];
   const lite = !!tier.lite;
   const rig = useRef(null);
@@ -72,7 +72,7 @@ export default function HeroScene({ place, yaw, count, outers, still, active, bo
 
   return (
     <Canvas
-      dpr={dprRange(tier, place, box)}
+      dpr={dprRange(tier, box)}
       frameloop={!active ? "never" : still || resting ? "demand" : "always"}
       camera={CAMERA}
       gl={lite ? LITE_GL : COMPOSER_GL}
@@ -108,15 +108,7 @@ export default function HeroScene({ place, yaw, count, outers, still, active, bo
         };
       }}
     >
-      <Rig
-        rig={rig}
-        place={place}
-        yaw={yaw}
-        still={still}
-        active={active}
-        skipEntrance={place === "band"}
-        onRest={setResting}
-      />
+      <Rig rig={rig} yaw={yaw} room={room} still={still} active={active} onRest={setResting} />
       <Governor enabled={!still && active && !resting} onStepDown={stepDown} />
       <directionalLight position={[-4, 6, 8]} intensity={0.6} color={PAL.champagneHi} />
       {outers && <GoldMark outers={outers} rig={rig} lite={lite} />}

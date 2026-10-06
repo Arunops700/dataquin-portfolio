@@ -13,6 +13,9 @@ export const MQ = {
   aboveTablet: `not all and (max-width: ${BP.tablet}px)`,
   fine: "(hover: hover) and (pointer: fine)",
   coarse: "(pointer: coarse)",
+  /* the landing hero stacks: copy at the foot, the mark in the room above
+     it (landing.css, three/logo.js) — narrow screens short of landscape */
+  heroStack: `(max-width: ${BP.tablet}px) and (max-aspect-ratio: 5/4)`,
 };
 
 /* --ease-in-out as a cubic-bezier array for framer-motion */

@@ -71,17 +71,12 @@
 }
 .nf-arr { justify-self: end; color: var(--accent-mark); }
 
-/* Error screen (App.jsx ErrorBoundary) */
-.status-screen { min-height: 70vh; }
-
 @media (max-width: 860px) {
   .nf-index { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 560px) {
   .entry-row { grid-template-columns: 104px minmax(0, 1fr); column-gap: 14px; }
-  /* hero.css hides the hero meta on phones; the error screen keeps its
-     status line */
 }
 
 @media (hover: none) {

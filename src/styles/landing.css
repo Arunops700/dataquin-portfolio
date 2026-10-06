@@ -376,26 +376,13 @@
 }
 
 /* ============================================================
-   Closing — the way on to the Work page
+   Case-study bands — the landing's way on to the Case Studies page;
+   the Case Studies page's own close shares these rules (its full-
+   screen sizing, .cta-home, is in work.css)
    ============================================================ */
 .cta-next .cta-copy { max-width: 760px; margin: 0 auto; }
-/* the landing's close and the footer together fill the last screen
-   (--footer-h is published by the footer, App.jsx) */
-.cta-home {
-  min-height: calc(100vh - var(--footer-h, 0px));
-  min-height: calc(100svh - var(--footer-h, 0px));
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.cta-home.pad { padding: clamp(48px, 9vh, 110px) 0; }
-/* short windows: the close's own padding gives way (the Work close
-   also carries a Mail / Tel row) */
-@media (max-height: 700px) and (min-width: 861px) {
-  .cta-home.pad { padding: 28px 0; }
-}
-/* no label above it here: the heading opens the band */
-.cta-home .cta-h { margin-top: 0; }
+/* no label above it: the heading opens the band */
+.cta-next .cta-h { margin-top: 0; }
 .cta-next .cta-s { margin: 20px auto 0; }
 .cta-next .btn { margin-top: 0; }
 /* the spacing lives on the frame, not on the button or its wrapper */
@@ -429,6 +416,19 @@
   .proc-step:hover { background-color: var(--wash); }
 }
 
+/* Phones and portrait tablets (MQ.heroStack): the copy sits at the foot
+   of the stage and the mark takes the room above it — Field measures the
+   headline's top, logo.js sizes the mark into the room. The cue would
+   land on the credentials. */
+@media (max-width: 860px) and (max-aspect-ratio: 5/4) {
+  .stage { justify-content: flex-end; }
+  .scroll-cue { display: none; }
+}
+/* Under 390px the headline keeps to one line (~8.3em wide), so the copy
+   stays short enough to leave the mark its room */
+@media (max-width: 389px) {
+  .stage .hero-title { font-size: 10.2vw; }
+}
 /* Short viewports: the cue would land on the credentials */
 @media (max-height: 820px) { .scroll-cue { display: none; } }
 @media not all and (max-width: 860px) {

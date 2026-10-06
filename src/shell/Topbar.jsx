@@ -3,20 +3,22 @@ import { NavLink, Link, useLocation } from "react-router-dom";
 import { useScroll, useMotionValueEvent } from "framer-motion";
 import { useReadingSection, sectionLabel } from "./reading.js";
 
-/* Two pages. The lead item, in foil, is the way to the other page: "The
-   Work" everywhere but on the Work page itself, where it is "Home".
+/* Two pages. The lead item, in foil, is the way to the other page: "Case
+   Studies" everywhere but on the Case Studies page itself, where it is
+   "Home".
    Contact is a section of the landing page, in a hairline frame. */
 const CONTACT_ITEM = { to: "/#contact", label: "Contact", path: "/", section: "contact", kind: "nav-link" };
+const CASES = "/case-studies";
 const NAV = [
-  { to: "/work", label: "The Work", path: "/work", kind: "nav-cta" },
+  { to: CASES, label: "Case Studies", path: CASES, kind: "nav-cta" },
   CONTACT_ITEM,
 ];
 const NAV_WORK = [
   { to: "/", label: "Home", path: "/", kind: "nav-cta", back: true },
   CONTACT_ITEM,
 ];
-const navFor = (pathname) => (pathname === "/work" ? NAV_WORK : NAV);
-/* "/work/" is the Work page too: one spelling for every path test */
+const navFor = (pathname) => (pathname === CASES ? NAV_WORK : NAV);
+/* "/case-studies/" is the same page: one spelling for every path test */
 const normalPath = (p) => p.replace(/\/+$/, "") || "/";
 
 /* The top bar is a floating island: one dark capsule, centred, on a
@@ -33,7 +35,10 @@ export function Topbar() {
   const reading = useReadingSection(pathname);
   // the nav section being read, if any: it is lit instead of the page
   const inView = nav.some((n) => n.section && n.path === pathname && n.section === reading?.id) ? reading.id : null;
-  const label = sectionLabel(reading);
+  // a section named like a nav item is already shown by that item (lit,
+  // right beside the label): the island doesn't say it twice
+  const named = sectionLabel(reading);
+  const label = named && !nav.some((n) => n.label.toLowerCase() === named.toLowerCase()) ? named : null;
   // the last label stays while the island closes, so the text doesn't
   // vanish before the capsule has narrowed (state derived in render)
   const [shown, setShown] = useState(label);
@@ -52,8 +57,8 @@ export function Topbar() {
         </span>
         <nav aria-label="Primary">
           {/* the lead item always names the other page, so no link here is
-              the current one on /work: say where the reader is instead */}
-          {pathname === "/work" && <span className="sr-only">Current page: The Work.</span>}
+              the current one on Case Studies: say where the reader is instead */}
+          {pathname === CASES && <span className="sr-only">Current page: Case Studies.</span>}
           {nav.map((n) => {
             const onPath = n.path === pathname;
             // one item lit at a time: the section being read, else the page

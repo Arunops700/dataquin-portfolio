@@ -59,7 +59,9 @@
   --placeholder: #7a6953;  /* 4.6:1 on paper, 4.9:1 on the form sheet */
   --scroll-thumb: #4a3c2a;
   /* Foil gradients: dark-on-light and light-on-dark */
-  --foil-ink: linear-gradient(105deg, #6a5138 0%, #a08258 40%, #c29d62 72%, #8a6c49 100%);
+  /* every stop of the ink foil holds 3:1 on paper and paper-2 (large
+     type): its highlight is #97794e (3.2:1 on paper-2), not a paler gold */
+  --foil-ink: linear-gradient(105deg, #6a5138 0%, #8a6c49 40%, #97794e 72%, #8a6c49 100%);
   --foil-lux: linear-gradient(105deg, #b39877 0%, #f0e0c2 45%, #d3b789 70%, #a5824f 100%);
   --foil-shine: linear-gradient(100deg, var(--gold-soft) 0%, var(--gold-mid) 30%, var(--champagne-hi) 46%,
                 var(--gold-hi) 58%, var(--gold) 82%, var(--gold-soft) 100%);

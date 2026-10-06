@@ -52,7 +52,7 @@ function Shell() {
   const coarse = useMedia(MQ.coarse);
   useScrollNavigation();
 
-  // warm the Work page's chunk once the landing is idle (not on Save-Data)
+  // warm the Case Studies page's chunk once the landing is idle (not on Save-Data)
   useEffect(() => {
     if (navigator.connection?.saveData) return;
     const idle = window.requestIdleCallback ?? ((cb) => setTimeout(cb, 2000));
@@ -76,7 +76,7 @@ function Shell() {
             <Suspense fallback={<div className={PAGE_PENDING} aria-hidden="true" />}>
               <Routes>
                 <Route path="/" element={<Landing />} />
-                <Route path="/work" element={<WorkPage.Page />} />
+                <Route path="/case-studies" element={<WorkPage.Page />} />
                 <Route path="*" element={<NotFoundPage.Page />} />
               </Routes>
             </Suspense>

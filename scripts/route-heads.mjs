@@ -1,15 +1,15 @@
 /*
-  Post-build: give /work its own <head> for link-preview scrapers, write
+  Post-build: give /case-studies its own <head> for link-preview scrapers, write
   the 404 page, and check that index.html's static copy (contact details,
   the home description) still matches the data.
 
   The SPA serves one index.html for every route, so LinkedIn, Slack and
   WhatsApp (which run no JavaScript) would show the home page's title
-  and description for a shared /work link. Vercel serves static files
-  before applying rewrites, so writing dist/work/index.html with the
-  Work page's meta gives that route a correct preview while the app
+  and description for a shared /case-studies link. Vercel serves static files
+  before applying rewrites, so writing dist/case-studies/index.html with
+  the page's meta gives that route a correct preview while the app
   itself behaves exactly as before. The meta comes from PAGE_META in
-  src/seo.js, whose /work description is the one the page itself sets
+  src/seo.js, whose /case-studies description is the one the page itself sets
   (src/data/work.js), so the preview can't drift from the page.
 */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -26,7 +26,7 @@ const list = (a) => a.map((s) => `"${s}"`).join(", ");
 /* index.html repeats the contact details statically (the JSON-LD and
    the noscript copy). A drift fails the build instead of shipping a
    stale phone number to crawlers. */
-const phoneIntl = CONTACT.phoneIntl ?? CONTACT.phone.replace(/\s+/g, "-"); // JSON-LD form
+const phoneIntl = CONTACT.phone.replace(/\s+/g, "-"); // JSON-LD form
 const missing = [CONTACT.email, CONTACT.phone, phoneIntl].filter((s) => !src.includes(s));
 // every copy must match, not just one of them
 const stray = [
@@ -56,9 +56,11 @@ function swap(html, re, value, label) {
   return html.replace(re, (_, open, close) => `${open}${value}${close}`);
 }
 
-const ROUTES = { work: PAGE_META.work };
+/* each page besides home, written at its own path */
+const ROUTES = [PAGE_META.work];
 
-for (const [route, meta] of Object.entries(ROUTES)) {
+for (const meta of ROUTES) {
+  const route = meta.path.replace(/^\/+|\/+$/g, "");
   const title = esc(fullTitle(meta.title));
   const description = esc(meta.description);
   const url = SITE_URL + meta.path;

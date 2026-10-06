@@ -1,4 +1,4 @@
-import { memo, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { m } from "framer-motion";
 import { Reveal } from "../fx.jsx";
 import { EVOLUTION, CATS, TECH } from "../../data/site.js";
@@ -11,6 +11,11 @@ import { MQ } from "../../motion/tokens.js";
 const COUNTS = Object.fromEntries(
   Object.keys(CATS).map((k) => [k, TECH.filter((t) => t.cat === k).length])
 );
+/* The ledger's two columns, paired for near-equal length (Data & BI
+   over Cloud & Databases; Automation over AI). Where the ledger is one
+   column the two dissolve (stack.css) and `order` restores CATS order. */
+const COLUMNS = [["data", "cloud"], ["auto", "ai"]];
+const ORDER = Object.fromEntries(Object.keys(CATS).map((k, i) => [k, i]));
 
 /* The four eras on one line that draws as the reader arrives: across on
    desktop, a vertical spine on phones and tablets. Each era's diamond
@@ -73,39 +78,44 @@ function StackShowcase() {
         <p className="stk-hint" aria-hidden="true">Drag to turn</p>
       </div>
       <div className="stk-ledger" onMouseLeave={fine ? () => setHot(-1) : undefined}>
-        {Object.entries(CATS).map(([k, label], ci) => (
-          <Reveal className="stk-cat" key={k} delay={Math.min(ci, 4)}>
-            <div className="stk-cat-h">
-              <h3 className="stk-cat-t">{label}</h3>
-              <span className="stk-n" aria-hidden="true">{pad2(COUNTS[k])}</span>
-            </div>
-            <ul>
-              {TECH.map((t, i) => (t.cat !== k ? null : (
-                <li key={t.name} className={`stk-row${hot === i ? " hot" : ""}`}
-                  onMouseEnter={fine ? () => setHot(i) : undefined}
-                  // a mouse has already pointed on hover; a tap toggles
-                  onClick={() => setHot((h) => (h === i && !fine ? -1 : i))}>
-                  <span className="stk-ico"><img src={`/icons/${t.ico}`} alt="" loading="lazy" /></span>
-                  <span className="stk-name">{t.name}</span>
-                  <span className="stk-role">{t.role}</span>
-                </li>
-              )))}
-            </ul>
-          </Reveal>
+        {COLUMNS.map((col) => (
+          <div className="stk-col" key={col.join()}>
+            {col.map((k) => (
+              <Reveal className="stk-cat" key={k} delay={Math.min(ORDER[k], 4)} style={{ order: ORDER[k] }}>
+                <div className="stk-cat-h">
+                  <h3 className="stk-cat-t">{CATS[k]}</h3>
+                  <span className="stk-n" aria-hidden="true">{pad2(COUNTS[k])}</span>
+                </div>
+                <ul>
+                  {TECH.map((t, i) => (t.cat !== k ? null : (
+                    <li key={t.name} className={`stk-row${hot === i ? " hot" : ""}`}
+                      onMouseEnter={fine ? () => setHot(i) : undefined}
+                      // a mouse has already pointed on hover; a tap toggles
+                      onClick={() => setHot((h) => (h === i && !fine ? -1 : i))}>
+                      <span className="stk-ico"><img src={`/icons/${t.ico}`} alt="" loading="lazy" /></span>
+                      <span className="stk-name">{t.name}</span>
+                      <span className="stk-role">{t.role}</span>
+                    </li>
+                  )))}
+                </ul>
+              </Reveal>
+            ))}
+          </div>
         ))}
       </div>
     </div>
   );
 }
 
-/* How we've grown first, then the stack itself: two sections on one
-   paper band (the evolution's foot and the stack's head share one gap),
-   each its own anchor (#evolution, #stack) and island label — the
-   island names the section, so neither carries a label row of its own. */
-export const Stack = memo(function Stack() {
+/* How we've grown first, then the stack itself (the landing, after
+   the services): two sections on one paper band (the evolution's foot
+   and the stack's head share one gap), each its own anchor (#evolution,
+   #stack) and island label — the island names the section, so neither
+   carries a label row of its own. */
+export function Stack() {
   return (
     <>
-      <section className="band deep pad evo-sec" id="evolution" data-island="How we’ve grown">
+      <section className="band pad evo-sec" id="evolution" data-island="How we’ve grown">
         <div className="wrap">
           <Reveal className="sec-intro">
             <h2 className="h1">Technology keeps evolving. <em className="foil">So do we.</em></h2>
@@ -119,7 +129,7 @@ export const Stack = memo(function Stack() {
         </div>
       </section>
 
-      <section className="band deep pad stack-sec" id="stack" data-island="Tech stack">
+      <section className="band pad stack-sec" id="stack" data-island="Tech stack">
         <div className="wrap">
           <Reveal className="sec-intro">
             <h2 className="h1">The tools <em className="foil">we build with.</em></h2>
@@ -133,4 +143,4 @@ export const Stack = memo(function Stack() {
       </section>
     </>
   );
-});
+}

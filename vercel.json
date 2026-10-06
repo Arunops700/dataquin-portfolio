@@ -1,24 +1,39 @@
 {
   "redirects": [
     {
-      "source": "/projects/:slug",
-      "destination": "/work",
+      "source": "/work",
+      "destination": "/case-studies",
       "permanent": true
     },
     {
-      "source": "/(stack|projects|impact)",
-      "destination": "/work",
+      "source": "/work/",
+      "destination": "/case-studies",
+      "permanent": true
+    },
+    {
+      "source": "/projects/:slug",
+      "destination": "/case-studies",
+      "permanent": true
+    },
+    {
+      "source": "/(projects|impact)",
+      "destination": "/case-studies",
+      "permanent": true
+    },
+    {
+      "source": "/stack",
+      "destination": "/",
       "permanent": true
     }
   ],
   "rewrites": [
     {
-      "source": "/work",
-      "destination": "/work/index.html"
+      "source": "/case-studies",
+      "destination": "/case-studies/index.html"
     },
     {
-      "source": "/work/",
-      "destination": "/work/index.html"
+      "source": "/case-studies/",
+      "destination": "/case-studies/index.html"
     }
   ],
   "headers": [
@@ -66,7 +81,7 @@
       ]
     },
     {
-      "source": "/(logo|logo-mark|favicon|og|apple-touch-icon).png",
+      "source": "/(logo-mark|favicon|og|apple-touch-icon).png",
       "headers": [
         {
           "key": "Cache-Control",

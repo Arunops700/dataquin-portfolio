@@ -15,11 +15,10 @@
 /* The composer canvas is opaque (bloom needs a ground; it is tone-mapped
    to the band's exact espresso), so the ledger grid and aura sit above
    it, under the copy. */
-.stage .hero-grid, .stage .hero-aura,
-.hero-work .hero-grid, .hero-work .hero-aura { z-index: 1; }
+.stage .hero-grid, .stage .hero-aura { z-index: 1; }
 /* Lite path (touch devices): no bloom pass, so a soft glow sits under the
    transparent canvas, where the mark lives. */
-.field[data-lite]:not([data-place="band"])::before {
+.field[data-lite]::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -39,36 +38,6 @@
     linear-gradient(0deg, rgb(var(--esp-rgb) / 0.92) 0%, rgb(var(--esp-rgb) / 0) 34%);
 }
 
-/* The Work hero on phones and small tablets: the settled mark in a ruled
-   band above the headline. Full-bleed across the .wrap gutter, its height
-   reserved from first paint (no layout shift); the edges fade out. The traced poster shows until the live scene is ready,
-   then the two crossfade — the band itself never fades. (Selected by
-   data-place: `.band` is the global section class and would paint paper.) */
-.field[data-place="band"] {
-  position: relative;
-  inset: auto;
-  z-index: 0;
-  height: clamp(140px, 22vh, 200px);
-  margin: 0 calc(-1 * var(--gutter)) clamp(24px, 4vh, 36px);   /* the .wrap gutter, safe areas included */
-  border-block: 1px solid var(--rule);
-  background: radial-gradient(55% 75% at 50% 50%, rgb(var(--gold-hi-rgb) / 0.08), transparent 70%);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
-          mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
-}
-.field[data-place="band"].gl,
-.field[data-place="band"].gl.ready { opacity: 1; animation: none; }
-.field[data-place="band"] .poster { opacity: 1; transition: opacity var(--dur-slow) var(--ease); }
-.field[data-place="band"].ready .poster { opacity: 0; }
-.field[data-place="band"] canvas:not(.poster) { opacity: 0; transition: opacity var(--dur-slow) var(--ease); }
-.field[data-place="band"].ready canvas:not(.poster) { opacity: 1; }
-
-/* the band belongs to narrow screens only (Work mounts it there alone) */
-@media not all and (max-width: 860px) {
-  .field[data-place="band"] { display: none; }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .field.gl.ready { animation: none !important; opacity: 1; }
-  .field[data-place="band"] .poster,
-  .field[data-place="band"] canvas:not(.poster) { transition: none; }
 }

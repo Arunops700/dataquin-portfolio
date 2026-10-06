@@ -33,12 +33,13 @@
 }
 /* the drift waits while its hero is off-screen (data-live is set by the
    page while the hero is in view), so it plays when it can be seen */
-.hero-home:not([data-live]) .hero-aura,
-.hero-work:not([data-live]) .hero-aura { animation-play-state: paused; }
+.hero-home:not([data-live]) .hero-aura { animation-play-state: paused; }
 @keyframes auraDrift { to { transform: translate(-8rem, 7rem) scale(1.12); } }
 
 /* padding-top only: a shorthand here would cancel .pad-b beneath it */
 .hero-sub { padding-top: 128px; }
+/* the error screen (shell/ErrorBoundary.jsx) — main bundle, as it is */
+.status-screen { min-height: 70vh; }
 .hero-lead { margin-top: 30px; }
 .hero-actions { display: flex; gap: 14px; margin-top: 42px; flex-wrap: wrap; }
 

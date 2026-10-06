@@ -66,10 +66,10 @@ export function canRun3D() {
 }
 
 /* The lite render path — no post-processing, a transparent canvas over
-   the CSS ground, native antialiasing — for touch devices and for the
-   Work page's band. Decided here (main bundle) so Field can style for it
-   without importing the 3D chunk. */
-export const isLitePath = (place) => place === "band" || isCoarsePointer();
+   the CSS ground, native antialiasing — for touch devices. Decided here
+   (main bundle) so Field can style for it without importing the 3D
+   chunk. */
+export const isLitePath = () => isCoarsePointer();
 
 /* Grain budget: enough to keep the big mark's strokes solid; phones and
    weak machines get a lighter field. The frame-rate governor may draw

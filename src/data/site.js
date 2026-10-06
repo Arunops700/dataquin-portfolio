@@ -14,7 +14,8 @@ export const CONTACT = {
 };
 
 /* The pillars — Kavita's list. Each links to the case study that shows
-   it (`cs`, a STUDIES num); an area without one links to the Work page. */
+   it (`cs`, a STUDIES num); an area without one links to the contact
+   section. */
 export const PILLARS = [
   { t: "Data Science", s: "Forecasts, scoring and anomaly detection built on your own data, not a generic model.", cs: "03" },
   { t: "AI Solutions", s: "Agents and copilots that take real work off the desk: documentation, alerts, weekly reports.", cs: "06" },

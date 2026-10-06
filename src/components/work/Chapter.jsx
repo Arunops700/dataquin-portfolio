@@ -1,4 +1,4 @@
-import { memo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { m, useTransform } from "framer-motion";
 import { Reveal } from "../fx.jsx";
 import Flow from "../Flow.jsx";
@@ -62,20 +62,15 @@ function FlowStage({ s, verso }) {
   );
 }
 
-/* memo: the page re-renders as its hero enters and leaves the screen; a
-   chapter's props (a STUDIES entry and its index) never change. */
-export const Chapter = memo(function Chapter({ s, i }) {
-  const gridRef = useRef(null);
+export function Chapter({ s, i }) {
   const verso = i % 2 === 1;
-  // the aside's track fills while its numeral is pinned
-  const track = useProgress(gridRef, ["start 128px", "end 60%"]);
 
   return (
     <section className={`chapter band pad${verso ? " dark verso" : ""}`} id={`cs-${s.num}`}
       data-island={`Case study ${s.num}`}>
       <div className="wrap">
 
-        <div className="ch-grid" ref={gridRef}>
+        <div className="ch-grid">
           <div className="ch-aside" aria-hidden="true">
             <div className="ch-aside-in">
               {/* an engraved numeral: a gold keyline, then foil pours up into it */}
@@ -84,7 +79,6 @@ export const Chapter = memo(function Chapter({ s, i }) {
                 <span className="ch-num-ink">{s.num}</span>
               </Reveal>
               <span className="ch-of">of {pad2(STUDIES.length)}</span>
-              <span className="ch-track"><m.span style={{ scaleY: track }} /></span>
             </div>
           </div>
 
@@ -109,4 +103,4 @@ export const Chapter = memo(function Chapter({ s, i }) {
       </div>
     </section>
   );
-});
+}

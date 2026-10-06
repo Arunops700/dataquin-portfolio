@@ -10,12 +10,12 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
   Post-processing on the composer path: a tight, jewellery-like bloom on
   the brightest gold highlights and glints, then tone mapping and sRGB
   output. Takes over rendering from R3F (useFrame priority 1). The lite
-  path (touch devices, the Work band) does not mount it.
+  path (touch devices) does not mount it.
 
   - The pixel ratio is synced (the composer caches its own) and the MSAA
     target is capped by pixel count, so big screens stay affordable.
   - A soft knee on the threshold: glints fade in instead of popping.
-  - Bloom strength comes from the rig (a lift during the result's sweep).
+  - Bloom strength comes from the rig.
   - Every pass is disposed: composer.dispose() alone leaks bloom + output.
 */
 export default function Effects({ tier, rig }) {

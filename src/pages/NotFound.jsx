@@ -6,7 +6,7 @@ import "../styles/notfound.css";
 /* The rest of the site, beside the case-study index: the sections a
    visitor most often came looking for. */
 const ELSEWHERE = [
-  ["/work#stack", "Tech Stack"],
+  ["/#stack", "Tech Stack"],
   ["/#contact", "Contact"],
 ];
 
@@ -20,7 +20,7 @@ function shownPath(pathname) {
 
 /* Any unknown URL is filed as an entry not on file: what was asked for,
    its status, and every way back, as ruled rows. (The retired /stack,
-   /projects and /impact addresses redirect to /work — vercel.json.) */
+   /projects, /impact and /work addresses redirect — vercel.json.) */
 export default function NotFound() {
   const { pathname } = useLocation();
   usePageMeta({ ...PAGE_META.notFound, path: pathname });
@@ -50,7 +50,7 @@ export default function NotFound() {
           </dl>
           <div className="hero-actions fade-in">
             <Link to="/" className="btn btn-gold">Home</Link>
-            <Link to="/work" className="btn btn-line">The Work</Link>
+            <Link to="/case-studies" className="btn btn-line">Case Studies</Link>
           </div>
         </div>
       </section>
@@ -60,7 +60,7 @@ export default function NotFound() {
           <nav className="nf-list" aria-labelledby="nf-studies">
             <span className="mlabel" id="nf-studies">All case studies</span>
             {STUDIES.map((s) => (
-              <Link key={s.id} to={`/work#cs-${s.num}`} className="nf-link">
+              <Link key={s.id} to={`/case-studies#cs-${s.num}`} className="nf-link">
                 <span className="nf-num">{s.num}</span>
                 <span>{s.title}</span>
                 <span className="arr nf-arr" aria-hidden="true">→</span>

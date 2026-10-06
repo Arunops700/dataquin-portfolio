@@ -37,7 +37,7 @@ export const fullTitle = (title) => (title.startsWith(BRAND) ? title : `${title}
   Each page's title and description, derived from the data so no count
   can drift. Pages can pass these straight to usePageMeta
   (`usePageMeta(PAGE_META.home)`), and scripts/route-heads.mjs writes the
-  /work head into the build from the same object — the /work description
+  Case Studies head into the build from the same object — its description
   itself lives in data/work.js, which Work.jsx reads too. This module
   only touches the DOM inside the hook, so Node can import it.
 */
@@ -47,7 +47,7 @@ export const PAGE_META = {
     description: `DataQuin turns manual days into automated hours — dashboards and reporting, system-to-system integration and AI pipelines for professional services firms, shown through selected case studies.`,
     path: "/",
   },
-  work: { title: "The Work", description: WORK_DESCRIPTION, path: "/work" },
+  work: { title: "Case Studies", description: WORK_DESCRIPTION, path: "/case-studies" },
   // path is the address that failed; NotFound adds it
   notFound: {
     title: "Page not found",

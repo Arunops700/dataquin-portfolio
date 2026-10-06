@@ -1,6 +1,7 @@
 import { Component, Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useMotionValue } from "framer-motion";
-import { canRun3D, isLitePath, particleBudget, useReducedMotion } from "../motion/prefs.js";
+import { canRun3D, isLitePath, particleBudget, useMedia, useReducedMotion } from "../motion/prefs.js";
+import { MQ } from "../motion/tokens.js";
 import { useProgress } from "../motion/scroll.js";
 import { loadLogoShapes } from "./logo.js";
 import Poster from "./Poster.jsx";
@@ -29,9 +30,6 @@ class SceneBoundary extends Component {
   render() { return this.state.failed ? null : this.props.children; }
 }
 
-const grainsFor = (place) =>
-  place === "band" ? 1600 : place === "aside" ? Math.round(particleBudget() / 3) : particleBudget();
-
 /* The field's size in 64px steps: the scene's pixel budget depends on it,
    and a resize should not re-render the canvas for every pixel. */
 function useBox() {
@@ -54,10 +52,32 @@ function useBox() {
   return [box, attach, el];
 }
 
+/* Where the hero stacks (MQ.heroStack: the copy at the foot of the
+   stage), the room above the copy: the headline's top, in px from the
+   field's top. Measured, as the copy's height depends on the width and
+   the fonts; 0 where the hero doesn't stack. */
+function useRoom(field, on, attached) {
+  const [room, setRoom] = useState(0);
+  useEffect(() => {
+    const f = field.current;
+    const title = on && f ? f.closest("section")?.querySelector(".hero-title") : null;
+    if (!title) {
+      setRoom(0);
+      return undefined;
+    }
+    const measure = () => setRoom(Math.round(title.getBoundingClientRect().top - f.getBoundingClientRect().top));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(f);
+    ro.observe(title.parentElement ?? title);
+    return () => ro.disconnect();
+  }, [field, on, attached]);
+  return room;
+}
+
 /* The mark turns as its hero section scrolls away (tracking the section,
-   not the field: the phone band would turn only while hidden under the
-   topbar). Mounted once the field has been measured, so `field` is
-   attached; the section is resolved before useProgress's own layout
+   not the field). Mounted once the field has been measured, so `field`
+   is attached; the section is resolved before useProgress's own layout
    effect reads it. */
 function Turn({ field, into }) {
   const section = useRef(null);
@@ -75,17 +95,13 @@ function Turn({ field, into }) {
 /*
   The gate in front of the 3D scene, and its API:
 
-    <Field place="hero" | "aside" | "band" active={bool} />
+    <Field active={bool} />
 
-  Every place shows the same scene: as the page opens the grains gather
-  from their rows into six streams of data flowing behind the solid DQ
-  mark, which materialises over them; the mark turns a little as its
-  hero scrolls away.
-  - "hero":  the landing hero — large, owning the right of the stage.
-  - "aside": the Work hero on desktop — far right of the headline.
-  - "band":  the Work hero at ≤ 860px — a ruled strip of reserved height
-             above the headline; lite render path, the poster shown until
-             the scene is ready.
+  The landing hero's scene: as the page opens the grains gather from
+  their rows into six streams of data flowing behind the solid DQ mark,
+  which materialises over them, large on the right of the stage; the
+  mark turns a little as the hero scrolls away. Touch devices take the
+  lite render path.
 
   WebGL2 available: the outline loads, the WebGL chunk loads when the
   page is idle, and the scene fades in. Reduced motion renders the same
@@ -95,7 +111,7 @@ function Turn({ field, into }) {
   the page is visible again, when the browser restores it, or after a
   short wait.
 */
-export function Field({ place = "hero", active = true }) {
+export function Field({ active = true }) {
   // null until probed: the probe creates (and at once releases) a WebGL2
   // context, a synchronous GPU round trip that must not hold up the first
   // paint — so it runs when the page is idle. A yes starts the scene's
@@ -112,13 +128,14 @@ export function Field({ place = "hero", active = true }) {
     return () => cancel(id);
   }, []);
   const still = useReducedMotion();
-  const lite = useMemo(() => isLitePath(place), [place]);
-  const count = useMemo(() => (gl ? grainsFor(place) : 0), [gl, place]);
+  const lite = useMemo(() => isLitePath(), []);
+  const count = useMemo(() => (gl ? particleBudget() : 0), [gl]);
   const [traced, setTraced] = useState(undefined);   // the outline: poster and mark
   const [load, setLoad] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [box, attach, el] = useBox();
+  const room = useRoom(el, useMedia(MQ.heroStack), !!box);
   const markReady = useCallback(() => setReady(true), []);
   const fail = useCallback(() => setFailed(true), []);
   const yaw = useMotionValue(0);
@@ -175,18 +192,17 @@ export function Field({ place = "hero", active = true }) {
     <div
       ref={attach}
       className={poster ? "field poster-mode" : `field gl${ready ? " ready" : ""}`}
-      data-place={place}
       data-lite={lite && !poster ? "" : undefined}
       aria-hidden="true"
     >
-      {outline && (poster || place === "band") && <Poster outline={outline} place={place} />}
+      {outline && poster && <Poster outline={outline} room={room} />}
       {box && <Turn field={el} into={yaw} />}
       {!poster && load && box && (
         <SceneBoundary key={attempt} onFail={fail}>
           <Suspense fallback={null}>
             <HeroScene
-              place={place}
               yaw={yaw}
+              room={room}
               count={count}
               outers={outline ? outline.outers : null}
               still={still}
