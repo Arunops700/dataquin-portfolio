@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { useLocation, useNavigationType } from "react-router-dom";
 import { scrollTo } from "../motion/SmoothScroll.jsx";
-import { prefersReducedMotion } from "../motion/prefs.js";
 import { focusPageStart, focusSection } from "./focus.js";
 
 /* While a page's chunk is on its way the shell stays: an empty, screen-

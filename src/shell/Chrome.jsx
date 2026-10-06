@@ -62,7 +62,7 @@ export function Spotlight() {
     // The light only shows over espresso: on paper it would sit over the
     // ink and pull the faintest text under 4.5:1. The nearest surface
     // decides (a paper blueprint panel inside a dark chapter is paper);
-    // over fixed chrome (topbar, rail) it rests, rather than light the
+    // over fixed chrome (the top bar) it rests, rather than light the
     // paper that may lie under the disc.
     const tone = (t) => surfaceTone(t) === "dark";
     const paint = () => {

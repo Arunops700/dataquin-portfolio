@@ -1,11 +1,7 @@
 /*
-  Constants shared by the placements and the poster (main bundle), the
-  outline generator (Node, scripts/trace-logo.mjs) and the 3D chunk.
-  No three.js import and no browser API at module level: Node imports
-  this file too.
+  Constants shared by the placements and the poster (main bundle) and
+  the 3D chunk. No three.js import, so the main bundle stays three-free.
 */
-export const LOGO_W = 8.8;              // world units across the logo
-export const TAGLINE = [0.585, 0.69];   // image rows holding the tagline (skipped)
 export const CAMERA_Z = 11;
 export const CAMERA_FOV = 45;
 

@@ -70,7 +70,7 @@ em.foil { font-style: italic; }
 /* Tabular figures where the face has them. Fraunces has none, so a
    count-up's width still changes as it ticks: its layouts hold steady
    by other means (fixed figure tracks, or a reserved final width). */
-.met-v, .cred-v { font-variant-numeric: tabular-nums; }
+.cred-v { font-variant-numeric: tabular-nums; }
 
 /* ---------- Shared numeral primitives ---------- */
 /* Ink-in numerals: a pale-foil ghost while still ahead of the reader,

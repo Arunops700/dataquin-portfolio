@@ -13,14 +13,13 @@ export const CONTACT = {
   phoneHref: "tel:+19086720809",
 };
 
-/* The pillars — Kavita's list, every one stays. The one-line
-   descriptors are new copy and should be read by her before launch. */
+/* The pillars — Kavita's list. Each links to the case study that shows
+   it (`cs`, a STUDIES num); an area without one links to the Work page. */
 export const PILLARS = [
-  { t: "Business Analytics", s: "Dashboards and reporting that leadership actually opens — one version of every number." },
-  { t: "Data Science", s: "Forecasts, scoring and anomaly detection built on your own data, not a generic model." },
-  { t: "AI Solutions", s: "Agents and copilots that take real work off the desk: documentation, alerts, weekly reports." },
-  { t: "Automation", s: "Systems that talk to each other, so nobody re-types what a platform already knows." },
-  { t: "Data Migration", s: "Move platforms and consolidate sources without losing a record or a definition." },
+  { t: "Data Science", s: "Forecasts, scoring and anomaly detection built on your own data, not a generic model.", cs: "03" },
+  { t: "AI Solutions", s: "Agents and copilots that take real work off the desk: documentation, alerts, weekly reports.", cs: "06" },
+  { t: "Automation", s: "Systems that talk to each other, so nobody re-types what a platform already knows.", cs: "01" },
+  { t: "Data Migration", s: "Move platforms and consolidate sources without losing a record or a definition.", cs: "05" },
   { t: "Patient Support Services", s: "Patient-facing support programs, run with the same rigor we bring to systems." },
   { t: "Staffing", s: "The right people placed where the work is — analysts, developers, support teams." },
 ];

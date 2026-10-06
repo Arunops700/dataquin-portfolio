@@ -2,9 +2,9 @@
   The DQ logo as the scene uses it, and where things sit on the stage.
   Three-free (main bundle).
 
-  - loadLogoShapes(): the mark's vector outline, precomputed by
-    scripts/trace-logo.mjs (nothing is traced in the browser). The solid
-    mark and the 2D poster both draw it.
+  - loadLogoShapes(): the mark's vector outline, traced once from
+    public/logo.png into logo-outline.json (nothing is traced in the
+    browser). The solid mark and the 2D poster both draw it.
   - logoPlacement() / stageLayout() / POSE: where the mark and the copy
     lane sit, by the shape of the canvas they are seen in.
 */

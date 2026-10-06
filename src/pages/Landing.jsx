@@ -72,6 +72,8 @@ function Hero() {
    SERVICES — every area on one screen, in a hairline-ruled grid (a
    bento layout drawn as a ledger: rules, no boxes). The first area
    takes the large cell; nothing is pinned or driven by the scroll.
+   Each cell is a link: to the case study that shows the area, or to
+   the Work page.
    ============================================================ */
 function Services() {
   const word = countWord(PILLARS.length);
@@ -84,11 +86,21 @@ function Services() {
         <ul className="sv-grid">
           {PILLARS.map((pl, i) => {
             const n = pad2(i + 1);
+            const study = STUDIES.find((s) => s.num === pl.cs);
             return (
               <Reveal as="li" key={pl.t} className={i === 0 ? "sv-cell lg" : "sv-cell"} delay={i % 3}>
                 <span className="sv-num num-ink" data-n={n} aria-hidden="true">{n}</span>
                 <h3 className="sv-t">{pl.t}</h3>
                 <p className="sv-s">{pl.s}</p>
+                <span className="sv-arr arr" aria-hidden="true">→</span>
+                {/* a router link (see the hero's note), laid over the whole
+                    cell; outside the title, whose hover shift would
+                    otherwise shrink it to the title's box */}
+                <Link to={study ? `/work#cs-${study.num}` : "/work"} className="sv-go">
+                  <span className="sr-only">
+                    {pl.t}{study ? `, case study ${study.num}: ${study.title}` : ", see our work"}
+                  </span>
+                </Link>
               </Reveal>
             );
           })}

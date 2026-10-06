@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Reveal, Magnetic, Email } from "../components/fx.jsx";
 import { Chapter } from "../components/work/Chapter.jsx";
@@ -11,11 +11,11 @@ import { MQ } from "../motion/tokens.js";
 import { usePageMeta, PAGE_META } from "../seo.js";
 import "../styles/work.css";
 
-/* The detail page: the stack first, then the problems it solved — the
-   case-study chapters, alternating paper and espresso. One long scroll;
-   orientation comes from the chapters' own sticky numerals on desktops
-   and, at every width, the top bar's island, which shows the section
-   being read. */
+/* The detail page: how we've grown and the stack, then the problems it
+   solved — the case-study chapters, alternating paper and espresso. One
+   long scroll; orientation comes from the chapters' own sticky numerals
+   on desktops and, at every width, the top bar's island, which shows the
+   section being read. */
 
 /* On screen or not, from EVERY observer entry. framer's useInView with
    initial: true drops a first "not intersecting" entry, so a page
@@ -33,10 +33,9 @@ function useOnScreen(ref, rootMargin) {
   return on;
 }
 
-/* The hero, memoised so the rail's active entry doesn't re-render it.
-   Exactly one 3D mark per page: beside the copy above 860px, in a ruled
-   band above the headline below it. */
-const WorkHero = memo(function WorkHero({ heroRef, heroIn, aboveTablet }) {
+/* The hero. Exactly one 3D mark per page: beside the copy above 860px,
+   in a ruled band above the headline below it. */
+function WorkHero({ heroRef, heroIn, aboveTablet }) {
   return (
     <section className="band dark hero-band hero-sub hero-work pad-b" ref={heroRef} data-island="The work"
       data-live={heroIn || undefined}>
@@ -57,7 +56,7 @@ const WorkHero = memo(function WorkHero({ heroRef, heroIn, aboveTablet }) {
       </div>
     </section>
   );
-});
+}
 
 /* The second part opens here: what the chapters below are, and an index
    of them (a gilt spine on phones). No aria-label on the links: their
@@ -100,13 +99,9 @@ export default function Work() {
   return (
     <>
       <WorkHero heroRef={heroRef} heroIn={heroIn} aboveTablet={aboveTablet} />
-
-
-      <div>
-        <Stack />
-        <Problems />
-        {STUDIES.map((s, i) => <Chapter key={s.id} s={s} i={i} />)}
-      </div>
+      <Stack />
+      <Problems />
+      {STUDIES.map((s, i) => <Chapter key={s.id} s={s} i={i} />)}
 
       {/* The close speaks to what the reader has just read: a problem
           like these, and one way to start. Its glow stays still here

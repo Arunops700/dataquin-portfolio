@@ -110,7 +110,7 @@
    Services — a ruled grid, a bento drawn as a ledger
    ============================================================ */
 /* Twelve columns, two rows: the large first cell (6) and two of 3, then
-   four of 3. Each cell rules its own right and bottom edge; the grid's
+   three of 4. Each cell rules its own right and bottom edge; the grid's
    top and left close the frame. */
 .sv-grid {
   list-style: none;
@@ -140,6 +140,19 @@
     background-color var(--dur-fast) ease 0s;
 }
 .sv-cell.lg { grid-column: span 6; }
+.sv-cell:nth-child(n + 4) { grid-column: span 4; }
+/* The cell is a link: a link layer covers all of it, and an arrow in
+   the corner says so. Keyboard focus rings the whole cell. */
+.sv-go { position: absolute; inset: 0; z-index: 1; }
+.sv-go:focus-visible { outline-offset: -2px; border-radius: 0; }
+.sv-arr {
+  position: absolute;
+  top: clamp(18px, 2.8vh, 30px);
+  right: clamp(18px, 2vw, 28px);
+  color: var(--accent);
+  font-size: 1.3rem;
+  line-height: 1;
+}
 /* foil rule along the top edge of the cell under the pointer */
 .sv-cell::before {
   content: "";
@@ -199,7 +212,7 @@
   .sv-cell.lg .sv-num { font-size: clamp(2.4rem, 7vh, 3.6rem); }
   .sv-cell { padding-top: 14px; padding-bottom: 16px; --sv-num-gap: 10px; }
 }
-/* Narrow desktops (861–1080px): the bento's quarter cells are slim, so
+/* Narrow desktops (861–1080px): the bento's smaller cells are slim, so
    their type and padding step down to keep the grid on one screen (the
    contact split's own narrow-desktop rules follow its base rules). */
 @media (min-width: 861px) and (max-width: 1080px) {
@@ -396,7 +409,15 @@
    site-wide) */
 @media (hover: none) {
   .reach a:active { background-color: var(--wash); }
+  .sv-cell:active { background-color: var(--wash); }
+  .sv-cell:active::before { transform: scaleX(1); }
 }
+/* a service cell under keyboard focus looks as it does under the pointer */
+.sv-cell:has(.sv-go:focus-visible) { background-color: var(--wash); }
+.sv-cell:has(.sv-go:focus-visible)::before { transform: scaleX(1); }
+.sv-cell:has(.sv-go:focus-visible) .sv-t,
+.sv-cell:has(.sv-go:focus-visible) .sv-s { transform: translateX(var(--row-shift, 12px)); }
+.sv-cell:has(.sv-go:focus-visible) .sv-arr { transform: translateX(4px); }
 /* Hover where a pointer can really hover: the keyboard-focus looks above */
 @media (hover: hover) {
   .reach a:hover { color: var(--accent); padding-left: var(--row-shift); background-color: var(--wash); }
@@ -404,6 +425,7 @@
   .sv-cell:hover::before { transform: scaleX(1); }
   .sv-cell:hover .sv-t,
   .sv-cell:hover .sv-s { transform: translateX(var(--row-shift, 12px)); }
+  .sv-cell:hover .sv-arr { transform: translateX(4px); }
   .proc-step:hover { background-color: var(--wash); }
 }
 
@@ -431,10 +453,14 @@
   .proc-step[data-in]::before { transform: scaleY(1); }
   .proc-step::after,
   .proc-step:first-child::after { left: -5px; top: 26px; }
-  /* services: two columns, the large cell a full row */
+  /* services: two columns of equal cells, three rows */
   .sv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .sv-cell { grid-column: span 1; }
-  .sv-cell.lg { grid-column: span 2; }
+  .sv-cell,
+  .sv-cell.lg,
+  .sv-cell:nth-child(n + 4) { grid-column: span 1; }
+  .sv-cell.lg .sv-num { font-size: clamp(2rem, 4.6vh, 3rem); }
+  .sv-cell.lg .sv-t { font-size: clamp(1.3rem, 3.2vw, 1.75rem); }
+  .sv-cell.lg .sv-s { font-size: 16px; }
 
 }
 
@@ -453,7 +479,9 @@
   /* one column: every cell a ruled row */
   .sv-grid { grid-template-columns: minmax(0, 1fr); }
   .sv-cell,
-  .sv-cell.lg { grid-column: auto; padding: 22px 20px 24px; --sv-num-gap: 18px; }
+  .sv-cell.lg,
+  .sv-cell:nth-child(n + 4) { grid-column: auto; padding: 22px 20px 24px; --sv-num-gap: 18px; }
+  .sv-arr { top: 22px; right: 20px; }
   .sv-num,
   .sv-cell.lg .sv-num { font-size: 2.2rem; }
   .sv-cell.lg .sv-t { font-size: clamp(1.6rem, 7vw, 2rem); }
@@ -465,6 +493,6 @@
   .stage .cred::before { animation: none; }
   .sv-num, .proc-num { --fill: 1; }
   .proc-step::before { transform: none !important; }
-  .sv-num::after, .sv-cell::before, .sv-t, .sv-s, .proc-num::after, .proc-step::before { transition: none; }
+  .sv-num::after, .sv-cell::before, .sv-t, .sv-s, .sv-arr, .proc-num::after, .proc-step::before { transition: none; }
   .scroll-cue::after { animation: none !important; transform: none; }
 }

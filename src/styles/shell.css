@@ -237,7 +237,7 @@
    ============================================================ */
 /* Opacity only: any transform on the page wrapper, even an identity
    one left by a finished animation, would turn it into the containing
-   block for the fixed contents rail inside it. */
+   block for the fixed layers inside it. */
 .page { animation: pageIn var(--dur-page) var(--ease) both; }
 @keyframes pageIn {
   from { opacity: 0; }

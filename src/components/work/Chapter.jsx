@@ -62,8 +62,8 @@ function FlowStage({ s, verso }) {
   );
 }
 
-/* memo: the page re-renders as the rail's active entry changes; a
-   chapter's props (a STUDIES entry and its index) never do. */
+/* memo: the page re-renders as its hero enters and leaves the screen; a
+   chapter's props (a STUDIES entry and its index) never change. */
 export const Chapter = memo(function Chapter({ s, i }) {
   const gridRef = useRef(null);
   const verso = i % 2 === 1;
